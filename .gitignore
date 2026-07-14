@@ -1,0 +1,36 @@
+# Environment files with secrets
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+venv/
+.venv/
+*.log
+
+# Node
+node_modules/
+dist/
+
+# DB files (local SQLite if any)
+*.db
+*.sqlite
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project specific
+backend/scratch/
+backend/venv/
+frontend/dist/

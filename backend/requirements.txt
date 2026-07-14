@@ -1,0 +1,12 @@
+flask
+flask-cors
+python-dotenv
+google-auth
+PyJWT
+requests
+APScheduler
+razorpay
+gunicorn
+openai
+psycopg2-binary
+SQLAlchemy

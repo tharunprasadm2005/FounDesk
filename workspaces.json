@@ -1,0 +1,61 @@
+﻿[
+  {
+    "active_phase": "fundraising_sprint",
+    "calendar_rules": {
+      "end_hour": 18,
+      "start_hour": 9
+    },
+    "created_at": "2026-06-18T16:10:15.262443",
+    "creator_id": 593,
+    "id": 342,
+    "member_status": "active",
+    "members": [
+      {
+        "created_at": "2026-06-18T16:10:15.271428",
+        "email": "tharunprasadm2005@gmail.com",
+        "id": 402,
+        "role": "founder",
+        "status": "active",
+        "user_id": 593,
+        "user_name": "Tharun Prasad",
+        "workspace_id": 342
+      },
+      {
+        "created_at": "2026-06-22T06:49:17.055166",
+        "email": "prasadtharunm2005@gmail.com",
+        "id": 407,
+        "role": "member",
+        "status": "pending",
+        "user_id": null,
+        "user_name": null,
+        "workspace_id": 342
+      }
+    ],
+    "name": "Tharun's Workspace",
+    "role": "founder",
+    "stage": "Pre-seed"
+  },
+  {
+    "active_phase": null,
+    "calendar_rules": null,
+    "created_at": "2026-06-18T16:10:15.269111",
+    "creator_id": 593,
+    "id": 343,
+    "member_status": "active",
+    "members": [
+      {
+        "created_at": "2026-06-18T16:10:15.282587",
+        "email": "tharunprasadm2005@gmail.com",
+        "id": 403,
+        "role": "founder",
+        "status": "active",
+        "user_id": 593,
+        "user_name": "Tharun Prasad",
+        "workspace_id": 343
+      }
+    ],
+    "name": "Tharun's Workspace",
+    "role": "founder",
+    "stage": "Pre-seed"
+  }
+]

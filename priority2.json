@@ -1,0 +1,29 @@
+﻿{
+  "actions": [
+    {
+      "ref": "314eed500fa8cce0400305a334c760b405f8204dfdec5dc04a5ed79917434af5",
+      "title": "Reply to important email: \"The one thing your work is missing\" from Daniel from Use AI <hello@use.ai>",
+      "type": "email"
+    },
+    {
+      "ref": "781a00c1b6e815b49d406a24a61fadd55981d3d1faee1c99b275bd4a0a5809b9",
+      "title": "Reply to important email: \"Reduce meeting no-shows with less work\" from Calendly <teamcalendly@send.calendly.com>",
+      "type": "email"
+    },
+    {
+      "ref": "78bccb10bf083a62c20e11ec9495109d08603438de664d23cc8a33f28a0f0ad7",
+      "title": "Reply to important email: \"Run all your work from one place\" from \"monday.com\" <team@learn.mail.monday.com>",
+      "type": "email"
+    },
+    {
+      "ref": "299b14de5293ff5077e807d2a8e4984ab59fc6d1afeb7dc11c6471ecdbfddf6a",
+      "title": "Reply to important email: \"Turn chaos into cash flow with your deal pipeline\" from The HubSpot Team <hello@hubspot.com>",
+      "type": "email"
+    },
+    {
+      "ref": "65eb6778b86799bf222325fea7411916f05b2121113fac229d04b14b9e0a1942",
+      "title": "Reply to important email: \"Stop deciding alone\" from Use AI <hello@use.ai>",
+      "type": "email"
+    }
+  ]
+}

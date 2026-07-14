@@ -1,0 +1,293 @@
+import json
+import os
+import re
+import time
+import random
+from openai import OpenAI
+from config.database import db
+from pattern_engine.models import LLMUsageLog, ProviderUsage
+from pattern_engine.model_strategies import get_models_for_strategy
+from datetime import date as _date
+
+
+class LLMQuotaExhausted(RuntimeError):
+    """Raised when all LLM tiers return quota/rate-limit errors.
+    Pipeline code should catch this and re-queue events as pending (not failed)."""
+
+
+_client = None
+_models = None
+
+
+def _get_provider(base_url):
+    if not base_url:
+        return "generic"
+    if "localhost" in base_url or "127.0.0.1" in base_url or "0.0.0.0" in base_url:
+        return "ollama"
+    if "groq.com" in base_url:
+        return "groq"
+    if "openrouter" in base_url:
+        return "openrouter"
+    return "generic"
+
+
+def _create_client(base_url, api_key):
+    headers = {}
+    if "openrouter" in base_url:
+        headers = {
+            "HTTP-Referer": "https://foundesk.app",
+            "X-Title": "FounDesk",
+        }
+    return OpenAI(base_url=base_url, api_key=api_key, default_headers=headers, timeout=180.0)
+
+
+def _ensure_client():
+    global _client, _models
+    if _client is None:
+        _strategy_name = os.environ.get("LLM_ROUTING_STRATEGY", "structured_fast")
+        _models = get_models_for_strategy(_strategy_name)
+
+        # Production: Groq only, never Ollama
+        # qwen_dev/groq_fast: Groq primary with Ollama fallback
+        # Other strategies (structured_fast, cost_minimized, etc.): OpenRouter
+        groq_strategies = {"groq_fast", "qwen_dev", "production"}
+        if _strategy_name in groq_strategies:
+            base_url = "https://api.groq.com/openai/v1"
+            api_key = os.environ.get("OPENAI_API_KEY")
+            if not api_key:
+                base_url = os.environ.get("OPENAI_BASE_URL", "https://openrouter.ai/api/v1")
+                api_key = os.environ.get("OPENAI_API_KEY") or os.environ.get("OPENROUTER_API_KEY")
+        else:
+            base_url = os.environ.get("OPENAI_BASE_URL", "https://openrouter.ai/api/v1")
+            api_key = os.environ.get("OPENAI_API_KEY") or os.environ.get("OPENROUTER_API_KEY")
+
+        if not api_key:
+            raise RuntimeError("OPENAI_API_KEY or OPENROUTER_API_KEY not set")
+        _client = _create_client(base_url, api_key)
+    return _client, _models
+
+
+def _call(client, messages, json_schema, model, temperature=0):
+    url = str(client.base_url)
+    provider = _get_provider(url)
+
+    kwargs = {
+        "model": model,
+        "messages": list(messages),
+        "stream": False,
+        "temperature": temperature,
+    }
+
+    if provider == "ollama":
+        schema_str = json.dumps(json_schema, indent=2)
+        instruction = (
+            "\n\nRespond ONLY with valid JSON matching this schema:\n"
+            f"{schema_str}\n"
+            "Return ONLY the JSON object, no markdown, no explanation."
+        )
+        augmented = list(messages)
+        last = augmented[-1]
+        augmented[-1] = {"role": last["role"], "content": last["content"] + instruction}
+        kwargs["messages"] = augmented
+        kwargs["response_format"] = {"type": "json_object"}
+
+    elif provider == "groq":
+        kwargs["response_format"] = {"type": "json_object"}
+
+    elif provider == "openrouter":
+        kwargs["response_format"] = {
+            "type": "json_schema",
+            "json_schema": {
+                "name": json_schema.get("title", "extracted_data"),
+                "schema": json_schema,
+                "strict": True,
+            },
+        }
+        kwargs["extra_body"] = {"require_parameters": True}
+
+    else:
+        kwargs["response_format"] = {"type": "json_object"}
+
+    api_response = client.chat.completions.create(**kwargs)
+
+    raw = api_response.choices[0].message.content
+    if not raw:
+        raise ValueError("LLM returned empty response")
+    raw = raw.strip()
+    if raw.startswith("```"):
+        raw = re.sub(r"^```(?:json)?\n?", "", raw)
+        raw = re.sub(r"\n?```$", "", raw)
+    return json.loads(raw), api_response
+
+
+def _log_usage(model, response, elapsed_ms, provider=None):
+    try:
+        if response is None:
+            return
+        usage = response.usage if hasattr(response, 'usage') else None
+        if usage:
+            if isinstance(usage, dict):
+                prompt_tokens = usage.get("prompt_tokens", 0) or 0
+                completion_tokens = usage.get("completion_tokens", 0) or 0
+            else:
+                prompt_tokens = getattr(usage, "prompt_tokens", 0) or 0
+                completion_tokens = getattr(usage, "completion_tokens", 0) or 0
+            total = prompt_tokens + completion_tokens
+            log = LLMUsageLog(
+                model=model,
+                prompt_tokens=prompt_tokens,
+                completion_tokens=completion_tokens,
+                total_tokens=total,
+                latency_ms=round(elapsed_ms, 1),
+            )
+            db.session.add(log)
+
+            # Per-provider daily rollup
+            if provider:
+                today = _date.today()
+                pv = ProviderUsage.query.filter_by(provider=provider, date=today).first()
+                if pv:
+                    pv.tokens_used = (pv.tokens_used or 0) + total
+                    pv.requests_count = (pv.requests_count or 0) + 1
+                else:
+                    db.session.add(ProviderUsage(
+                        provider=provider,
+                        date=today,
+                        tokens_used=total,
+                        requests_count=1,
+                    ))
+            db.session.commit()
+    except Exception as e:
+        print(f"LLM usage log failed (non-fatal): {e}")
+
+
+def _is_retryable_error(e):
+    """Return False for 4xx / quota errors (don't retry), True for transient."""
+    msg = str(e).lower()
+    if any(code in msg for code in ["429", "402", "401", "403", "400", "model_not_found", "rate_limit"]):
+        return False
+    return True
+
+
+def _is_rate_limit_error(e):
+    """Return True if the error is specifically about rate limits / quota exhaustion."""
+    msg = str(e).lower()
+    return any(code in msg for code in ["429", "rate_limit", "quota", "exhausted", "daily_limit"])
+
+
+def _retry_with(client, messages, json_schema, model, start, _is_fallback=False, temperature=0):
+    max_attempts = int(os.environ.get("LLM_RETRY_ATTEMPTS", "3"))
+    last_exc = None
+    for attempt in range(max_attempts):
+        try:
+            result, api_response = _call(client, messages, json_schema, model, temperature=temperature)
+            provider = _get_provider(str(client.base_url))
+            _log_usage(model, api_response, (time.time() - start) * 1000, provider=provider)
+            return result
+        except Exception as e:
+            last_exc = e
+            elapsed_ms = (time.time() - start) * 1000
+            if not _is_retryable_error(e):
+                print(f"LLM call failed on {model} ({elapsed_ms:.0f}ms) — non-retryable: {e}")
+                raise
+            if attempt < max_attempts - 1:
+                delay = min(2 ** attempt + random.uniform(0, 1), 30)
+                print(f"LLM call failed on {model} ({elapsed_ms:.0f}ms) — retry {attempt + 1}/{max_attempts} after {delay:.1f}s: {e}")
+                time.sleep(delay)
+    raise last_exc
+
+
+def _fallback_to_groq(messages, json_schema, model, start):
+    groq_key = os.environ.get("OPENAI_API_KEY")
+    if not groq_key:
+        print("No OPENAI_API_KEY for Groq fallback")
+        raise RuntimeError("OPENAI_API_KEY not set")
+    fb_client = _create_client("https://api.groq.com/openai/v1", groq_key)
+    return _retry_with(fb_client, messages, json_schema, model, start, _is_fallback=True)
+
+
+def _fallback_to_openrouter(messages, json_schema, model, start):
+    fallback_key = os.environ.get("OPENROUTER_API_KEY")
+    if not fallback_key:
+        print("No OPENROUTER_API_KEY for fallback")
+        raise RuntimeError("OPENROUTER_API_KEY not set")
+    fb_client = _create_client("https://openrouter.ai/api/v1", fallback_key)
+    return _retry_with(fb_client, messages, json_schema, model, start, _is_fallback=True)
+
+
+def call_llm(messages, json_schema, model=None, temperature=0):
+    """
+    Tiered LLM call with fallback chain.
+    Throughput ceiling (free tiers): Groq ~100K TPD (~3300 events/day at ~30 tokens/event),
+    OpenRouter ~50 free calls/day. Under real usage these can both run dry in a single day.
+    Once that happens, events are re-queued as pending and retried on the next cycle.
+    A paid provider tier (e.g. Groq paid API or dedicated OpenAI) removes this bottleneck.
+    """
+    client, models = _ensure_client()
+    model = model or models["primary"]
+    start = time.time()
+    provider = _get_provider(str(client.base_url))
+    _quota_hit = False
+
+    # Tier 1: Primary (Qwen local via Ollama, or configured primary)
+    try:
+        return _retry_with(client, messages, json_schema, model, start, temperature=temperature)
+    except Exception as e:
+        if _is_rate_limit_error(e):
+            _quota_hit = True
+        pass
+
+    # Tier 2: Secondary — same client (useful when both models share a provider)
+    secondary = models.get("secondary")
+    if secondary and secondary != model:
+        print(f"Tier 2: retrying with secondary model: {secondary}")
+        try:
+            return _retry_with(client, messages, json_schema, secondary, start, temperature=temperature)
+        except Exception as e:
+            if _is_rate_limit_error(e):
+                _quota_hit = True
+            pass
+
+    # Tier 2b: If primary was local (Ollama), fall back to Groq cloud
+    if provider == "ollama":
+        groq_model = os.environ.get("LLM_MODEL_SECONDARY", "llama-3.1-8b-instant")
+        print(f"Tier 2b: Ollama failed, falling back to Groq: {groq_model}")
+        try:
+            return _fallback_to_groq(messages, json_schema, groq_model, start)
+        except Exception as e:
+            if _is_rate_limit_error(e):
+                _quota_hit = True
+            pass
+
+    # Tier 2c: If primary was Groq and NOT production, fall back to local Qwen (Ollama)
+    _strat = os.environ.get("LLM_ROUTING_STRATEGY", "structured_fast")
+    if provider == "groq" and _strat != "production":
+        ollama_key = os.environ.get("OLLAMA_API_KEY", "ollama")
+        ollama_model = os.environ.get("OLLAMA_MODEL", "qwen2.5:7b")
+        print(f"Tier 2c: Groq failed, falling back to Ollama: {ollama_model}")
+        try:
+            fb_client = _create_client("http://localhost:11434/v1", ollama_key)
+            result = _retry_with(fb_client, messages, json_schema, ollama_model, start, temperature=temperature)
+            return result
+        except Exception as e:
+            pass
+
+    # Tier 3: Fallback (OpenRouter free)
+    fb_model = models.get("fallback")
+    if fb_model:
+        print(f"Tier 3: falling back to OpenRouter: {fb_model}")
+        try:
+            return _fallback_to_openrouter(messages, json_schema, fb_model, start)
+        except Exception as e:
+            if _is_rate_limit_error(e):
+                _quota_hit = True
+            pass
+
+    elapsed = (time.time() - start) * 1000
+    if _quota_hit:
+        msg = f"All LLM tiers quota-exhausted after {elapsed:.0f}ms — events re-queued as pending"
+        print(f"[LLM EXHAUSTED] {msg}")
+        from utils.error_logger import log_error
+        log_error(error={"type": "LLM_QUOTA_EXHAUSTED", "message": msg})
+        raise LLMQuotaExhausted(msg)
+    raise RuntimeError(f"All LLM tiers failed after {elapsed:.0f}ms")

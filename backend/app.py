@@ -1,0 +1,303 @@
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+from google.oauth2 import id_token
+from google.auth.transport import requests as grequests
+from models.user import User
+from config.database import db, init_db
+import jwt
+import datetime
+import os
+from dotenv import load_dotenv
+from routes.google_data import google_bp
+from routes.github_data import github_bp
+from routes.monday_data import monday_bp
+from routes.google_docs_data import google_docs_bp
+from routes.trello_data import trello_bp
+from routes.asana_data import asana_bp
+from routes.calendly_data import calendly_bp
+from routes.posthog_data import posthog_bp
+from routes.linear_data import linear_bp
+from routes.mixpanel_data import mixpanel_bp
+from routes.amplitude_data import amplitude_bp
+from routes.tracking import tracking_bp
+from routes.hubspot_data import hubspot_bp
+from routes.pipedrive_data import pipedrive_bp
+from routes.zoho_data import zoho_bp
+from routes.notion_data import notion_bp
+
+load_dotenv()
+
+# Sentry error monitoring (opt-in via SENTRY_DSN env var)
+sentry_dsn = os.environ.get("SENTRY_DSN", "")
+if sentry_dsn:
+    import sentry_sdk
+    sentry_sdk.init(
+        dsn=sentry_dsn,
+        traces_sample_rate=float(os.environ.get("SENTRY_TRACES_RATE", "0.1")),
+        environment=os.environ.get("APP_ENV", "development"),
+    )
+
+app = Flask(__name__)
+CORS(app)
+
+init_db(app)
+
+app.config['SECRET_KEY'] = os.getenv("SECRET_KEY")
+
+from utils.auth import token_required
+from routes.goals import goals_bp
+from routes.integrations import integrations_bp
+from routes.briefing_routes import briefing_bp
+from routes.tasks import tasks_bp
+from routes.decisions import decisions_bp
+from routes.meeting_notes import notes_bp
+from routes.workspaces import workspaces_bp
+from routes.standups import standups_bp
+from routes.notifications import notifications_bp
+from routes.follow_ups import follow_ups_bp
+from routes.calendar_defense import calendar_defense_bp
+from routes.templates import templates_bp
+from routes.memory import memory_bp
+from routes.feed import feed_bp
+from routes.dashboard import dashboard_bp
+from routes.pattern_engine_routes import pattern_engine_bp
+from routes.ai_layer import ai_bp
+from routes.waitlist_routes import waitlist_bp
+from routes.knowledge_routes import knowledge_bp
+
+# Import new models to register with db context
+from models.follow_up import FollowUp
+from models.phase_template import PhaseTemplate, PhaseTemplateGoal, PhaseTemplateTask
+from pattern_engine.models import RawEvent, LLMUsageLog, ProviderUsage, PatternCorrection
+from models.recurring_workflow import RecurringWorkflow
+from models.chronicle_event import ChronicleEvent
+from models.dismissed_calendar_alert import DismissedCalendarAlert
+from models.activity_event import ActivityEvent
+from models.blocker import Blocker
+from models.pinned_item import PinnedItem
+from models.ai_feedback import AiFeedback
+from models.waitlist import Waitlist
+from models.knowledge_item import KnowledgeItem
+from models.notification_preference import NotificationPreference, InAppNotification
+from models.api_key import ApiKey
+from models.error_log import ErrorLog
+
+from routes.auth import auth_bp
+from routes.users import users_bp
+from routes.billing import billing_bp
+from routes.developer import developer_bp
+from routes.team_space import team_space_bp
+
+
+app.register_blueprint(auth_bp, url_prefix='/api')
+app.register_blueprint(users_bp, url_prefix='/api')
+app.register_blueprint(billing_bp, url_prefix='/api')
+app.register_blueprint(developer_bp, url_prefix='/api')
+app.register_blueprint(google_bp, url_prefix='/api')
+app.register_blueprint(github_bp, url_prefix='/api')
+app.register_blueprint(monday_bp, url_prefix='/api')
+app.register_blueprint(google_docs_bp, url_prefix='/api')
+app.register_blueprint(trello_bp, url_prefix='/api')
+app.register_blueprint(asana_bp, url_prefix='/api')
+app.register_blueprint(calendly_bp, url_prefix='/api')
+app.register_blueprint(posthog_bp, url_prefix='/api')
+app.register_blueprint(linear_bp, url_prefix='/api')
+app.register_blueprint(mixpanel_bp, url_prefix='/api')
+app.register_blueprint(amplitude_bp, url_prefix='/api')
+app.register_blueprint(tracking_bp, url_prefix='/api')
+app.register_blueprint(hubspot_bp, url_prefix='/api')
+app.register_blueprint(pipedrive_bp, url_prefix='/api')
+app.register_blueprint(zoho_bp, url_prefix='/api')
+app.register_blueprint(notion_bp, url_prefix='/api')
+app.register_blueprint(goals_bp, url_prefix='/api')
+app.register_blueprint(integrations_bp, url_prefix='/api')
+app.register_blueprint(briefing_bp, url_prefix='/api')
+app.register_blueprint(tasks_bp, url_prefix='/api')
+app.register_blueprint(decisions_bp, url_prefix='/api')
+app.register_blueprint(notes_bp, url_prefix='/api')
+app.register_blueprint(workspaces_bp, url_prefix='/api')
+app.register_blueprint(standups_bp, url_prefix='/api')
+app.register_blueprint(notifications_bp, url_prefix='/api')
+app.register_blueprint(follow_ups_bp, url_prefix='/api')
+app.register_blueprint(calendar_defense_bp, url_prefix='/api')
+app.register_blueprint(templates_bp, url_prefix='/api')
+app.register_blueprint(memory_bp, url_prefix='/api')
+app.register_blueprint(feed_bp, url_prefix='/api')
+app.register_blueprint(dashboard_bp, url_prefix='/api')
+app.register_blueprint(pattern_engine_bp, url_prefix='/api')
+app.register_blueprint(ai_bp, url_prefix='/api')
+app.register_blueprint(waitlist_bp, url_prefix='/api')
+app.register_blueprint(team_space_bp, url_prefix='/api')
+app.register_blueprint(knowledge_bp, url_prefix='/api')
+
+
+@app.route('/auth/google', methods=['POST'])
+def google_auth():
+    data = request.get_json()
+    token = data.get('token')
+
+    try:
+        idinfo = id_token.verify_oauth2_token(
+            token,
+            grequests.Request(),
+            "174203078115-lgbiq9ekbd01sr82us4ulb4nsb0boc3q.apps.googleusercontent.com"
+        )
+
+        google_id = idinfo['sub']
+        email = idinfo['email']
+        name = idinfo['name']
+
+        # Check if user exists by google_id or email
+        user = User.query.filter_by(google_id=google_id).first()
+
+        if not user:
+            existing = User.query.filter_by(email=email).first()
+            if existing:
+                existing.google_id = google_id
+                if not existing.name:
+                    existing.name = name
+                user = existing
+                print("LINKED GOOGLE ACCOUNT TO EXISTING USER")
+            else:
+                user = User(
+                    google_id=google_id,
+                    email=email,
+                    name=name
+                )
+                db.session.add(user)
+                print("NEW USER CREATED")
+            db.session.commit()
+        else:
+            print("USER ALREADY EXISTS")
+
+        # ✅ CREATE JWT TOKEN (BEFORE RETURN)
+        jwt_token = jwt.encode({
+            "user_id": user.id,
+            "email": user.email,
+            "exp": datetime.datetime.utcnow() + datetime.timedelta(days=1)
+        }, app.config['SECRET_KEY'], algorithm="HS256")
+
+        return jsonify({
+            "message": "Login successful",
+            "token": jwt_token,   # ✅ send token
+            "user": {
+                "id": user.id,
+                "email": user.email,
+                "name": user.name
+            }
+        })
+
+    except ValueError as e:
+        print("ERROR:", e)
+        return jsonify({"error": "Invalid token"}), 400
+
+@app.route('/auth/slack', methods=['GET'])
+def slack_auth():
+    user_id = request.args.get('user_id')
+    if not user_id:
+        return jsonify({"error": "user_id is required to connect Slack"}), 400
+        
+    client_id = os.getenv("SLACK_CLIENT_ID")
+    redirect_uri = os.getenv("SLACK_REDIRECT_URI", "http://localhost:5173/settings?callback=slack")
+    from urllib.parse import urlencode
+    
+    url = "https://slack.com/oauth/v2/authorize?" + urlencode({
+        "client_id": client_id,
+        "redirect_uri": redirect_uri,
+        "scope": "channels:read,channels:history,users:read",
+        "state": f"slack_user_{user_id}"
+    })
+    from flask import redirect
+    return redirect(url)
+
+@app.route('/auth/slack/callback', methods=['GET'])
+def slack_auth_callback():
+    code = request.args.get('code')
+    state = request.args.get('state')
+    
+    if not code or not state or not state.startswith("slack_user_"):
+        return jsonify({"error": "Invalid Slack callback parameters"}), 400
+        
+    user_id = int(state.replace("slack_user_", ""))
+    client_id = os.getenv("SLACK_CLIENT_ID")
+    client_secret = os.getenv("SLACK_CLIENT_SECRET")
+    redirect_uri = os.getenv("SLACK_REDIRECT_URI", "http://localhost:5173/settings?callback=slack")
+    
+    import requests
+    res = requests.post("https://slack.com/api/oauth.v2.access", data={
+        "client_id": client_id,
+        "client_secret": client_secret,
+        "code": code,
+        "redirect_uri": redirect_uri
+    }, timeout=15)
+    token_data = res.json()
+    if not token_data.get("ok"):
+        return jsonify({"error": token_data.get("error", "OAuth exchange failed")}), 400
+        
+    access_token = token_data.get("access_token")
+    team_name = token_data.get("team", {}).get("name", "Slack Workspace")
+    
+    from models.user_integration import UserIntegration
+    integration = UserIntegration.query.filter_by(user_id=user_id, provider="slack").first()
+    if not integration:
+        integration = UserIntegration(
+            user_id=user_id,
+            provider="slack",
+            access_token=access_token,
+            connected_email=team_name
+        )
+        db.session.add(integration)
+    else:
+        integration.access_token = access_token
+        integration.connected_email = team_name
+        
+    db.session.commit()
+    
+    from flask import redirect
+    return redirect("http://localhost:5173/settings?status=slack_connected")
+
+@app.route('/dashboard', methods=['GET'])
+@token_required
+def dashboard(current_user_id):
+    user = User.query.get(current_user_id)
+
+    return jsonify({
+        "message": "Welcome to dashboard",
+        "user": {
+            "id": user.id,
+            "email": user.email,
+            "name": user.name
+        }
+    })
+
+# Reload trigger for dotenv: 2026-06-17T18:39
+
+
+@app.route('/api/admin/llm-usage', methods=['GET'])
+def admin_llm_usage():
+    """Debug route returning today's LLM usage per provider."""
+    admin_token = request.headers.get("X-Admin-Token")
+    expected = os.environ.get("ADMIN_API_TOKEN", "")
+    if expected and admin_token != expected:
+        return jsonify({"error": "Unauthorized"}), 401
+    from datetime import date
+    from pattern_engine.models import ProviderUsage
+    records = ProviderUsage.query.filter_by(date=date.today()).all()
+    return jsonify({
+        "date": date.today().isoformat(),
+        "providers": [r.to_dict() for r in records],
+    })
+
+
+if os.environ.get("SKIP_SCHEDULER", "0") != "1":
+    with app.app_context():
+        try:
+            from pattern_engine.scheduler import start_scheduler
+            start_scheduler(app)
+        except Exception as e:
+            print(f"Scheduler init skipped: {e}")
+
+if __name__ == '__main__':
+    port = int(os.environ.get("FLASK_RUN_PORT", 5000))
+    debug = os.environ.get("FLASK_DEBUG", "1") == "1"
+    app.run(debug=debug, port=port)
