@@ -2,6 +2,7 @@ services:
   - type: web
     name: foundesk-backend
     env: docker
+    plan: free
     dockerfilePath: ./backend/Dockerfile
     envVars:
       - key: DATABASE_URL
