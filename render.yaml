@@ -5,13 +5,13 @@ services:
     dockerfilePath: ./backend/Dockerfile
     envVars:
       - key: DATABASE_URL
-        fromDatabase:
-          name: foundesk-db
-          property: connectionString
+        sync: false
       - key: LLM_ROUTING_STRATEGY
         value: production
       - key: APP_ENV
         value: production
+      - key: SKIP_SCHEDULER
+        value: "1"
       - key: LLM_DAILY_LIMIT
         value: "500"
       - key: RAZORPAY_KEY_ID
@@ -32,12 +32,12 @@ services:
         generateValue: true
       - key: ADMIN_API_TOKEN
         generateValue: true
-    healthCheckPath: /api/billing/config
+    healthCheckPath: /api/health
 
-  - type: web
+  - type: static_site
     name: foundesk-frontend
-    env: docker
-    dockerfilePath: ./frontend/Dockerfile
+    buildCommand: cd frontend && npm ci && npm run build
+    publishPath: frontend/dist
     envVars:
       - key: VITE_API_URL
         fromService:
@@ -47,32 +47,3 @@ services:
     buildFilter:
       paths:
         - frontend/**
-    healthCheckPath: /
-
-  - type: worker
-    name: foundesk-scheduler
-    env: docker
-    dockerfilePath: ./backend/Dockerfile
-    command: python worker.py
-    envVars:
-      - key: DATABASE_URL
-        fromDatabase:
-          name: foundesk-db
-          property: connectionString
-      - key: LLM_ROUTING_STRATEGY
-        value: production
-      - key: APP_ENV
-        value: production
-      - key: LLM_DAILY_LIMIT
-        value: "500"
-      - key: OPENAI_API_KEY
-        sync: false
-      - key: OPENROUTER_API_KEY
-        sync: false
-      - key: SECRET_KEY
-        generateValue: true
-
-databases:
-  - name: foundesk-db
-    databaseName: foundesk
-    plan: starter

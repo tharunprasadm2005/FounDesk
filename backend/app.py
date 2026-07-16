@@ -273,9 +273,29 @@ def dashboard(current_user_id):
 # Reload trigger for dotenv: 2026-06-17T18:39
 
 
+@app.route('/api/health', methods=['GET'])
+def health():
+    return jsonify({"status": "ok"})
+
+@app.route('/api/internal/run-pipeline', methods=['POST'])
+def trigger_pipeline():
+    admin_token = request.headers.get("X-Admin-Token")
+    expected = os.environ.get("ADMIN_API_TOKEN", "")
+    if expected and admin_token != expected:
+        return jsonify({"error": "Unauthorized"}), 401
+    from pattern_engine.pipeline import run_all
+    from models.workspace import Workspace
+    results = []
+    for ws in Workspace.query.all():
+        try:
+            run_all(workspace_id=ws.id)
+            results.append({"workspace_id": ws.id, "status": "ok"})
+        except Exception as e:
+            results.append({"workspace_id": ws.id, "status": "error", "error": str(e)})
+    return jsonify({"results": results})
+
 @app.route('/api/admin/llm-usage', methods=['GET'])
 def admin_llm_usage():
-    """Debug route returning today's LLM usage per provider."""
     admin_token = request.headers.get("X-Admin-Token")
     expected = os.environ.get("ADMIN_API_TOKEN", "")
     if expected and admin_token != expected:
