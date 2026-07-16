@@ -29,6 +29,8 @@ def _map_tool_priority(priority_str):
 
 _compile_locks = {}
 _compile_lock = threading.Lock()
+_last_compile_time = {}
+_COMPILE_COOLDOWN_SECONDS = 300
 
 
 
@@ -1069,13 +1071,17 @@ def getAmplitudeData(integration):
     return []
 
 def compile_activity_feed(workspace_id):
+    last = _last_compile_time.get(workspace_id, 0)
+    if time.time() - last < _COMPILE_COOLDOWN_SECONDS:
+        return ActivityEvent.query.filter_by(workspace_id=workspace_id).order_by(ActivityEvent.external_timestamp.desc()).limit(200).all()
     for attempt in range(3):
         try:
-            return _compile_activity_feed_impl(workspace_id)
+            result = _compile_activity_feed_impl(workspace_id)
+            _last_compile_time[workspace_id] = time.time()
+            return result
         except OperationalError as e:
             if "deadlock" in str(e.orig or "").lower():
                 db.session.rollback()
-                import time
                 time.sleep(0.3 * (attempt + 1))
                 continue
             raise
