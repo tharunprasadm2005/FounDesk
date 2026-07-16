@@ -223,7 +223,7 @@ def compile_morning_briefing(user_id):
     if workspace_id:
         try:
             from services.activity_compiler import compile_activity_feed
-            compile_activity_feed(workspace_id)
+            compile_activity_feed(workspace_id, allow_refresh=False)
         except Exception as ex:
             print("Activity feed compile failed in briefing:", ex)
 

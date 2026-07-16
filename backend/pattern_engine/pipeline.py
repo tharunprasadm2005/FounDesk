@@ -227,7 +227,7 @@ def _compile_feed(workspace_id):
     from services.activity_compiler import compile_activity_feed
     for attempt in range(3):
         try:
-            compile_activity_feed(workspace_id)
+            compile_activity_feed(workspace_id, allow_refresh=True)
             return
         except OperationalError as e:
             if "deadlock detected" in str(e.orig or ""):

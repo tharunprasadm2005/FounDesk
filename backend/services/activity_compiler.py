@@ -1070,22 +1070,23 @@ def getMixpanelData(integration):
 def getAmplitudeData(integration):
     return []
 
-def compile_activity_feed(workspace_id):
-    last = _last_compile_time.get(workspace_id, 0)
-    if time.time() - last < _COMPILE_COOLDOWN_SECONDS:
-        return ActivityEvent.query.filter_by(workspace_id=workspace_id).order_by(ActivityEvent.external_timestamp.desc()).limit(200).all()
-    for attempt in range(3):
-        try:
-            result = _compile_activity_feed_impl(workspace_id)
-            _last_compile_time[workspace_id] = time.time()
-            return result
-        except OperationalError as e:
-            if "deadlock" in str(e.orig or "").lower():
-                db.session.rollback()
-                time.sleep(0.3 * (attempt + 1))
-                continue
-            raise
-    return []
+def compile_activity_feed(workspace_id, allow_refresh=False):
+    if allow_refresh:
+        last = _last_compile_time.get(workspace_id, 0)
+        if time.time() - last >= _COMPILE_COOLDOWN_SECONDS:
+            for attempt in range(3):
+                try:
+                    result = _compile_activity_feed_impl(workspace_id)
+                    _last_compile_time[workspace_id] = time.time()
+                    return result
+                except OperationalError as e:
+                    if "deadlock" in str(e.orig or "").lower():
+                        db.session.rollback()
+                        time.sleep(0.3 * (attempt + 1))
+                        continue
+                    raise
+            return []
+    return ActivityEvent.query.filter_by(workspace_id=workspace_id).order_by(ActivityEvent.external_timestamp.desc()).limit(200).all()
 
 
 def _compile_activity_feed_impl(workspace_id):
