@@ -275,6 +275,11 @@ def dashboard(current_user_id):
 
 @app.route('/api/health', methods=['GET'])
 def health():
+    # Auto-create missing tables on first health check
+    try:
+        db.create_all()
+    except Exception:
+        pass
     return jsonify({"status": "ok"})
 
 @app.route('/api/internal/run-pipeline', methods=['POST'])
@@ -310,13 +315,6 @@ def admin_llm_usage():
         "providers": [r.to_dict() for r in records],
     })
 
-
-# Auto-create missing tables on startup
-with app.app_context():
-    try:
-        db.create_all()
-    except Exception:
-        pass
 
 if os.environ.get("SKIP_SCHEDULER", "0") != "1":
     with app.app_context():
