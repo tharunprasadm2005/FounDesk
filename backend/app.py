@@ -311,6 +311,13 @@ def admin_llm_usage():
     })
 
 
+# Auto-create missing tables on startup
+with app.app_context():
+    try:
+        db.create_all()
+    except Exception:
+        pass
+
 if os.environ.get("SKIP_SCHEDULER", "0") != "1":
     with app.app_context():
         try:
