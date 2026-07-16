@@ -34,10 +34,15 @@ services:
         generateValue: true
     healthCheckPath: /api/health
 
-  - type: static_site
+  - type: web
+    runtime: static
     name: foundesk-frontend
     buildCommand: cd frontend && npm ci && npm run build
-    publishPath: frontend/dist
+    staticPublishPath: frontend/dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
     envVars:
       - key: VITE_API_URL
         fromService:
