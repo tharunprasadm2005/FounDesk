@@ -283,16 +283,18 @@ def trigger_pipeline():
     expected = os.environ.get("ADMIN_API_TOKEN", "")
     if expected and admin_token != expected:
         return jsonify({"error": "Unauthorized"}), 401
-    from pattern_engine.pipeline import run_all
-    from models.workspace import Workspace
-    results = []
-    for ws in Workspace.query.all():
-        try:
-            run_all(workspace_id=ws.id)
-            results.append({"workspace_id": ws.id, "status": "ok"})
-        except Exception as e:
-            results.append({"workspace_id": ws.id, "status": "error", "error": str(e)})
-    return jsonify({"results": results})
+    import threading
+    def _run():
+        with app.app_context():
+            from pattern_engine.pipeline import run_all
+            from models.workspace import Workspace
+            for ws in Workspace.query.all():
+                try:
+                    run_all(workspace_id=ws.id)
+                except Exception as e:
+                    print(f"Pipeline error for workspace {ws.id}: {e}")
+    threading.Thread(target=_run, daemon=True).start()
+    return jsonify({"status": "accepted"}), 202
 
 @app.route('/api/admin/llm-usage', methods=['GET'])
 def admin_llm_usage():

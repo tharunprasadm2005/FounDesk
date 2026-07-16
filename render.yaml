@@ -30,9 +30,9 @@ services:
       - key: GOOGLE_INTEGRATION_CLIENT_SECRET
         sync: false
       - key: SECRET_KEY
-        generateValue: true
+        sync: false
       - key: ADMIN_API_TOKEN
-        generateValue: true
+        sync: false
     healthCheckPath: /api/health
 
   - type: web
