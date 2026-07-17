@@ -8,6 +8,7 @@ requests
 APScheduler
 razorpay
 gunicorn
+gevent
 openai
 psycopg2-binary
 SQLAlchemy

@@ -9,4 +9,4 @@ COPY backend/ .
 
 EXPOSE 5000
 
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "1", "--timeout", "300", "--max-requests", "1000", "--max-requests-jitter", "200", "--access-logfile", "-", "--error-logfile", "-", "wsgi:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "1", "--worker-class", "gevent", "--worker-connections", "50", "--timeout", "120", "--max-requests", "1000", "--max-requests-jitter", "200", "--access-logfile", "-", "--error-logfile", "-", "wsgi:app"]
