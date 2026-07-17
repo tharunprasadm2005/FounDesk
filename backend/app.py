@@ -273,6 +273,26 @@ def dashboard(current_user_id):
 # Reload trigger for dotenv: 2026-06-17T18:39
 
 
+@app.route('/api/admin/db-status', methods=['GET'])
+def admin_db_status():
+    admin_token = request.headers.get("X-Admin-Token")
+    expected = os.environ.get("ADMIN_API_TOKEN", "")
+    if expected and admin_token != expected:
+        return jsonify({"error": "Unauthorized"}), 401
+    from sqlalchemy import inspect, text
+    inspector = inspect(db.engine)
+    tables = inspector.get_table_names()
+    result = {}
+    conn = db.engine.connect()
+    for t in sorted(tables):
+        try:
+            count = conn.execute(text(f"SELECT COUNT(*) FROM {t}")).scalar()
+            result[t] = count
+        except Exception:
+            result[t] = -1
+    conn.close()
+    return jsonify({"table_count": len(tables), "rows": result})
+
 @app.route('/api/health', methods=['GET'])
 def health():
     # Auto-create missing tables on first health check
