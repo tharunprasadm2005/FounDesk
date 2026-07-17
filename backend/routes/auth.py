@@ -44,6 +44,7 @@ def signup():
     member = WorkspaceMember(
         workspace_id=workspace.id,
         user_id=user.id,
+        email=email,
         role="owner",
         status="active",
     )

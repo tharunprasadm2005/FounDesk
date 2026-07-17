@@ -160,17 +160,17 @@ const GOOGLE_CLIENT_ID = "174203078115-lgbiq9ekbd01sr82us4ulb4nsb0boc3q.apps.goo
 const REDIRECT_URI = window.location.origin + "/auth/callback";
 
 async function loginUser(email, password) {
-  const res = await api.post("/auth/login", { email, password });
+  const res = await api.post("/api/auth/login", { email, password });
   return res.data;
 }
 
 async function signupUser({ name, email, company, password }) {
-  const res = await api.post("/auth/signup", { name, email, company, password });
+  const res = await api.post("/api/auth/signup", { name, email, company, password });
   return res.data;
 }
 
 async function forgotPassword(email) {
-  const res = await api.post("/auth/forgot-password", { email });
+  const res = await api.post("/api/auth/forgot-password", { email });
   return res.data;
 }
 
