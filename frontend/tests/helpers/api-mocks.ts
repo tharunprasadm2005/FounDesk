@@ -69,7 +69,7 @@ export async function mockAllApi(page: Page) {
     })
   );
 
-  await page.route("**/api/notes*", (route) =>
+  await page.route(/\/api\/notes(\?.*)?$/, (route) =>
     route.fulfill({
       status: 200,
       contentType: "application/json",
@@ -80,7 +80,11 @@ export async function mockAllApi(page: Page) {
     })
   );
 
-  await page.route("**/api/pipeline/*", (route) =>
+  await page.route(/\/api\/notes\//, (route) =>
+    route.fulfill({ status: 200, contentType: "application/json", body: "{}" })
+  );
+
+  await page.route("**/api/pipeline/**", (route) =>
     route.fulfill({
       status: 200,
       contentType: "application/json",
@@ -88,7 +92,11 @@ export async function mockAllApi(page: Page) {
     })
   );
 
-  await page.route("**/api/settings*", (route) =>
+  await page.route("**/api/pattern-engine/**", (route) =>
+    route.fulfill({ status: 200, contentType: "application/json", body: "{}" })
+  );
+
+  await page.route("**/api/settings**", (route) =>
     route.fulfill({
       status: 200,
       contentType: "application/json",
@@ -107,8 +115,16 @@ export async function mockAllApi(page: Page) {
     return route.fulfill({ status: 200, contentType: "application/json", body: "{}" });
   });
 
-  await page.route("**/api/notifications*", (route) =>
-    route.fulfill({
+  await page.route("**/api/notifications**", (route) => {
+    const url = route.request().url();
+    const method = route.request().method();
+    if (url.includes("mark-all-read") || url.includes("read-all")) {
+      return route.fulfill({ status: 200, contentType: "application/json", body: "{}" });
+    }
+    if (url.includes("preferences")) {
+      return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ email: true, push: false, digest: "daily" }) });
+    }
+    return route.fulfill({
       status: 200,
       contentType: "application/json",
       body: JSON.stringify([
@@ -116,8 +132,8 @@ export async function mockAllApi(page: Page) {
         { id: 2, title: "Goal Q2 Revenue updated", read: false, created_at: new Date(Date.now() - 3600000).toISOString() },
         { id: 3, title: "Slack integration synced", read: true, created_at: new Date(Date.now() - 86400000).toISOString() },
       ]),
-    })
-  );
+    });
+  });
 
   await page.route("**/api/integrations*", (route) =>
     route.fulfill({
@@ -140,6 +156,25 @@ export async function mockAllApi(page: Page) {
         { id: 2, name: "Client Projects", role: "member", member_count: 3 },
       ]),
     })
+  );
+
+  await page.route("**/api/developer/**", (route) =>
+    route.fulfill({ status: 200, contentType: "application/json", body: "[]" })
+  );
+
+  await page.route("**/api/users/me/**", (route) => {
+    const url = route.request().url();
+    if (url.includes("sessions")) {
+      return route.fulfill({ status: 200, contentType: "application/json", body: "[]" });
+    }
+    if (url.includes("connected-accounts")) {
+      return route.fulfill({ status: 200, contentType: "application/json", body: "[]" });
+    }
+    return route.fulfill({ status: 200, contentType: "application/json", body: "{}" });
+  });
+
+  await page.route("**/api/workspaces/*/activity", (route) =>
+    route.fulfill({ status: 200, contentType: "application/json", body: "[]" })
   );
 
   await page.route("**/api/amplitude/config", (route) =>

@@ -73,7 +73,8 @@ test.describe("Navigation", () => {
     for (const route of AUTH_REQUIRED_ROUTES) {
       test(`${route} should load successfully when authenticated`, async ({ page }) => {
         await page.goto(route, { waitUntil: "domcontentloaded" });
-        await page.waitForTimeout(2000);
+        await page.locator("body").waitFor({ state: "visible", timeout: 15000 });
+        await page.waitForTimeout(1000);
         expect(page.url()).toContain(route);
       });
     }
