@@ -204,23 +204,26 @@ function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [notifications, setNotifications] = useState([]);
 
-  const fetchDashboard = useCallback(async (isInitial = false) => {
+  const fetchDashboard = useCallback(async (isInitial = false, signal) => {
     try {
       if (isInitial) {
         setLoading(true);
       }
       const [dashRes, notifRes] = await Promise.all([
-        api.get("/api/dashboard"),
-        api.get("/api/notifications"),
+        api.get("/api/dashboard", { signal }),
+        api.get("/api/notifications", { signal }),
       ]);
+      if (signal?.aborted) return;
       setData(dashRes.data);
       const notifData = notifRes.data;
       const alerts = Array.isArray(notifData) ? notifData : (notifData?.alerts || []);
       setNotifications(alerts);
     } catch (err) {
-      console.error("Dashboard fetch error:", err);
+      if (err?.name !== "CanceledError" && err?.name !== "AbortError") {
+        console.error("Dashboard fetch error:", err);
+      }
     } finally {
-      if (isInitial) {
+      if (isInitial && !signal?.aborted) {
         setLoading(false);
       }
     }
@@ -228,9 +231,13 @@ function Dashboard() {
 
   useEffect(() => {
     track("dashboard_viewed");
-    fetchDashboard(true);
-    const interval = setInterval(() => fetchDashboard(false), 60000);
-    return () => clearInterval(interval);
+    const abortController = new AbortController();
+    fetchDashboard(true, abortController.signal);
+    const interval = setInterval(() => fetchDashboard(false, abortController.signal), 60000);
+    return () => {
+      abortController.abort();
+      clearInterval(interval);
+    };
   }, [fetchDashboard]);
 
   // Compute active task count priority breakdown

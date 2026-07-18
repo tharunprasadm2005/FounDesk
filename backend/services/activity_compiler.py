@@ -225,7 +225,9 @@ def getGithubData(integration):
                 "Authorization": f"token {integration.access_token}",
                 "Accept": "application/vnd.github.v3+json"
             }
-            author = integration.connected_email or "tharu"
+            author = integration.connected_email
+            if not author:
+                return []
             github_url = f"https://api.github.com/search/issues?q=author:{author}+is:open+updated:>2026-01-01"
             res = requests.get(github_url, headers=headers, timeout=10)
 

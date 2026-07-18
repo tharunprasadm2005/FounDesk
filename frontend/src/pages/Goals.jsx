@@ -344,7 +344,7 @@ function Goals() {
       const [tRes, wsRes] = await Promise.all([api.get("/api/templates"), api.get("/api/workspaces")]);
       setTemplates(tRes.data);
       if (wsRes.data?.length > 0) setWorkspace(wsRes.data[0]);
-    } catch { }
+    } catch (err) { console.error("[Goals] Failed to fetch templates:", err); }
   }, []);
 
   useEffect(() => { if (activeTab === "phase") fetchTemplates(); }, [activeTab, fetchTemplates]);
@@ -374,7 +374,7 @@ function Goals() {
       setPhaseDetail(null);
       const res = await api.get(`/api/phase/${name}`);
       setPhaseDetail(res.data);
-    } catch { } finally { setPhaseDetailLoading(false); }
+    } catch (err) { console.error("[Goals] Failed to select phase:", err); } finally { setPhaseDetailLoading(false); }
   };
 
   const [completedItems, setCompletedItems] = useState(new Set());
@@ -422,7 +422,7 @@ function Goals() {
       setFuLoading(true);
       const res = await api.get("/api/follow-ups?status=pending");
       setFollowUps(res.data);
-    } catch { } finally { setFuLoading(false); }
+    } catch (err) { console.error("[Goals] Failed to fetch follow-ups:", err); } finally { setFuLoading(false); }
   }, []);
 
   useEffect(() => { if (activeTab === "followups") fetchFollowUps(); }, [activeTab, fetchFollowUps]);

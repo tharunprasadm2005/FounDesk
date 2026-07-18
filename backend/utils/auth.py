@@ -4,15 +4,13 @@ from datetime import datetime, timedelta
 from functools import wraps
 from flask import request, jsonify, current_app
 
+
 def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         token = None
-
-        # 🔑 Get token from header
         if 'Authorization' in request.headers:
             auth_header = request.headers['Authorization']
-            # Support both "Bearer <token>" format and raw token
             if auth_header.startswith("Bearer "):
                 token = auth_header.split(" ")[1]
             else:
@@ -24,16 +22,19 @@ def token_required(f):
         try:
             data = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=["HS256"])
             current_user_id = data['user_id']
+            token_ver = data.get('ver', 0)
             from config.database import db
             from models.user import User
             user = db.session.get(User, current_user_id) if hasattr(db.session, 'get') else User.query.get(current_user_id)
             if not user:
                 return jsonify({"error": "User does not exist or has been deleted"}), 401
+            if user.token_version != token_ver:
+                return jsonify({"error": "Token has been revoked. Please login again."}), 401
+        except jwt.ExpiredSignatureError:
+            return jsonify({"error": "Token has expired. Please refresh."}), 401
         except Exception as e:
-            print("JWT Decode Error Details:", e)
             return jsonify({"error": "Invalid token"}), 401
 
-        # Apply billing gate for non-exempt routes (disabled by default)
         billing_enabled = os.environ.get("BILLING_ENFORCEMENT_ENABLED", "false").lower() == "true"
         if billing_enabled:
             path = request.path
@@ -65,7 +66,6 @@ def token_required(f):
     return decorated
 
 
-# Routes exempt from billing gate (auth, billing pages, webhooks)
 BILLING_EXEMPT_PREFIXES = [
     "/api/billing/webhook", "/api/billing/config", "/api/billing/plan",
     "/api/billing/create-order", "/api/billing/verify",

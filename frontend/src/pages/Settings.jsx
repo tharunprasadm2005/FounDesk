@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Activity, AlertCircle, Archive, ArrowRight, AtSign, Award, Ban, BarChart3, Bell, BellOff, Book,
@@ -109,7 +109,8 @@ function CheckSquare(props) { return <svg {...props} viewBox="0 0 24 24" fill="n
 export default function Settings() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("apps");
-  const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+  let currentUser = {};
+  try { currentUser = JSON.parse(localStorage.getItem("user") || "{}"); } catch (err) { console.error("[Settings] Failed to parse user from localStorage:", err); }
   const s = style;
 
   const [integrations, setIntegrations] = useState([]);
@@ -156,6 +157,7 @@ export default function Settings() {
   const [showKeyPermissions, setShowKeyPermissions] = useState(false);
 
   const TOKEN_PROVIDERS = new Set(["trello", "notion", "hubspot", "mixpanel", "amplitude", "posthog", "razorpay", "stripe"]);
+  const pollTimerRef = useRef(null);
 
   const fetchIntegrations = async () => {
     try {
@@ -163,7 +165,7 @@ export default function Settings() {
       if (res.data && typeof res.data === "object" && !Array.isArray(res.data)) {
         setIntegrations(Object.entries(res.data).map(([provider, info]) => ({ provider, connected: info.connected, email: info.email, is_expired: info.is_expired })));
       } else { setIntegrations(Array.isArray(res.data) ? res.data : []); }
-    } catch {}
+    } catch (err) { console.error("[Settings] Failed to fetch integrations:", err); }
   };
 
   const fetchWorkspaces = async () => {
@@ -176,49 +178,50 @@ export default function Settings() {
       setCurrentWorkspace(ws);
       setTeamMembers(ws?.members?.filter(m => m.status === "active") || []);
       if (ws?.id) fetchWorkspaceActivity(ws.id);
-    } catch {}
+    } catch (err) { console.error("[Settings] Failed to fetch workspaces:", err); }
   };
 
   const fetchWorkspaceActivity = async (wsId) => {
     try {
       const res = await api.get(`/api/workspaces/${wsId}/activity`);
       setWsActivity(Array.isArray(res.data) ? res.data.slice(0, 10) : []);
-    } catch {}
+    } catch (err) { console.error("[Settings] Failed to fetch workspace activity:", err); }
   };
 
   const fetchNotificationPrefs = async () => {
     try {
       const res = await api.get("/api/notifications/preferences");
       setNotificationPrefs(res.data?.preferences || {});
-    } catch {}
+    } catch (err) { console.error("[Settings] Failed to fetch notification preferences:", err); }
   };
 
   const fetchApiKeys = async () => {
     try {
       const res = await api.get("/api/developer/api-keys");
       setApiKeys(Array.isArray(res.data) ? res.data : []);
-    } catch {}
+    } catch (err) { console.error("[Settings] Failed to fetch API keys:", err); }
   };
 
   const fetchBilling = async () => {
     try {
       const res = await api.get("/api/billing/plan");
       setBilling(res.data);
-    } catch {
-      try { const r = await api.get("/api/billing/config"); setBillingConfig(r.data); } catch {}
+    } catch (err) {
+      console.error("[Settings] Failed to fetch billing plan:", err);
+      try { const r = await api.get("/api/billing/config"); setBillingConfig(r.data); } catch (err2) { console.error("[Settings] Failed to fetch billing config:", err2); }
     }
   };
 
   const fetchSessions = async () => {
-    try { const res = await api.get("/api/users/me/sessions"); setSessions(Array.isArray(res.data) ? res.data : []); } catch {}
+    try { const res = await api.get("/api/users/me/sessions"); setSessions(Array.isArray(res.data) ? res.data : []); } catch (err) { console.error("[Settings] Failed to fetch sessions:", err); }
   };
 
   const fetchConnectedAccounts = async () => {
-    try { const res = await api.get("/api/users/me/connected-accounts"); setConnectedAccounts(Array.isArray(res.data) ? res.data : []); } catch {}
+    try { const res = await api.get("/api/users/me/connected-accounts"); setConnectedAccounts(Array.isArray(res.data) ? res.data : []); } catch (err) { console.error("[Settings] Failed to fetch connected accounts:", err); }
   };
 
   const fetchMemberActivity = async (wsId, userId) => {
-    try { const res = await api.get(`/api/workspaces/${wsId}/activity`); setMemberActivity(Array.isArray(res.data) ? res.data.slice(0, 5) : []); } catch {}
+    try { const res = await api.get(`/api/workspaces/${wsId}/activity`); setMemberActivity(Array.isArray(res.data) ? res.data.slice(0, 5) : []); } catch (err) { console.error("[Settings] Failed to fetch member activity:", err); }
   };
 
   useEffect(() => {
@@ -234,9 +237,9 @@ export default function Settings() {
     if (callback && code) {
       api.post("/api/integrations/oauth/callback", { provider: callback, code })
         .then(() => {
-          if (window.opener) { try { window.opener.postMessage("oauth_done", window.location.origin); } catch {} }
-          try { localStorage.setItem("oauth_done", JSON.stringify({ provider: callback, ts: Date.now() })); } catch {}
-          try { window.close(); } catch {}
+          if (window.opener) { try { window.opener.postMessage("oauth_done", window.location.origin); } catch (err) { console.error("[Settings] OAuth postMessage failed:", err); } }
+          try { localStorage.setItem("oauth_done", JSON.stringify({ provider: callback, ts: Date.now() })); } catch (err) { console.error("[Settings] Failed to save oauth_done to localStorage:", err); }
+          try { window.close(); } catch (err) { console.error("[Settings] Failed to close popup window:", err); }
           if (!window.opener) fetchIntegrations();
         }).catch((err) => {
           const msg = err?.response?.data?.error || err?.message || "OAuth failed";
@@ -246,7 +249,10 @@ export default function Settings() {
     }
     const handleOAuth = (e) => { if (e.data === "oauth_done") fetchIntegrations(); };
     window.addEventListener("message", handleOAuth);
-    return () => window.removeEventListener("message", handleOAuth);
+    return () => {
+      window.removeEventListener("message", handleOAuth);
+      if (pollTimerRef.current) { clearInterval(pollTimerRef.current); pollTimerRef.current = null; }
+    };
   }, []);
 
   const handleConnect = async (provider) => {
@@ -258,14 +264,14 @@ export default function Settings() {
     }
     const popup = window.open("", "_blank", "width=600,height=700");
     if (!popup) { alert("Popup blocked. Please allow popups for this site and try again."); return; }
-    const pollTimer = setInterval(() => { if (popup.closed) { clearInterval(pollTimer); fetchIntegrations(); } }, 500);
-    setTimeout(() => clearInterval(pollTimer), 120000);
+    pollTimerRef.current = setInterval(() => { if (popup.closed) { clearInterval(pollTimerRef.current); pollTimerRef.current = null; fetchIntegrations(); } }, 500);
+    setTimeout(() => { if (pollTimerRef.current) { clearInterval(pollTimerRef.current); pollTimerRef.current = null; } }, 120000);
     popup.document.write("<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><title>Redirecting...</title><style>body{background:#121214;color:#e8e4e0;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0}</style></head><body><p>Connecting...</p></body></html>");
     try {
       const res = await api.post("/api/integrations/oauth/url", { provider });
       if (res.data?.url) popup.location.href = res.data.url; else popup.close();
     } catch (err) {
-      clearInterval(pollTimer); popup.close();
+      if (pollTimerRef.current) { clearInterval(pollTimerRef.current); pollTimerRef.current = null; } popup.close();
       if (err?.response?.status === 400) {
         const msg = err.response?.data?.error || "";
         if (msg.includes("not supported") || msg.includes("not configured")) alert(`"${provider}" OAuth is not yet configured on the server.`);
@@ -286,7 +292,7 @@ export default function Settings() {
   };
 
   const handleDisconnect = async (provider) => {
-    try { const res = await api.delete(`/api/integrations/${provider}`); if (res.status === 200) fetchIntegrations(); } catch {}
+    try { const res = await api.delete(`/api/integrations/${provider}`); if (res.status === 200) fetchIntegrations(); } catch (err) { console.error("[Settings] Failed to disconnect integration:", err); }
   };
 
   const handleCreateWorkspace = async (e) => {

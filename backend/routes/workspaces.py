@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
 from datetime import datetime
+import os
 from config.database import db
 from models.workspace import Workspace
 from models.workspace_member import WorkspaceMember
@@ -27,9 +28,21 @@ def get_workspaces(current_user_id):
         ws_dict['role'] = m.role
         ws_dict['member_status'] = m.status
         
-        # Include all other workspace memberships
         all_members = WorkspaceMember.query.filter_by(workspace_id=ws.id).all()
-        ws_dict['members'] = [mem.to_dict() for mem in all_members]
+        is_owner = m.role in ("owner", "founder", "admin")
+        ws_dict['members'] = [
+            {
+                "id": mem.id,
+                "user_id": mem.user_id,
+                "role": mem.role,
+                "status": mem.status,
+                "title": mem.title,
+                "email": mem.email if is_owner else None,
+                "user_name": mem.user.name if mem.user else None,
+                "created_at": (mem.created_at.isoformat() + "Z") if mem.created_at else None,
+            }
+            for mem in all_members
+        ]
         result.append(ws_dict)
     return jsonify(result)
 
@@ -220,7 +233,8 @@ def invite_member(current_user_id, workspace_id):
         from utils.email import send_invite_email
         inviter = User.query.get(current_user_id)
         inviter_name = inviter.name if inviter else "A team member"
-        link = f"https://foundesk.app/settings?invite={new_invite.id}"
+        frontend_url = os.getenv("FRONTEND_URL", "https://foundesk.onrender.com")
+        link = f"{frontend_url}/settings?invite={new_invite.id}"
         send_invite_email(email, inviter_name, ws.name, role, link)
     except Exception as e:
         print(f"Failed to send invite email: {e}")

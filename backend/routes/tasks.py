@@ -95,7 +95,7 @@ def create_task(current_user_id):
     # Save many-to-many related tasks link
     linked_task_ids = data.get('linked_task_ids', [])
     if linked_task_ids:
-        related = Task.query.filter(Task.id.in_(linked_task_ids)).all()
+        related = Task.query.filter(Task.id.in_(linked_task_ids), Task.workspace_id == workspace_id).all()
         task.related_tasks.extend(related)
         
     db.session.add(task)
@@ -187,7 +187,7 @@ def update_task(current_user_id, task_id):
         task.related_tasks = []
         linked_ids = data['linked_task_ids']
         if linked_ids:
-            related = Task.query.filter(Task.id.in_(linked_ids)).all()
+            related = Task.query.filter(Task.id.in_(linked_ids), Task.workspace_id == workspace_id).all()
             task.related_tasks.extend(related)
             
     # Touch updated_at time

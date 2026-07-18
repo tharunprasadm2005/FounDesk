@@ -413,7 +413,8 @@ def compile_morning_briefing(user_id):
                     "Authorization": f"token {integration.access_token}",
                     "Accept": "application/vnd.github.v3+json"
                 }
-                pr_res = requests.get("https://api.github.com/search/issues?q=is:pr+is:open+author:tharu", headers=headers, timeout=5)
+                github_login = integration.connected_email or ""
+                pr_res = requests.get(f"https://api.github.com/search/issues?q=is:pr+is:open+author:{github_login}", headers=headers, timeout=5)
                 if pr_res.status_code == 200:
                     items = pr_res.json().get('items', [])
                     for item in items:

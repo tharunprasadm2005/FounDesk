@@ -84,14 +84,15 @@ def update_user_profile(current_user_id):
 
     data = request.get_json()
     allowed = ["name", "email", "timezone", "locale", "theme", "date_format", "week_start_day", "avatar_url"]
-    for field in allowed:
-        if field in data:
-            setattr(user, field, data[field])
 
     if 'email' in data and data['email'] != user.email:
         existing = User.query.filter_by(email=data['email']).first()
         if existing:
             return jsonify({"error": "Email already in use"}), 400
+
+    for field in allowed:
+        if field in data:
+            setattr(user, field, data[field])
 
     db.session.commit()
     return jsonify({**user.to_dict(), "message": "Profile updated"})
@@ -122,9 +123,20 @@ def change_password(current_user_id):
     data = request.get_json() or {}
     current_pw = data.get("current_password", "")
     new_pw = data.get("new_password", "")
-    if len(new_pw) < 6:
-        return jsonify({"error": "Password must be at least 6 characters"}), 400
-    if user.password_hash and not user.check_password(current_pw):
+    if len(new_pw) < 12:
+        return jsonify({"error": "Password must be at least 12 characters"}), 400
+    import re
+    if not re.search(r'[A-Z]', new_pw):
+        return jsonify({"error": "Password must contain an uppercase letter"}), 400
+    if not re.search(r'[a-z]', new_pw):
+        return jsonify({"error": "Password must contain a lowercase letter"}), 400
+    if not re.search(r'[0-9]', new_pw):
+        return jsonify({"error": "Password must contain a digit"}), 400
+    if not re.search(r'[^a-zA-Z0-9]', new_pw):
+        return jsonify({"error": "Password must contain a special character"}), 400
+    if not user.password_hash:
+        return jsonify({"error": "Set up a password by using the forgot-password flow"}), 400
+    if not user.check_password(current_pw):
         return jsonify({"error": "Current password is incorrect"}), 400
     user.set_password(new_pw)
     db.session.commit()
@@ -142,7 +154,7 @@ def generate_2fa(current_user_id):
     secret = base64.b32encode(secrets.token_bytes(10)).decode()
     user.totp_secret = secret
     db.session.commit()
-    return jsonify({"secret": secret, "qr_uri": f"otpauth://totp/FounDesk:{user.email}?secret={secret}&issuer=FounDesk"})
+    return jsonify({"message": "2FA secret generated. Use /users/me/2fa/verify to activate."})
 
 
 @users_bp.route('/users/me/2fa/verify', methods=['POST'])
@@ -188,22 +200,7 @@ def disable_2fa(current_user_id):
 @users_bp.route('/users/me/sessions', methods=['GET'])
 @token_required
 def get_sessions(current_user_id):
-    memberships = WorkspaceMember.query.filter_by(user_id=current_user_id, status="active").all()
-    return jsonify({
-        "sessions": [
-            {"id": i + 1, "device": "Chrome on Windows", "ip": "127.0.0.1",
-             "location": "Chennai, India", "workspace": m.workspace.name if m.workspace else "Unknown",
-             "last_active": m.created_at.isoformat() + "Z", "is_current": i == 0,
-             "created_at": m.created_at.isoformat() + "Z"}
-            for i, m in enumerate(memberships)
-        ]
-    })
-
-
-@users_bp.route('/users/me/sessions/<int:session_id>', methods=['DELETE'])
-@token_required
-def revoke_session(current_user_id, session_id):
-    return jsonify({"message": "Session revoked"})
+    return jsonify({"sessions": []})
 
 
 # ─── Connected Accounts ───────────────────────

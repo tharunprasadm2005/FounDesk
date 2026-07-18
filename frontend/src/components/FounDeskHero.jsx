@@ -11,25 +11,31 @@ import Logo from "./Logo";
 const navItems = [
   { name: "Platform", href: "#features" },
   { name: "Workflow", href: "#howitworks" },
-  { name: "Testimonials", href: "#testimonials" },
 ];
 
-const integrations = ["GitHub", "Linear", "Slack", "Notion", "Figma", "Vercel"];
+const integrations = ["Gmail", "Slack", "Google Calendar", "HubSpot", "Pipedrive", "Linear", "Trello", "Asana", "Monday.com"];
 
 const integrationItems = [
   {
-    id: "github",
-    title: "GitHub Sync",
-    description: "founc-web / commit main → merged",
-    tag: "GITHUB",
-    imageSrc: "https://images.unsplash.com/photo-1607799279861-4dd421887fb3?auto=format&fit=crop&w=600&q=80",
+    id: "gmail",
+    title: "Gmail Extraction",
+    description: "New email → action item extracted",
+    tag: "GMAIL",
+    imageSrc: "https://images.unsplash.com/photo-1596524430615-b46475ddff6e?auto=format&fit=crop&w=600&q=80",
   },
   {
-    id: "vercel",
-    title: "Vercel Deployments",
-    description: "deploy-success · prod · 12s build",
-    tag: "VERCEL",
-    imageSrc: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=600&q=80",
+    id: "slack",
+    title: "Slack Standups",
+    description: "Standup logged → 2 targets extracted",
+    tag: "SLACK",
+    imageSrc: "https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=600&q=80",
+  },
+  {
+    id: "calendar",
+    title: "Calendar Defense",
+    description: "Double booking → conflict auto-resolved",
+    tag: "CALENDAR",
+    imageSrc: "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?auto=format&fit=crop&w=600&q=80",
   },
   {
     id: "linear",
@@ -39,18 +45,11 @@ const integrationItems = [
     imageSrc: "https://images.unsplash.com/photo-1531403009284-440f080d1e12?auto=format&fit=crop&w=600&q=80",
   },
   {
-    id: "slack",
-    title: "Slack Standups",
-    description: "standup logged → 2 targets extracted",
-    tag: "SLACK",
-    imageSrc: "https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=600&q=80",
-  },
-  {
-    id: "notion",
-    title: "Notion Workspace",
-    description: "Q3 roadmap doc → synced",
-    tag: "NOTION",
-    imageSrc: "https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?auto=format&fit=crop&w=600&q=80",
+    id: "hubspot",
+    title: "HubSpot / Pipedrive",
+    description: "Deal closed → billing setup tasked",
+    tag: "CRM",
+    imageSrc: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=600&q=80",
   },
 ];
 
@@ -219,7 +218,7 @@ export function FounDeskHeroSection({ onLaunch }) {
           </span>
         </h1>
         <p className="mt-6 max-w-[480px] font-sans text-base md:text-lg leading-relaxed text-[var(--graphite)] animate-reveal-desc">
-          FounDesk pulls GitHub commits, Linear backlogs, Slack updates, and calendar defense into a single execution layer. Track goals and crypto-signed decisions automatically.
+          FounDesk pulls decision requests, goals, and tasks automatically from Gmail, Slack, Google Calendar, HubSpot, Pipedrive, Linear, Trello, Asana, and Monday.com into one cohesive founder dashboard.
         </p>
 
         <div className="mt-8 flex flex-col items-start gap-5 sm:flex-row sm:items-center animate-reveal-ctas">
@@ -227,7 +226,7 @@ export function FounDeskHeroSection({ onLaunch }) {
             onClick={onLaunch}
             className="border-none cursor-pointer cta-button px-8 py-3.5 text-xs font-bold uppercase tracking-wider shadow-md"
           >
-            Start Tracking Decisions
+            Get Started
           </button>
         </div>
       </div>

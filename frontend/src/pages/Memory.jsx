@@ -182,8 +182,8 @@ function Memory() {
   useEffect(() => {
     track("page_viewed", { page: "memory" });
     fetchMemoryData();
-    api.post("/api/notes/auto-process").catch(() => { });
-    api.post("/api/pattern-engine/run-all").catch(() => { });
+    api.post("/api/notes/auto-process").catch(err => console.error("[Memory] Auto-process notes failed:", err));
+    api.post("/api/pattern-engine/run-all").catch(err => console.error("[Memory] Pattern engine run-all failed:", err));
   }, []);
 
   useEffect(() => {

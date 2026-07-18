@@ -1,6 +1,10 @@
 import axios from "axios";
 
-export const API_BASE_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:5000";
+const FALLBACK_URL = "http://127.0.0.1:5000";
+const ENV_URL = import.meta.env.VITE_API_URL;
+const SAME_ORIGIN = "";
+
+export const API_BASE_URL = ENV_URL && ENV_URL !== FALLBACK_URL ? ENV_URL : SAME_ORIGIN;
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -28,7 +32,8 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response && error.response.status === 401) {
+    const isAuthRequest = error.config && error.config.url && (error.config.url.includes("/auth/login") || error.config.url.includes("/auth/signup"));
+    if (error.response && error.response.status === 401 && !isAuthRequest) {
       console.warn("Unauthorized request detected (401). Clearing token and logging out.");
       localStorage.removeItem("token");
       localStorage.removeItem("user");

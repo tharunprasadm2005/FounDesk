@@ -1,9 +1,11 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from flask_wtf.csrf import CSRFProtect
 from google.oauth2 import id_token
 from google.auth.transport import requests as grequests
 from models.user import User
 from config.database import db, init_db
+from utils.rate_limit import limiter
 import jwt
 import datetime
 import os
@@ -38,11 +40,24 @@ if sentry_dsn:
     )
 
 app = Flask(__name__)
-CORS(app)
-
-init_db(app)
+FRONTEND_URL = os.getenv("FRONTEND_URL", "https://foundesk.onrender.com")
+app_env = os.getenv("APP_ENV", "development")
+if app_env == "production":
+    CORS(app, origins=[FRONTEND_URL], supports_credentials=True)
+else:
+    CORS(app, origins=[FRONTEND_URL, "http://localhost:5173", "http://127.0.0.1:5173"], supports_credentials=True)
 
 app.config['SECRET_KEY'] = os.getenv("SECRET_KEY")
+if not app.config['SECRET_KEY']:
+    raise RuntimeError("SECRET_KEY environment variable is required")
+app.config['WTF_CSRF_CHECK_DEFAULT'] = False
+app.config['WTF_CSRF_TIME_LIMIT'] = 3600
+
+init_db(app)
+csrf = CSRFProtect(app)
+csrf.exempt("/api/billing/webhook")
+csrf.exempt("/api/health")
+limiter.init_app(app)
 
 from utils.auth import token_required
 from routes.goals import goals_bp
@@ -83,6 +98,7 @@ from models.api_key import ApiKey
 from models.error_log import ErrorLog
 
 from routes.auth import auth_bp
+from models.refresh_token import RefreshToken
 from routes.users import users_bp
 from routes.billing import billing_bp
 from routes.developer import developer_bp
@@ -137,10 +153,11 @@ def google_auth():
     token = data.get('token')
 
     try:
+        google_client_id = os.getenv("GOOGLE_INTEGRATION_CLIENT_ID", "174203078115-lgbiq9ekbd01sr82us4ulb4nsb0boc3q.apps.googleusercontent.com")
         idinfo = id_token.verify_oauth2_token(
             token,
             grequests.Request(),
-            "174203078115-lgbiq9ekbd01sr82us4ulb4nsb0boc3q.apps.googleusercontent.com"
+            google_client_id
         )
 
         google_id = idinfo['sub']
@@ -198,7 +215,7 @@ def slack_auth():
         return jsonify({"error": "user_id is required to connect Slack"}), 400
         
     client_id = os.getenv("SLACK_CLIENT_ID")
-    redirect_uri = os.getenv("SLACK_REDIRECT_URI", "http://localhost:5173/settings?callback=slack")
+    redirect_uri = os.getenv("SLACK_REDIRECT_URI", f"{FRONTEND_URL}/settings?callback=slack")
     from urllib.parse import urlencode
     
     url = "https://slack.com/oauth/v2/authorize?" + urlencode({
@@ -221,7 +238,7 @@ def slack_auth_callback():
     user_id = int(state.replace("slack_user_", ""))
     client_id = os.getenv("SLACK_CLIENT_ID")
     client_secret = os.getenv("SLACK_CLIENT_SECRET")
-    redirect_uri = os.getenv("SLACK_REDIRECT_URI", "http://localhost:5173/settings?callback=slack")
+    redirect_uri = os.getenv("SLACK_REDIRECT_URI", f"{FRONTEND_URL}/settings?callback=slack")
     
     import requests
     res = requests.post("https://slack.com/api/oauth.v2.access", data={
@@ -254,7 +271,8 @@ def slack_auth_callback():
     db.session.commit()
     
     from flask import redirect
-    return redirect("http://localhost:5173/settings?status=slack_connected")
+    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
+    return redirect(f"{frontend_url}/settings?status=slack_connected")
 
 @app.route('/dashboard', methods=['GET'])
 @token_required
@@ -295,11 +313,6 @@ def admin_db_status():
 
 @app.route('/api/health', methods=['GET'])
 def health():
-    # Auto-create missing tables on first health check
-    try:
-        db.create_all()
-    except Exception:
-        pass
     return jsonify({"status": "ok"})
 
 @app.route('/api/internal/run-pipeline', methods=['POST'])

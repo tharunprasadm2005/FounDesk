@@ -294,7 +294,7 @@ function Sidebar() {
                     <button
                       className="notif-markall"
                       onClick={async () => {
-                        try { await api.post("/api/notifications/mark-all-read"); } catch {}
+                        try { await api.post("/api/notifications/mark-all-read"); } catch (err) { console.error("[Sidebar] Failed to mark all notifications as read:", err); }}
                         setNotifications([]);
                         setUnreadCount(0);
                       }}

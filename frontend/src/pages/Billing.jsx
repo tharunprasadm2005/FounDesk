@@ -14,15 +14,16 @@ export default function Billing() {
     fetch("/api/billing/config")
       .then((r) => r.json())
       .then(setConfig)
-      .catch(() => {});
+      .catch((err) => console.error("[Billing] Failed to fetch billing config:", err));
     fetch("/api/billing/plan", { headers: { Authorization: "Bearer " + (localStorage.getItem("token") || "") } })
       .then((r) => r.json())
       .then((d) => { setPlan(d); setLoading(false); })
-      .catch(() => setLoading(false));
+      .catch((err) => { console.error("[Billing] Failed to fetch billing plan:", err); setLoading(false); });
 
     const s = document.createElement("script");
     s.src = RAZORPAY_SCRIPT;
     s.onload = () => setRazorpayLoaded(true);
+    s.onerror = () => console.error("[Billing] Failed to load Razorpay script");
     document.body.appendChild(s);
     return () => { if (s.parentNode) s.parentNode.removeChild(s); };
   }, []);

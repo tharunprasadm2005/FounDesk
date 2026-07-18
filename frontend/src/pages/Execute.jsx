@@ -381,10 +381,13 @@ function Execute() {
     const grouped = {};
     KANBAN_COLUMNS.forEach(c => { grouped[c.key] = []; });
     filteredTasks.forEach(t => {
+      if (t.is_blocked) {
+        grouped["Blocked"].push(t);
+        return;
+      }
       const st = t.status || "Not Started";
       if (grouped[st]) grouped[st].push(t);
       else grouped["Not Started"].push(t);
-      if (t.is_blocked) grouped["Blocked"].push(t);
     });
 
     return (

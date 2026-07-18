@@ -148,18 +148,24 @@ def get_onboarding_packet(current_user_id):
     user_name = new_user.name or ""
     relevant_decisions = []
     for d in decisions:
-        # match if name in attendees, or created by, or if decision contains keywords from their role
         is_relevant = (d.created_by == new_user_id) or (user_name.lower() in (d.attendees or "").lower())
-        if is_relevant or len(relevant_decisions) < 5:
+        if is_relevant:
             relevant_decisions.append(d)
+            if len(relevant_decisions) >= 5:
+                break
+    if not relevant_decisions and decisions:
+        relevant_decisions = decisions[:5]
     
-    # 3. Fetch meetings where their name is in attendees
     meetings = MeetingNotes.query.filter_by(workspace_id=workspace_id).order_by(MeetingNotes.date.desc()).all()
     relevant_meetings = []
     for m in meetings:
         is_relevant = (m.created_by == new_user_id) or (user_name.lower() in (m.attendees or "").lower())
-        if is_relevant or len(relevant_meetings) < 5:
+        if is_relevant:
             relevant_meetings.append(m)
+            if len(relevant_meetings) >= 5:
+                break
+    if not relevant_meetings and meetings:
+        relevant_meetings = meetings[:5]
 
     # 4. Fetch failed goals/lessons context
     failed_goals = Goal.query.filter_by(workspace_id=workspace_id, status="failed").limit(3).all()

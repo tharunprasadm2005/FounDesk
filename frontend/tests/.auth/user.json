@@ -1,0 +1,26 @@
+{
+  "cookies": [],
+  "origins": [
+    {
+      "origin": "https://foundesk.onrender.com",
+      "localStorage": [
+        {
+          "name": "token",
+          "value": "e2e-test-mock-token-for-playwright"
+        },
+        {
+          "name": "sidebar_collapsed",
+          "value": "false"
+        },
+        {
+          "name": "user",
+          "value": "{\"id\":9999,\"name\":\"E2E Test User\",\"email\":\"e2e-test@foundesk-test.com\",\"picture\":\"https://ui-avatars.com/api/?name=E2E+Test+User\"}"
+        },
+        {
+          "name": "workspaceId",
+          "value": "1"
+        }
+      ]
+    }
+  ]
+}

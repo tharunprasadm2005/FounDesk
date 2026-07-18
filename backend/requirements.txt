@@ -1,6 +1,8 @@
 flask
 flask-sqlalchemy
 flask-cors
+flask-limiter
+flask-wtf
 python-dotenv
 google-auth
 PyJWT
@@ -12,3 +14,6 @@ gevent
 openai
 psycopg2-binary
 SQLAlchemy
+bcrypt
+cryptography
+alembic

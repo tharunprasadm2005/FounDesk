@@ -1,6 +1,6 @@
 from config.database import db
 from datetime import datetime
-import hashlib, secrets
+import bcrypt
 
 class User(db.Model):
     __tablename__ = "users"
@@ -20,17 +20,18 @@ class User(db.Model):
     avatar_url = db.Column(db.String(500), nullable=True)
     password_reset_token = db.Column(db.String(200), nullable=True)
     password_reset_expires = db.Column(db.DateTime, nullable=True)
+    email_verified = db.Column(db.Boolean, default=False, nullable=False)
+    email_verify_token = db.Column(db.String(200), nullable=True)
+    token_version = db.Column(db.Integer, default=0, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
     def set_password(self, password):
-        salt = secrets.token_hex(16)
-        self.password_hash = salt + ":" + hashlib.sha256((salt + password).encode()).hexdigest()
+        self.password_hash = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
 
     def check_password(self, password):
-        if not self.password_hash or ":" not in self.password_hash:
+        if not self.password_hash:
             return False
-        salt, hsh = self.password_hash.split(":", 1)
-        return hsh == hashlib.sha256((salt + password).encode()).hexdigest()
+        return bcrypt.checkpw(password.encode(), self.password_hash.encode())
 
     def to_dict(self):
         return {

@@ -117,7 +117,7 @@ def verify_payment(current_user_id):
         hashlib.sha256
     ).hexdigest()
 
-    if expected != signature:
+    if not hmac.compare_digest(expected, signature):
         return jsonify({"error": "Payment verification failed"}), 400
 
     memberships = WorkspaceMember.query.filter_by(user_id=current_user_id, status="active").all()
@@ -151,26 +151,29 @@ def razorpay_webhook():
     event_type = event.get("event", "")
     payload = event.get("payload", {})
 
-    if event_type == "payment.failed":
-        payment = payload.get("payment", {}).get("entity", {})
-        notes = payment.get("notes", {})
+    def _get_workspace_from_notes(notes):
         ws_id = notes.get("workspace_id")
         if ws_id:
-            workspace = Workspace.query.get(int(ws_id))
-            if workspace:
-                workspace.subscription_status = "past_due"
-                db.session.commit()
-                print(f"[BILLING] Payment failed for workspace {ws_id} → past_due")
+            try:
+                return Workspace.query.get(int(ws_id))
+            except (ValueError, TypeError):
+                return None
+        return None
+
+    if event_type == "payment.failed":
+        payment = payload.get("payment", {}).get("entity", {})
+        workspace = _get_workspace_from_notes(payment.get("notes", {}))
+        if workspace:
+            workspace.subscription_status = "past_due"
+            db.session.commit()
+            print(f"[BILLING] Payment failed for workspace {workspace.id} → past_due")
 
     elif event_type == "subscription.cancelled":
         subscription = payload.get("subscription", {}).get("entity", {})
-        notes = subscription.get("notes", {})
-        ws_id = notes.get("workspace_id")
-        if ws_id:
-            workspace = Workspace.query.get(int(ws_id))
-            if workspace:
-                workspace.subscription_status = "cancelled"
-                db.session.commit()
-                print(f"[BILLING] Subscription cancelled for workspace {ws_id}")
+        workspace = _get_workspace_from_notes(subscription.get("notes", {}))
+        if workspace:
+            workspace.subscription_status = "cancelled"
+            db.session.commit()
+            print(f"[BILLING] Subscription cancelled for workspace {workspace.id}")
 
     return jsonify({"status": "ok"})

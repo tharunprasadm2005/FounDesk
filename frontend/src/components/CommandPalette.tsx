@@ -97,6 +97,9 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ onClose }) => {
     }
   ];
 
+  // Track which query the latest response belongs to
+  const latestQueryRef = useRef("");
+
   // Debounced search logic
   useEffect(() => {
     if (!query.trim()) {
@@ -107,15 +110,20 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ onClose }) => {
     }
 
     setLoading(true);
+    latestQueryRef.current = query;
     const delayDebounce = setTimeout(async () => {
       try {
         const response = await api.get(`/api/memory/search?q=${encodeURIComponent(query)}`);
-        setResults(response.data || []);
-        setActiveIndex(0);
+        if (latestQueryRef.current === query) {
+          setResults(response.data || []);
+          setActiveIndex(0);
+        }
       } catch (err) {
         console.error("Search query failed:", err);
       } finally {
-        setLoading(false);
+        if (latestQueryRef.current === query) {
+          setLoading(false);
+        }
       }
     }, 300);
 

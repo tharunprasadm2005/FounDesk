@@ -6,7 +6,7 @@ export async function track(event, properties = {}) {
   if (typeof gtag === "function") {
     try {
       gtag("event", event, properties);
-    } catch {}
+    } catch (err) { console.debug("[Track] gtag event failed:", err); }
   }
   try {
     await api.post("/api/track", { event, properties });

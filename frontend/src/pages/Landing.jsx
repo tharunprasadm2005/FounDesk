@@ -82,9 +82,9 @@ function MiniSparkline() {
 // Live Subsystems Ledger Reveal inside Bento (Borderless)
 function BentoLedgerWidget() {
   const logs = [
-    { time: "11:42 AM", source: "AI ENGINE", file: "stripe-verification", status: "Confirmed", details: "Applied signature validator to stripe-webhooks endpoint." },
-    { time: "11:20 AM", source: "MANUAL", file: "db-migrate", status: "Confirmed", details: "Executed database schema changes on user profile columns." },
-    { time: "10:15 AM", source: "AI ENGINE", file: "calendar-defense", status: "Proposed", details: "Suggested blocking 2:00 PM - 5:00 PM for deep focus time." }
+    { time: "11:42 AM", source: "AI ENGINE", file: "gmail-sync", status: "Confirmed", details: "Extracted goal to 'Integrate Stripe customer portal' from client email." },
+    { time: "11:20 AM", source: "MANUAL", file: "slack-sync", status: "Confirmed", details: "Logged decision to deprecate legacy authentication router." },
+    { time: "10:15 AM", source: "AI ENGINE", file: "calendar-sync", status: "Proposed", details: "Suggested focus block of 3 hours for deep product design." }
   ];
 
   const [count, setCount] = useState(1);
@@ -372,28 +372,28 @@ function Landing() {
 
           <div className="landing-grid">
             
-            {/* 1. Code Sync Feed (2 cols - No borders) */}
+            {/* 1. Inbox Sync Engine (2 cols - No borders) */}
             <div className="card-glass feature-card--active grid-span-2 flex flex-col justify-between min-h-[220px]">
               <div>
                 <span className="card-label flex items-center gap-1.5">
-                  <Icon name="code" size={13} /> Code Sync Engine
+                  <Icon name="sparkles" size={13} /> Inbox Sync Engine
                 </span>
                 <p style={{ fontFamily: FONT_BODY }} className="text-[15px] text-[var(--graphite)] mt-2 mb-6 max-w-[550px]">
-                  Real-time branch event listener translating Github webhook commits and Vercel build status events into roadmap metrics instantly.
+                  Real-time parser translating email inquiries, Slack standup logs, and customer chat dialogues into structured founder objectives instantly.
                 </p>
               </div>
               <div className="flex flex-col gap-2">
                 <div className="flex items-center justify-between bg-[var(--border-soft)] p-3 rounded-xl text-xs">
                   <span className="flex items-center gap-2 font-mono text-[var(--sand)]">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[var(--positive)] animate-pulse" /> github: founc-web / commit main
+                    <span className="w-1.5 h-1.5 rounded-full bg-[var(--positive)] animate-pulse" /> gmail: founder-inbox / decision-request
                   </span>
-                  <span className="status-pill">Connected</span>
+                  <span className="status-pill">Parsed</span>
                 </div>
                 <div className="flex items-center justify-between bg-[var(--border-soft)] p-3 rounded-xl text-xs">
                   <span className="flex items-center gap-2 font-mono text-[var(--sand)]">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[var(--positive)] animate-pulse" /> vercel: deploy-success
+                    <span className="w-1.5 h-1.5 rounded-full bg-[var(--positive)] animate-pulse" /> slack: #product-standup / goal-extracted
                   </span>
-                  <span className="status-pill">Live</span>
+                  <span className="status-pill">Synced</span>
                 </div>
               </div>
             </div>
@@ -405,7 +405,7 @@ function Landing() {
                   <Icon name="target" size={13} /> Roadmap Gauge
                 </span>
                 <p style={{ fontFamily: FONT_BODY }} className="text-[15px] text-[var(--graphite)] mt-2 mb-6">
-                  Verify seed round roadmap health with clean visual milestones.
+                  Verify weekly company roadmap health with clean visual milestone tracking.
                 </p>
               </div>
               <div className="flex items-center justify-center">
@@ -473,7 +473,7 @@ function Landing() {
                   <Icon name="sparkles" size={13} /> The Decision Ledger
                 </span>
                 <p style={{ fontFamily: FONT_BODY }} className="text-[15px] text-[var(--graphite)] mt-2">
-                  Chronological, crypto-signed registry of configuration updates, server deployments, API endpoint parameters, and database mutations.
+                  Maintain a chronological registry of extracted company decisions, meeting action items, and strategic milestones automatically synced from Gmail, Slack, and Google Calendar.
                 </p>
               </div>
               <BentoLedgerWidget />
@@ -552,47 +552,7 @@ function Landing() {
           </div>
         </section>
 
-        {/* TESTIMONIALS */}
-        <section id="testimonials" className="landing-section">
-          <div className="section-header text-center">
-            <span className="card-label text-[var(--ember-light)] text-xs font-bold uppercase tracking-wider block section-eyebrow">Testimonials</span>
-            <h2 style={{ fontFamily: FONT_SANS }} className="text-3xl md:text-5xl font-black text-[var(--sand)] section-heading">
-              Trusted by <span style={{ fontFamily: "'Fraunces', serif", fontStyle: "italic" }} className="font-normal text-[var(--sand)]">builders</span>
-            </h2>
-          </div>
-
-          <div className="landing-grid">
-            
-            {/* Testimonial 1 */}
-            <div className="card-glass grid-span-2 flex flex-col justify-between min-h-[180px]">
-              <div>
-                <Icon name="quote" size={20} className="text-[var(--ember)] opacity-20 mb-4 block" />
-                <p style={{ fontFamily: FONT_BODY }} className="text-[17px] text-[var(--sand)] leading-relaxed italic">
-                  "FounDesk has completely eliminated the overhead of tracking task lists, standup syncs, and manual dashboards. The Decision Ledger is a game changer for our seed-stage team."
-                </p>
-              </div>
-              <div className="mt-6 flex flex-col">
-                <span className="font-bold text-sm text-[var(--sand)]">Sarah Jenkins</span>
-                <span className="text-xs text-[var(--graphite)] mt-0.5">CEO, Layered AI</span>
-              </div>
-            </div>
-
-            {/* Testimonial 2 */}
-            <div className="card-glass grid-span-2 flex flex-col justify-between min-h-[180px]">
-              <div>
-                <Icon name="quote" size={20} className="text-[var(--ember)] opacity-20 mb-4 block" />
-                <p style={{ fontFamily: FONT_BODY }} className="text-[17px] text-[var(--sand)] leading-relaxed italic">
-                  "We went from messy Slack updates and out-of-date Notion pages to a single operating system. The Github and Linear integrations work flawlessly."
-                </p>
-              </div>
-              <div className="mt-6 flex flex-col">
-                <span className="font-bold text-sm text-[var(--sand)]">Marcus Chen</span>
-                <span className="text-xs text-[var(--graphite)] mt-0.5">CTO, Drift Security</span>
-              </div>
-            </div>
-
-          </div>
-        </section>
+        {/* Testimonials removed */}
 
       </div>
     </main>
@@ -622,19 +582,14 @@ function Landing() {
             <h4 style={{ fontFamily: "'JetBrains Mono', monospace" }} className="text-xs font-bold text-[var(--sand)] uppercase tracking-wider mb-4">Platform</h4>
             <ul className="flex flex-col gap-2.5 list-none p-0 m-0 text-xs">
               <li>
-                <button onClick={() => document.getElementById("features")?.scrollIntoView({ behavior: "smooth" })} className="border-none bg-transparent p-0 cursor-pointer text-[var(--graphite)] hover:text-[var(--sand)] transition-colors duration-200">
+                <a href="#features" onClick={(e) => { e.preventDefault(); document.getElementById("features")?.scrollIntoView({ behavior: "smooth" }); }} className="text-[var(--graphite)] hover:text-[var(--sand)] transition-colors duration-200 no-underline">
                   Features
-                </button>
+                </a>
               </li>
               <li>
-                <button onClick={() => document.getElementById("howitworks")?.scrollIntoView({ behavior: "smooth" })} className="border-none bg-transparent p-0 cursor-pointer text-[var(--graphite)] hover:text-[var(--sand)] transition-colors duration-200">
+                <a href="#howitworks" onClick={(e) => { e.preventDefault(); document.getElementById("howitworks")?.scrollIntoView({ behavior: "smooth" }); }} className="text-[var(--graphite)] hover:text-[var(--sand)] transition-colors duration-200 no-underline">
                   Workflow
-                </button>
-              </li>
-              <li>
-                <button onClick={() => document.getElementById("testimonials")?.scrollIntoView({ behavior: "smooth" })} className="border-none bg-transparent p-0 cursor-pointer text-[var(--graphite)] hover:text-[var(--sand)] transition-colors duration-200">
-                  Testimonials
-                </button>
+                </a>
               </li>
             </ul>
           </div>
@@ -643,20 +598,33 @@ function Landing() {
           <div>
             <h4 style={{ fontFamily: "'JetBrains Mono', monospace" }} className="text-xs font-bold text-[var(--sand)] uppercase tracking-wider mb-4">Integrations</h4>
             <ul className="flex flex-col gap-2.5 list-none p-0 m-0 text-xs text-[var(--graphite)]">
-              <li>GitHub</li>
-              <li>Linear</li>
+              <li>Gmail</li>
               <li>Slack</li>
               <li>Google Calendar</li>
+              <li>HubSpot</li>
+              <li>Monday.com</li>
             </ul>
           </div>
 
           {/* Col 4 */}
           <div>
             <h4 style={{ fontFamily: "'JetBrains Mono', monospace" }} className="text-xs font-bold text-[var(--sand)] uppercase tracking-wider mb-4">Legal</h4>
-            <ul className="flex flex-col gap-2.5 list-none p-0 m-0 text-xs text-[var(--graphite)]">
-              <li>Privacy Policy</li>
-              <li>Terms of Service</li>
-              <li>SLA Agreement</li>
+            <ul className="flex flex-col gap-2.5 list-none p-0 m-0 text-xs">
+              <li>
+                <a href="#privacy" className="text-[var(--graphite)] hover:text-[var(--sand)] transition-colors duration-200 no-underline">
+                  Privacy Policy
+                </a>
+              </li>
+              <li>
+                <a href="#terms" className="text-[var(--graphite)] hover:text-[var(--sand)] transition-colors duration-200 no-underline">
+                  Terms of Service
+                </a>
+              </li>
+              <li>
+                <a href="#sla" className="text-[var(--graphite)] hover:text-[var(--sand)] transition-colors duration-200 no-underline">
+                  SLA Agreement
+                </a>
+              </li>
             </ul>
           </div>
 

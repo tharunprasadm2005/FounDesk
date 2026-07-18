@@ -96,10 +96,10 @@ function ProductGlimpse() {
           <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "10px", color: "var(--graphite)", textTransform: "uppercase", letterSpacing: "1px" }}>Active Goal</span>
           <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "var(--positive)", boxShadow: "0 0 6px var(--positive)" }} />
         </div>
-        <Gauge value={74} size="L" subtitle="Seed Round Target" />
+        <Gauge value={85} size="L" subtitle="Weekly Goal Progress" />
         <div style={{ textAlign: "center" }}>
-          <div style={{ fontSize: "13.5px", fontWeight: 700, color: "var(--sand)", fontFamily: FONT_BODY }}>Close Seed Round of $1.5M</div>
-          <div style={{ fontSize: "10px", color: "var(--graphite)", marginTop: "2px", fontFamily: FONT_BODY }}>Target: July 31, 2026</div>
+          <div style={{ fontSize: "13.5px", fontWeight: 700, color: "var(--sand)", fontFamily: FONT_BODY }}>Sync Q3 OKRs and Tasks</div>
+          <div style={{ fontSize: "10px", color: "var(--graphite)", marginTop: "2px", fontFamily: FONT_BODY }}>Status: On Track</div>
         </div>
       </motion.div>
 
@@ -257,6 +257,8 @@ function StatusMessage({ type, message }) {
       initial={{ opacity: 0, y: -8, height: 0 }}
       animate={{ opacity: 1, y: 0, height: "auto" }}
       exit={{ opacity: 0, y: -8, height: 0 }}
+      className={isError ? "error-message" : ""}
+      role={isError ? "alert" : undefined}
       style={{
         display: "flex",
         alignItems: "center",
@@ -774,7 +776,8 @@ function Login({ handleSuccess, authError, onClearError }) {
       setTransitioning({ type: "signin", title: "Signing you in...", subtitle: "Loading your Founder Workspace..." });
       setTimeout(() => navigate("/dashboard"), 1500);
     } catch (err) {
-      setStatus({ type: "error", message: err.message || "Login failed. Please try again." });
+      const errMsg = err.response?.data?.error || err.message || "Login failed. Please try again.";
+      setStatus({ type: "error", message: errMsg });
       setLoading(false);
     }
   };
@@ -807,7 +810,8 @@ function Login({ handleSuccess, authError, onClearError }) {
       setTransitioning({ type: "signup", title: "Account Created", subtitle: "Setting up your Founder Workspace..." });
       setTimeout(() => navigate("/dashboard"), 1500);
     } catch (err) {
-      setStatus({ type: "error", message: err.message || "Sign up failed. Please try again." });
+      const errMsg = err.response?.data?.error || err.message || "Sign up failed. Please try again.";
+      setStatus({ type: "error", message: errMsg });
       setLoading(false);
     }
   };
@@ -825,7 +829,8 @@ function Login({ handleSuccess, authError, onClearError }) {
       const res = await forgotPassword(resetEmail);
       setStatus({ type: "success", message: res.message });
     } catch (err) {
-      setStatus({ type: "error", message: err.message || "Failed to send reset link." });
+      const errMsg = err.response?.data?.error || err.message || "Failed to send reset link.";
+      setStatus({ type: "error", message: errMsg });
     } finally {
       setLoading(false);
     }
