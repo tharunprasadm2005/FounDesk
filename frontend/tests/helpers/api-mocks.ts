@@ -69,6 +69,25 @@ export async function mockAllApi(page: Page) {
     })
   );
 
+  await page.route("**/api/notes*", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify([
+        { id: 1, title: "Sprint planning notes", meeting_type: "standup", notes: "Discussed Q2 roadmap", status: "completed", date: new Date(Date.now() - 86400000).toISOString() },
+        { id: 2, title: "Architecture review", meeting_type: "design", notes: "Reviewed microservices proposal", status: "pending", date: new Date(Date.now() - 172800000).toISOString() },
+      ]),
+    })
+  );
+
+  await page.route("**/api/pipeline/*", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ stage: "Build", status: "active" }),
+    })
+  );
+
   await page.route("**/api/settings*", (route) =>
     route.fulfill({
       status: 200,
@@ -130,6 +149,18 @@ export async function mockAllApi(page: Page) {
   await page.route("https://api.amplitude.com/**", (route) => route.fulfill({ status: 200 }));
 
   await page.route("**/api/track", (route) => route.fulfill({ status: 200 }));
+
+  await page.route("**/api/chronicle*", (route) =>
+    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ events: [], has_more: false, total_count: 0 }) })
+  );
+
+  await page.route("**/api/knowledge*", (route) =>
+    route.fulfill({ status: 200, contentType: "application/json", body: "[]" })
+  );
+
+  await page.route("**/api/handoff/*", (route) =>
+    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ packets: [] }) })
+  );
 }
 
 export async function mockApiError(page: Page, urlPattern: string, status = 500, message = "Internal Server Error") {
