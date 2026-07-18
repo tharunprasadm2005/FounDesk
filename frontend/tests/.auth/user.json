@@ -1,5 +1,26 @@
 {
-  "cookies": [],
+  "cookies": [
+    {
+      "name": "_ga_47XY2ZKR12",
+      "value": "GS2.1.s1784363836$o1$g0$t1784363836$j60$l0$h0",
+      "domain": ".foundesk.onrender.com",
+      "path": "/",
+      "expires": 1818923836.210137,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "_ga",
+      "value": "GA1.1.225520721.1784363836",
+      "domain": ".foundesk.onrender.com",
+      "path": "/",
+      "expires": 1818923836.211022,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    }
+  ],
   "origins": [
     {
       "origin": "https://foundesk.onrender.com",

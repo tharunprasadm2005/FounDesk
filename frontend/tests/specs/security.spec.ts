@@ -12,6 +12,8 @@ test.describe("Security", () => {
     });
 
     test("should redirect to landing when accessing protected route without token", async ({ page }) => {
+      await page.goto("/", { waitUntil: "domcontentloaded" });
+      await page.evaluate(() => localStorage.clear());
       await page.goto(ROUTES.DASHBOARD, { waitUntil: "domcontentloaded" });
       await page.waitForTimeout(3000);
       const url = page.url().replace(/\/$/, "");
