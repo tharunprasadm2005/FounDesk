@@ -88,7 +88,7 @@ def get_dashboard(current_user_id):
     if 'google' in connected_providers:
         connected_providers['google_calendar'] = connected_providers['google']
     google_cal = connected_providers.get('google_calendar')
-    if google_cal and not google_cal.access_token.startswith("mock_"):
+    if google_cal and google_cal.access_token and not google_cal.access_token.startswith("mock_"):
         try:
             start_of_day = now.replace(hour=0, minute=0, second=0, microsecond=0)
             end_of_day = start_of_day + timedelta(days=1)
