@@ -258,7 +258,14 @@ function SplineFallback() {
 
 function Landing() {
   const navigate = useNavigate();
-  const [introDone, setIntroDone] = useState(false);
+  const [introDone, setIntroDone] = useState(
+    () => sessionStorage.getItem("landing_intro_seen") === "true"
+  );
+
+  const handleIntroDone = useCallback(() => {
+    sessionStorage.setItem("landing_intro_seen", "true");
+    setIntroDone(true);
+  }, []);
 
   const handleLaunch = useCallback(() => {
     navigate("/login");
@@ -295,7 +302,7 @@ function Landing() {
     );
   }, [introDone]);
 
-  if (!introDone) return <PageIntro onDone={() => setIntroDone(true)} />;
+  if (!introDone) return <PageIntro onDone={handleIntroDone} />;
 
   return (
     <div className="landing-zone landing-page min-h-screen bg-transparent overflow-x-hidden selection:bg-[#E85002]/20 selection:text-[var(--sand)]">

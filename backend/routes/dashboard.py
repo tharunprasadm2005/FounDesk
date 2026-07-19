@@ -126,19 +126,22 @@ def get_dashboard(current_user_id):
         workspace_id=workspace_id,
         status='open'
     ).order_by(Blocker.created_at.desc()).all()
+    task_ids = [b.task_id for b in blocker_records if b.task_id]
+    tasks_map = {}
+    if task_ids:
+        tasks = Task.query.filter(Task.id.in_(task_ids)).all()
+        tasks_map = {t.id: t for t in tasks}
     blockers = []
     for b in blocker_records:
         bd = b.to_dict()
-        # Add useful context about where the blocker came from
         if b.source_integration:
             bd['source_label'] = f"via {b.source_integration}"
         elif b.source_provider:
             bd['source_label'] = f"via {b.source_provider}"
         else:
             bd['source_label'] = None
-        if b.task_id:
-            task = Task.query.get(b.task_id)
-            bd['task_title'] = task.title if task else None
+        if b.task_id and b.task_id in tasks_map:
+            bd['task_title'] = tasks_map[b.task_id].title
         blockers.append(bd)
 
     # Blocked tasks (24h+ rule, fallback for tasks with blocker_description but no Blocker row)
@@ -233,17 +236,21 @@ def get_dashboard(current_user_id):
         Task.status == 'Done',
         Task.completed_at >= week_ago,
     ).count()
-    completion_data_points = []
-    for i in range(6, -1, -1):
-        day_start = (now - timedelta(days=i)).replace(hour=0, minute=0, second=0, microsecond=0)
-        day_end = day_start + timedelta(days=1)
-        day_count = Task.query.filter(
-            Task.workspace_id == workspace_id,
-            Task.status == 'Done',
-            Task.completed_at >= day_start,
-            Task.completed_at < day_end,
-        ).count()
-        completion_data_points.append(day_count)
+    daily_counts = db.session.query(
+        db.func.date_trunc('day', Task.completed_at).label('day'),
+        db.func.count(Task.id)
+    ).filter(
+        Task.workspace_id == workspace_id,
+        Task.status == 'Done',
+        Task.completed_at >= week_ago,
+    ).group_by(
+        db.func.date_trunc('day', Task.completed_at)
+    ).all()
+    counts_by_day = {row[0].strftime('%Y-%m-%d'): row[1] for row in daily_counts}
+    completion_data_points = [
+        counts_by_day.get((now - timedelta(days=i)).strftime('%Y-%m-%d'), 0)
+        for i in range(6, -1, -1)
+    ]
 
     # ─── Zone 3: Right Sidebar ───────────────────────────────────────
     # Today's meetings with prep notes
@@ -377,6 +384,11 @@ def get_blockers(current_user_id):
         workspace_id=workspace_id,
         status='open'
     ).order_by(Blocker.created_at.desc()).all()
+    task_ids = [b.task_id for b in blocker_records if b.task_id]
+    tasks_map = {}
+    if task_ids:
+        tasks = Task.query.filter(Task.id.in_(task_ids)).all()
+        tasks_map = {t.id: t for t in tasks}
     blockers = []
     for b in blocker_records:
         bd = b.to_dict()
@@ -386,11 +398,10 @@ def get_blockers(current_user_id):
             bd['source_label'] = f"via {b.source_provider}"
         else:
             bd['source_label'] = None
-        if b.task_id:
-            task = Task.query.get(b.task_id)
-            bd['task_title'] = task.title if task else None
-            bd['task_status'] = task.status if task else None
-            bd['task_priority'] = task.priority if task else None
+        if b.task_id and b.task_id in tasks_map:
+            bd['task_title'] = tasks_map[b.task_id].title
+            bd['task_status'] = tasks_map[b.task_id].status
+            bd['task_priority'] = tasks_map[b.task_id].priority
         blockers.append(bd)
 
     # Blocked tasks (24h+ rule, fallback for tasks with blocker_description but no Blocker row)

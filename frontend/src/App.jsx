@@ -1,20 +1,37 @@
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import api, { API_BASE_URL } from "./utils/api";
 import { track } from "./utils/track";
 import { initAmplitudeFromBackend, setUserId } from "./config/amplitude";
-import Landing from "./pages/Landing";
-import Login from "./pages/Login";
-import GoogleCallback from "./pages/GoogleCallback";
-import Dashboard from "./pages/Dashboard";
-import Goals from "./pages/Goals";
-import Billing from "./pages/Billing";
-import Execute from "./pages/Execute";
-import Memory from "./pages/Memory";
-import Settings from "./pages/Settings";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Layout from "./components/Layout";
+
+const Landing = lazy(() => import("./pages/Landing"));
+const Login = lazy(() => import("./pages/Login"));
+const GoogleCallback = lazy(() => import("./pages/GoogleCallback"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Goals = lazy(() => import("./pages/Goals"));
+const Billing = lazy(() => import("./pages/Billing"));
+const Execute = lazy(() => import("./pages/Execute"));
+const Memory = lazy(() => import("./pages/Memory"));
+const Settings = lazy(() => import("./pages/Settings"));
+
+function LoadingFallback() {
+  return (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", background: "#030303" }}>
+      <div style={{ display: "inline-flex", flexDirection: "column", alignItems: "center", gap: "14px" }}>
+        <div className="relative flex items-center justify-center" style={{ width: "40px", height: "40px" }}>
+          <span style={{ fontFamily: "'Clash Display', sans-serif", fontSize: "36px", fontWeight: "950", color: "var(--brand-orange)", lineHeight: 1, letterSpacing: "-0.04em" }}>F</span>
+          <span style={{ fontFamily: "'Clash Display', sans-serif", fontSize: "36px", fontWeight: "950", color: "transparent", WebkitTextStroke: "1.5px var(--brand-orange)", lineHeight: 1, marginLeft: "1.5px" }}>d</span>
+        </div>
+        <p style={{ fontSize: "12px", color: "var(--gray)", fontFamily: "'JetBrains Mono', monospace", letterSpacing: "1.5px", textTransform: "uppercase" }} className="animate-pulse">
+          Loading...
+        </p>
+      </div>
+    </div>
+  );
+}
 
 function App() {
   const [user, setUser] = useState(null);
@@ -84,6 +101,7 @@ function App() {
   };
 
   return (
+    <Suspense fallback={<LoadingFallback />}>
     <Routes>
       <Route path="/" element={<Landing />} />
       <Route
@@ -156,6 +174,7 @@ function App() {
       {/* Catch-all redirect to landing */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </Suspense>
   );
 }
 

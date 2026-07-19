@@ -202,22 +202,15 @@ function Dashboard() {
 
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [notifications, setNotifications] = useState([]);
 
   const fetchDashboard = useCallback(async (isInitial = false, signal) => {
     try {
       if (isInitial) {
         setLoading(true);
       }
-      const [dashRes, notifRes] = await Promise.all([
-        api.get("/api/dashboard", { signal }),
-        api.get("/api/notifications", { signal }),
-      ]);
+      const dashRes = await api.get("/api/dashboard", { signal });
       if (signal?.aborted) return;
       setData(dashRes.data);
-      const notifData = notifRes.data;
-      const alerts = Array.isArray(notifData) ? notifData : (notifData?.alerts || []);
-      setNotifications(alerts);
     } catch (err) {
       if (err?.name !== "CanceledError" && err?.name !== "AbortError") {
         console.error("Dashboard fetch error:", err);
@@ -264,8 +257,6 @@ function Dashboard() {
   const isP0orP1 = (t) => t.priority === "P0" || t.priority === "P1";
   const topTaskCount = cs.top_tasks?.filter(isP0orP1).length || 0;
   const hasConflicts = cs.calendar_conflicts?.length > 0;
-
-  const unlinkedTasks = notifications.filter(n => n.type === "unlinked_task");
 
   const digestEntries = Object.entries(side.integration_digest || {});
   const maxDigestShow = 4;
