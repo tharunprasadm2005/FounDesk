@@ -59,6 +59,19 @@ csrf.exempt("/api/billing/webhook")
 csrf.exempt("/api/health")
 limiter.init_app(app)
 
+# Auto-migrate: add missing columns if they don't exist
+with app.app_context():
+    try:
+        from sqlalchemy import inspect, text as sa_text
+        inspector = inspect(db.engine)
+        columns = [c["name"] for c in inspector.get_columns("users")]
+        if "email_verified" not in columns:
+            db.session.execute(sa_text("ALTER TABLE users ADD COLUMN email_verified BOOLEAN NOT NULL DEFAULT FALSE"))
+            db.session.commit()
+            print("Added column users.email_verified")
+    except Exception as e:
+        print(f"Auto-migration note: {e}")
+
 from utils.auth import token_required
 from routes.goals import goals_bp
 from routes.integrations import integrations_bp
