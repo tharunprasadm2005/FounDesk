@@ -95,7 +95,19 @@ def _compile_activity_feed_impl(workspace_id):
         if 'monday' in connected_providers:
             events_to_upsert.extend(getMondayData(connected_providers['monday']))
         if 'google_meet' in connected_providers:
-            events_to_upsert.extend(getMeetData(connected_providers['google_meet']))
+            # Derive Meet from Calendar data to eliminate duplicate API call
+            if 'google_calendar' in connected_providers:
+                calendar_results = getCalendarData(connected_providers['google_calendar'])
+                for ev in calendar_results:
+                    if ev.get("activity_type") == "meeting":
+                        events_to_upsert.append({
+                            **ev,
+                            "provider": "google_meet",
+                            "title": f"Meet: {ev.get('title', 'Untitled')}",
+                            "activity_type": "meeting"
+                        })
+            else:
+                events_to_upsert.extend(getMeetData(connected_providers['google_meet']))
         if 'google_docs' in connected_providers:
             events_to_upsert.extend(getDocsData(connected_providers['google_docs']))
         if 'trello' in connected_providers:
@@ -148,6 +160,10 @@ def _compile_activity_feed_impl(workspace_id):
                 existing.priority = data.get("priority", "normal")
                 existing.is_mock = data["is_mock"]
                 existing.fetched_at = datetime.utcnow()
+                if "meet_link" in data:
+                    existing.meet_link = data["meet_link"]
+                if "url" in data:
+                    existing.url = data["url"]
             else:
                 event = ActivityEvent(
                     workspace_id=workspace_id,
@@ -162,7 +178,9 @@ def _compile_activity_feed_impl(workspace_id):
                     raw_ref=data["raw_ref"],
                     priority=data.get("priority", "normal"),
                     is_mock=data["is_mock"],
-                    fetched_at=datetime.utcnow()
+                    fetched_at=datetime.utcnow(),
+                    meet_link=data.get("meet_link"),
+                    url=data.get("url")
                 )
                 db.session.add(event)
             compiled_events.append(existing if existing else event)

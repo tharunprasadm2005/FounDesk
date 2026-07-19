@@ -18,6 +18,8 @@ class ActivityEvent(db.Model):
     is_mock = db.Column(db.Boolean, default=False, nullable=False)
     priority = db.Column(db.String(50), default='normal', nullable=False)
     fetched_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    meet_link = db.Column(db.Text, nullable=True)
+    url = db.Column(db.Text, nullable=True)
 
     __table_args__ = (
         db.UniqueConstraint('workspace_id', 'provider', 'raw_ref', name='uq_workspace_provider_raw_ref'),
@@ -38,7 +40,9 @@ class ActivityEvent(db.Model):
             "raw_ref": self.raw_ref,
             "is_mock": self.is_mock,
             "priority": self.priority,
-            "fetched_at": self.fetched_at.isoformat() if self.fetched_at else None
+            "fetched_at": self.fetched_at.isoformat() if self.fetched_at else None,
+            "meet_link": self.meet_link,
+            "url": self.url
         }
 
     def __repr__(self):

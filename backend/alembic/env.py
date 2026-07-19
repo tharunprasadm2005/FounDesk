@@ -20,6 +20,7 @@ import models.workspace
 import models.workspace_member
 import models.user_integration
 import models.refresh_token
+import models.activity_event
 
 target_metadata = db.metadata
 

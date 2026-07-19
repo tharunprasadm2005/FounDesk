@@ -170,6 +170,7 @@ def getCalendarData(integration):
                     else:
                         evt_time = datetime.strptime(start_time, "%Y-%m-%d")
 
+                    meet_link = ev.get("metadata", {}).get("meet_link")
                     results.append({
                         "provider": "google_calendar",
                         "category": "calendar",
@@ -181,7 +182,8 @@ def getCalendarData(integration):
                         "details": ev["content"],
                         "raw_ref": ev["raw_ref"],
                         "priority": ev["priority"],
-                        "is_mock": False
+                        "is_mock": False,
+                        "meet_link": meet_link
                     })
         return results[:200]
     except Exception as e:
@@ -212,6 +214,12 @@ def getGithubData(integration):
                     is_pr = "pull_request" in item
                     act_type = "pull_request" if is_pr else "issue"
 
+                    html_url = item.get('html_url', '')
+                    repo = ""
+                    if html_url:
+                        parts = html_url.split("/")
+                        if len(parts) >= 5:
+                            repo = f"{parts[3]}/{parts[4]}"
                     results.append({
                         "provider": "github",
                         "category": "dev",
@@ -220,9 +228,11 @@ def getGithubData(integration):
                         "activity_type": act_type,
                         "status": item.get('state'),
                         "external_timestamp": evt_time,
-                        "details": item.get('body', '') or item.get('html_url', ''),
+                        "details": item.get('body', '') or "",
                         "raw_ref": str(item['id']),
-                        "is_mock": False
+                        "is_mock": False,
+                        "url": html_url,
+                        "repo": repo
                     })
         return results[:200]
     except Exception as e:
@@ -315,6 +325,16 @@ def getNotionData(integration):
         print("Error in getNotionData:", e)
         return []
 
+def _parse_monday_timestamp(item):
+    raw = item.get("updated_at") or item.get("created_at")
+    if raw:
+        try:
+            return datetime.fromisoformat(raw.replace("Z", "+00:00")).replace(tzinfo=None)
+        except (ValueError, TypeError):
+            pass
+    return datetime.utcnow()
+
+
 def getMondayData(integration):
     try:
         is_mock = integration.access_token.startswith("mock_")
@@ -337,7 +357,7 @@ def getMondayData(integration):
                     "title": f"Monday: {item.get('name')}",
                     "activity_type": "task",
                     "status": item.get("status"),
-                    "external_timestamp": datetime.utcnow() - timedelta(hours=12),
+                    "external_timestamp": _parse_monday_timestamp(item),
                     "details": f"Board: {item.get('board')}, Group: {item.get('group')}",
                     "raw_ref": f"monday_task_{item.get('id')}",
                     "priority": priority or "P2",
@@ -359,53 +379,20 @@ def getMondayData(integration):
 def getMeetData(integration):
     try:
         is_mock = integration.access_token.startswith("mock_")
-        results = []
         if is_mock:
             return []
-        else:
-            now = datetime.utcnow()
-            start_of_window = (now - timedelta(days=7)).replace(hour=0, minute=0, second=0, microsecond=0).isoformat() + "Z"
-            end_of_window = (now + timedelta(days=7)).replace(hour=23, minute=59, second=59, microsecond=0).isoformat() + "Z"
-
-            from services.google_service import get_normalized_calendar_events
-            events = get_normalized_calendar_events(
-                integration.access_token,
-                time_min=start_of_window,
-                time_max=end_of_window
-            )
-
-            if not events:
-                if refresh_google_token(integration):
-                    events = get_normalized_calendar_events(
-                        integration.access_token,
-                        time_min=start_of_window,
-                        time_max=end_of_window
-                    )
-
-            if events:
-                for ev in events:
-                    meet_link = ev.get("metadata", {}).get("meet_link")
-                    if not meet_link:
-                        continue
-                    start_time = ev["timestamp"]
-                    if "T" in start_time:
-                        evt_time = datetime.fromisoformat(start_time.replace("Z", "+00:00")).astimezone(timezone.utc).replace(tzinfo=None)
-                    else:
-                        evt_time = datetime.strptime(start_time, "%Y-%m-%d")
-
-                    results.append({
-                        "provider": "google_meet",
-                        "category": "calendar",
-                        "actor": ev["actor"],
-                        "title": f"Meet: {ev['title']}",
-                        "activity_type": "meeting",
-                        "status": ev["status"],
-                        "external_timestamp": evt_time,
-                        "details": ev["content"],
-                        "raw_ref": f"meet_{ev['raw_ref']}",
-                        "priority": ev["priority"],
-                        "is_mock": False
-                    })
+        # Derive from Calendar data to eliminate duplicate API call
+        calendar_results = getCalendarData(integration)
+        results = []
+        for ev in calendar_results:
+            if ev.get("activity_type") != "meeting":
+                continue
+            results.append({
+                **ev,
+                "provider": "google_meet",
+                "title": f"Meet: {ev.get('title', 'Untitled')}",
+                "activity_type": "meeting"
+            })
         return results[:200]
     except Exception as e:
         print("Error in getMeetData:", e)
@@ -840,6 +827,18 @@ def getAnalyticsData(integration, workspace_id=None):
         print("Error in getAnalyticsData:", e)
         return []
 
+def _parse_hs_timestamp(obj):
+    ts = obj.get("createdAt") or (obj.get("properties") or {}).get("createdate")
+    if ts:
+        try:
+            if ts.endswith("Z"):
+                ts = ts[:-1]
+            return datetime.fromisoformat(ts)
+        except (ValueError, TypeError):
+            pass
+    return datetime.utcnow()
+
+
 def getHubspotData(integration):
     try:
         if hasattr(integration, 'access_token'):
@@ -850,7 +849,6 @@ def getHubspotData(integration):
             return []
 
         from services.hubspot_service import get_contacts, get_deals, get_companies
-        now = datetime.utcnow()
 
         contacts = get_contacts(token, limit=100).get("results", [])
         deals = get_deals(token, limit=100).get("results", [])
@@ -867,7 +865,7 @@ def getHubspotData(integration):
                 "title": f"HubSpot Contact: {name or props.get('email', 'Unknown')}",
                 "activity_type": "lead",
                 "status": "Active",
-                "external_timestamp": now,
+                "external_timestamp": _parse_hs_timestamp(c),
                 "details": f"Email: {props.get('email', 'N/A')} | Phone: {props.get('phone', 'N/A')}",
                 "raw_ref": f"hubspot_contact_{c.get('id')}",
                 "is_mock": False
@@ -890,7 +888,7 @@ def getHubspotData(integration):
                 "title": f"HubSpot Deal: {props.get('dealname', 'Unnamed')}",
                 "activity_type": "deal",
                 "status": props.get("dealstage", "Pipeline"),
-                "external_timestamp": now,
+                "external_timestamp": _parse_hs_timestamp(d),
                 "details": details,
                 "raw_ref": f"hubspot_deal_{d.get('id')}",
                 "is_mock": False
@@ -905,7 +903,7 @@ def getHubspotData(integration):
                 "title": f"HubSpot Company: {props.get('name', 'Unnamed')}",
                 "activity_type": "company",
                 "status": "Active",
-                "external_timestamp": now,
+                "external_timestamp": _parse_hs_timestamp(co),
                 "details": f"Domain: {props.get('domain', 'N/A')}",
                 "raw_ref": f"hubspot_company_{co.get('id')}",
                 "is_mock": False
@@ -915,6 +913,16 @@ def getHubspotData(integration):
     except Exception as e:
         print("Error in getHubspotData:", e)
         return []
+
+def _parse_pd_timestamp(d):
+    raw = d.get("add_time")
+    if raw:
+        try:
+            return datetime.strptime(raw, "%Y-%m-%d %H:%M:%S")
+        except (ValueError, TypeError):
+            pass
+    return datetime.utcnow()
+
 
 def getPipedriveData(integration):
     try:
@@ -926,7 +934,6 @@ def getPipedriveData(integration):
             return []
 
         from services.pipedrive_service import get_deals
-        now = datetime.utcnow()
         data = get_deals(token, limit=200)
         deals = data.get("data", [])
 
@@ -943,7 +950,7 @@ def getPipedriveData(integration):
                 "title": f"Pipedrive Deal: {d.get('title', 'Unnamed')}",
                 "activity_type": "deal",
                 "status": d.get("status", "Open").capitalize(),
-                "external_timestamp": now,
+                "external_timestamp": _parse_pd_timestamp(d),
                 "details": details,
                 "raw_ref": f"pipedrive_deal_{d.get('id')}",
                 "is_mock": False
@@ -952,6 +959,19 @@ def getPipedriveData(integration):
     except Exception as e:
         print("Error in getPipedriveData:", e)
         return []
+
+def _parse_zoho_timestamp(obj):
+    raw = obj.get("Created_Time") or obj.get("Modified_Time")
+    if raw:
+        try:
+            clean = raw.replace("Z", "+00:00").replace("T", " ")
+            if "+" in clean:
+                clean = clean.split("+")[0]
+            return datetime.strptime(clean.strip(), "%Y-%m-%d %H:%M:%S")
+        except (ValueError, TypeError):
+            pass
+    return datetime.utcnow()
+
 
 def getZohoData(integration):
     try:
@@ -963,7 +983,6 @@ def getZohoData(integration):
             return []
 
         from services.zoho_service import get_deals, get_contacts, get_leads
-        now = datetime.utcnow()
 
         deals = get_deals(token, limit=200).get("data", [])
         contacts = get_contacts(token, limit=200).get("data", [])
@@ -978,7 +997,7 @@ def getZohoData(integration):
                 "title": f"Zoho Deal: {d.get('Deal_Name', 'Unnamed')}",
                 "activity_type": "deal",
                 "status": d.get("Stage", "Pipeline"),
-                "external_timestamp": now,
+                "external_timestamp": _parse_zoho_timestamp(d),
                 "details": f"Amount: ${d.get('Amount', 0)} | Stage: {d.get('Stage', 'N/A')}",
                 "raw_ref": f"zoho_deal_{d.get('id')}",
                 "is_mock": False
@@ -991,7 +1010,7 @@ def getZohoData(integration):
                 "title": f"Zoho Contact: {c.get('Full_Name', 'Unknown')}",
                 "activity_type": "contact",
                 "status": "Active",
-                "external_timestamp": now,
+                "external_timestamp": _parse_zoho_timestamp(c),
                 "details": f"Email: {c.get('Email', 'N/A')}",
                 "raw_ref": f"zoho_contact_{c.get('id')}",
                 "is_mock": False
@@ -1004,7 +1023,7 @@ def getZohoData(integration):
                 "title": f"Zoho Lead: {l.get('Full_Name', 'Unknown')}",
                 "activity_type": "lead",
                 "status": "New",
-                "external_timestamp": now,
+                "external_timestamp": _parse_zoho_timestamp(l),
                 "details": f"Company: {l.get('Company', 'N/A')}",
                 "raw_ref": f"zoho_lead_{l.get('id')}",
                 "is_mock": False

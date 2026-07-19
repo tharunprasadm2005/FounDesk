@@ -223,7 +223,7 @@ def compile_morning_briefing(user_id):
     if workspace_id:
         try:
             from services.activity_compiler import compile_activity_feed
-            compile_activity_feed(workspace_id, allow_refresh=False)
+            compile_activity_feed(workspace_id, allow_refresh=True)
         except Exception as ex:
             print("Activity feed compile failed in briefing:", ex)
 
@@ -231,10 +231,9 @@ def compile_morning_briefing(user_id):
     integrations = UserIntegration.query.filter_by(user_id=user_id).all()
     connected_providers = {integration.provider: integration for integration in integrations}
 
-    # Map unified 'google' provider integration to 'gmail' and 'google_calendar'
+    # Map unified 'google' provider integration to all sub-providers
     if 'google' in connected_providers:
         google_integration = connected_providers['google']
-        # Real google integration always overrides separate gmail or google_calendar entries (e.g. from sandbox/demo)
         connected_providers['gmail'] = google_integration
         connected_providers['google_calendar'] = google_integration
         connected_providers['google_docs'] = google_integration
@@ -249,314 +248,176 @@ def compile_morning_briefing(user_id):
     analytics = []
     finance = []
 
-    # Helper to check if provider is mock
-    def is_mock_provider(provider_id):
-        if provider_id not in connected_providers:
-            return False
-        return connected_providers[provider_id].access_token.startswith("mock_")
+    # All sections use ActivityEvent as single source of truth
+    now_utc = datetime.datetime.utcnow()
+    today_start = now_utc.replace(hour=0, minute=0, second=0, microsecond=0)
+    today_end = today_start + datetime.timedelta(days=1)
 
     # ==========================================
-    # 1. CALENDAR & MEETINGS
+    # 1. CALENDAR & MEETINGS (from ActivityEvent)
     # ==========================================
-    # Google Calendar (Real + Mock)
-    is_calendar_mock = False
-    if 'google_calendar' in connected_providers:
-        integration = connected_providers['google_calendar']
-        is_mock = is_mock_provider('google_calendar')
-        
-        if not is_mock:
-            try:
-                headers = {"Authorization": f"Bearer {integration.access_token}"}
-                now = datetime.datetime.utcnow()
-                start_of_day = now.replace(hour=0, minute=0, second=0, microsecond=0).isoformat() + "Z"
-                end_of_day = now.replace(hour=23, minute=59, second=59, microsecond=0).isoformat() + "Z"
-                
-                cal_url = f"https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin={start_of_day}&timeMax={end_of_day}&orderBy=startTime&singleEvents=true"
-                cal_res = requests.get(cal_url, headers=headers, timeout=5)
-                
-                if cal_res.status_code in (401, 403):
-                    # Try refreshing token
-                    if refresh_google_token(integration):
-                        headers = {"Authorization": f"Bearer {integration.access_token}"}
-                        cal_res = requests.get(cal_url, headers=headers, timeout=5)
-                
-                cal_res.raise_for_status()
-                
-                if cal_res.status_code == 200:
-                    events = cal_res.json().get('items', [])
-                    from services.google_service import extract_meet_link, classify_event, detect_priority
-                    for ev in events:
-                        start_time = ev.get('start', {}).get('dateTime') or ev.get('start', {}).get('date')
-                        time_str = "All Day"
-                        if "T" in start_time:
-                            time_str = start_time.split("T")[1][:5]
-                        
-                        meet_link = extract_meet_link(ev)
-                        event_type = classify_event(ev)
-                        priority = detect_priority(ev)
-                        
-                        title = ev.get('summary', 'Untitled Meeting')
-                        if event_type == "meeting" and meet_link:
-                            title = f"📹 Google Meet: {title}"
-                            
-                        schedule.append({
-                            "title": title,
-                            "time": time_str,
-                            "type": "Google Calendar",
-                            "attendees": ", ".join([att.get('email') for att in ev.get('attendees', []) if not att.get('self')]),
-                            "meet_link": meet_link,
-                            "priority": priority
-                        })
-            except Exception as e:
-                print("Error calling Google Calendar API, falling back to mock:", e)
-                is_calendar_mock = True
-        
-        if is_mock or is_calendar_mock:
-            pass
-
-    # Sort schedule by time
+    if workspace_id:
+        calendar_events = ActivityEvent.query.filter(
+            ActivityEvent.workspace_id == workspace_id,
+            ActivityEvent.provider.in_(["google_calendar", "calendly"]),
+            ActivityEvent.is_mock == False,
+            ActivityEvent.external_timestamp >= today_start,
+            ActivityEvent.external_timestamp < today_end
+        ).order_by(ActivityEvent.external_timestamp.asc()).limit(20).all()
+        for ev in calendar_events:
+            ts = ev.external_timestamp
+            time_str = "All Day"
+            if ts:
+                time_str = ts.strftime("%H:%M")
+            schedule.append({
+                "title": ev.title,
+                "time": time_str,
+                "type": "Google Calendar" if ev.provider == "google_calendar" else "Calendly",
+                "attendees": ev.actor or "",
+                "meet_link": ev.meet_link,
+                "priority": ev.priority or "normal"
+            })
     schedule.sort(key=lambda x: x["time"])
 
     # ==========================================
-    # 2. COMMUNICATION & CHATS
+    # 2. COMMUNICATION & CHATS (from ActivityEvent)
     # ==========================================
-    # Gmail (Real + Mock)
-    is_gmail_mock = False
-    if 'gmail' in connected_providers:
-        integration = connected_providers['gmail']
-        is_mock = is_mock_provider('gmail')
-        
-        if not is_mock:
-            try:
-                headers = {"Authorization": f"Bearer {integration.access_token}"}
-                gmail_url = "https://gmail.googleapis.com/gmail/v1/users/me/messages?q=is:unread&maxResults=3"
-                gmail_res = requests.get(gmail_url, headers=headers, timeout=5)
-                
-                if gmail_res.status_code in (401, 403):
-                    # Try refreshing token
-                    if refresh_google_token(integration):
-                        headers = {"Authorization": f"Bearer {integration.access_token}"}
-                        gmail_res = requests.get(gmail_url, headers=headers, timeout=5)
-                
-                gmail_res.raise_for_status()
-                
-                if gmail_res.status_code == 200:
-                    messages = gmail_res.json().get('messages', [])
-                    for msg in messages:
-                        detail_res = requests.get(f"https://gmail.googleapis.com/gmail/v1/users/me/messages/{msg['id']}", headers=headers, timeout=3)
-                        detail_res.raise_for_status()
-                        msg_detail = detail_res.json()
-                        headers_list = msg_detail.get('payload', {}).get('headers', [])
-                        subject = next((h.get('value') for h in headers_list if h.get('name') == 'Subject'), 'No Subject')
-                        sender = next((h.get('value') for h in headers_list if h.get('name') == 'From'), 'Unknown Sender')
-                        snippet = msg_detail.get('snippet', '')
-                        communications.append({
-                            "sender": sender.split("<")[0].strip(),
-                            "source": "Gmail",
-                            "subject": subject,
-                            "snippet": snippet
-                        })
-            except Exception as e:
-                print("Error calling Gmail API, falling back to mock:", e)
-                is_gmail_mock = True
-                
-        if is_mock or is_gmail_mock:
-            pass
-
-
-
-    # Slack (Real + Mock)
-    if 'slack' in connected_providers:
-        is_slack_mock = is_mock_provider('slack')
-        if not is_slack_mock:
-            try:
-                from models.activity_event import ActivityEvent
-                if workspace_id:
-                    slack_evts = ActivityEvent.query.filter_by(
-                        workspace_id=workspace_id,
-                        provider="slack",
-                        is_mock=False
-                    ).order_by(ActivityEvent.external_timestamp.desc()).limit(5).all()
-                    for evt in slack_evts:
-                        channel_str = "Slack"
-                        if "New message in " in evt.title:
-                            channel_str = f"Slack ({evt.title.replace('New message in ', '')})"
-                        communications.append({
-                            "sender": evt.actor or "Slack User",
-                            "source": channel_str,
-                            "subject": evt.title,
-                            "snippet": evt.details or ""
-                        })
-            except Exception as e:
-                print("Error reading real Slack events for briefing:", e)
-
-    # Discord check removed
-
-
-
-    # ==========================================
-    # 3. TASK & PROJECT MANAGEMENT
-    # ==========================================
-
-
-    # ==========================================
-    # 4. DEVELOPMENT TOOLS
-    # ==========================================
-    # GitHub (Real + Mock)
-    if 'github' in connected_providers:
-        integration = connected_providers['github']
-        is_mock = is_mock_provider('github')
-        
-        if not is_mock:
-            try:
-                headers = {
-                    "Authorization": f"token {integration.access_token}",
-                    "Accept": "application/vnd.github.v3+json"
-                }
-                github_login = integration.connected_email or ""
-                pr_res = requests.get(f"https://api.github.com/search/issues?q=is:pr+is:open+author:{github_login}", headers=headers, timeout=5)
-                if pr_res.status_code == 200:
-                    items = pr_res.json().get('items', [])
-                    for item in items:
-                        dev_activity.append({
-                            "title": item.get('title'),
-                            "repo": item.get('repository_url', '').split('/')[-1],
-                            "number": item.get('number'),
-                            "source": "GitHub",
-                            "url": item.get('html_url')
-                        })
-            except Exception as e:
-                print("Error calling GitHub API, falling back to mock:", e)
-                is_mock = True
-                
-        if is_mock:
-            pass
-
-
-
-    # ==========================================
-    # 5. DOCUMENTATION & KNOWLEDGE
-    # ==========================================
-    if 'notion' in connected_providers:
-        is_notion_mock = is_mock_provider('notion')
-        if not is_notion_mock:
-            try:
-                from services.notion_service import get_notion_items
-                integration = connected_providers['notion']
-                items = get_notion_items(integration.access_token)
-                for item in items[:3]:
-                    time_str = item["timestamp"][:10] if item.get("timestamp") else "Recently"
-                    docs_knowledge.append({
-                        "title": f"Notion: {item['title']}",
-                        "updated_by": item["user"],
-                        "time": time_str
-                    })
-            except Exception as e:
-                print("Error reading Notion docs for briefing:", e)
-    if 'google_docs' in connected_providers:
-        is_docs_mock = is_mock_provider('google_docs')
-        if not is_docs_mock:
-            try:
-                from services import google_docs_service
-                integration = connected_providers['google_docs']
-                docs = google_docs_service.get_recent_documents(integration.access_token)
-                for d in docs[:3]:
-                    docs_knowledge.append({
-                        "title": f"Google Doc: {d['title']}",
-                        "updated_by": d['owner'],
-                        "time": d['modifiedTime'][:10] if d.get('modifiedTime') else 'Recently'
-                    })
-            except Exception as e:
-                print("Error fetching real Google Docs for briefing:", e)
-
-    # ==========================================
-    # 6. SALES & CRM
-    # ==========================================
-    if 'hubspot' in connected_providers:
-        from models.activity_event import ActivityEvent
-        real_events = ActivityEvent.query.filter_by(
-            provider="hubspot", is_mock=False
+    if workspace_id:
+        # Gmail
+        gmail_events = ActivityEvent.query.filter(
+            ActivityEvent.workspace_id == workspace_id,
+            ActivityEvent.provider == "gmail",
+            ActivityEvent.is_mock == False,
+            ActivityEvent.external_timestamp >= today_start
         ).order_by(ActivityEvent.external_timestamp.desc()).limit(5).all()
-        for ev in real_events:
-            sales_pipeline.append({
-                "event": ev.title,
-                "source": "HubSpot",
-                "stage": ev.status or "Active"
+        for ev in gmail_events:
+            communications.append({
+                "sender": ev.actor or "Unknown",
+                "source": "Gmail",
+                "subject": ev.title,
+                "snippet": (ev.details or "")[:200]
             })
 
-    if 'zoho_crm' in connected_providers:
-        from models.activity_event import ActivityEvent
-        real_events = ActivityEvent.query.filter_by(
-            provider="zoho_crm", is_mock=False
+        # Slack
+        slack_events = ActivityEvent.query.filter(
+            ActivityEvent.workspace_id == workspace_id,
+            ActivityEvent.provider == "slack",
+            ActivityEvent.is_mock == False
         ).order_by(ActivityEvent.external_timestamp.desc()).limit(5).all()
-        for ev in real_events:
-            sales_pipeline.append({
-                "event": ev.title,
-                "source": "Zoho CRM",
-                "stage": ev.status or "Active"
+        for evt in slack_events:
+            channel_str = "Slack"
+            if "New message in " in evt.title:
+                channel_str = f"Slack ({evt.title.replace('New message in ', '')})"
+            communications.append({
+                "sender": evt.actor or "Slack User",
+                "source": channel_str,
+                "subject": evt.title,
+                "snippet": (evt.details or "")[:200]
             })
-    if 'pipedrive' in connected_providers:
-        from models.activity_event import ActivityEvent
-        real_events = ActivityEvent.query.filter_by(
-            provider="pipedrive", is_mock=False
+
+    # ==========================================
+    # 3. TASK & PROJECT MANAGEMENT (from ActivityEvent)
+    # ==========================================
+    if workspace_id:
+        task_events = ActivityEvent.query.filter(
+            ActivityEvent.workspace_id == workspace_id,
+            ActivityEvent.provider.in_(["trello", "asana", "linear", "monday"]),
+            ActivityEvent.is_mock == False
+        ).order_by(ActivityEvent.external_timestamp.desc()).limit(10).all()
+        for ev in task_events:
+            tasks_feed.append({
+                "title": ev.title,
+                "source": ev.provider,
+                "status": ev.status or "Active",
+                "priority": ev.priority or "P2",
+                "timestamp": ev.external_timestamp.isoformat() if ev.external_timestamp else None
+            })
+
+    # ==========================================
+    # 4. DEVELOPMENT TOOLS (from ActivityEvent)
+    # ==========================================
+    if workspace_id:
+        github_events = ActivityEvent.query.filter(
+            ActivityEvent.workspace_id == workspace_id,
+            ActivityEvent.provider == "github",
+            ActivityEvent.is_mock == False
         ).order_by(ActivityEvent.external_timestamp.desc()).limit(5).all()
-        for ev in real_events:
-            sales_pipeline.append({
-                "event": ev.title,
-                "source": "Pipedrive",
-                "stage": ev.status or "Active"
+        for ev in github_events:
+            repo = ""
+            if ev.url:
+                parts = ev.url.split("/")
+                if len(parts) >= 5:
+                    repo = f"{parts[3]}/{parts[4]}"
+            number = ""
+            if ev.url:
+                parts = ev.url.split("/")
+                if len(parts) >= 7:
+                    number = parts[-1]
+            dev_activity.append({
+                "title": ev.title,
+                "repo": repo,
+                "number": number,
+                "source": "GitHub",
+                "url": ev.url or ""
             })
 
     # ==========================================
-    # 7. SOCIAL MEDIA PLATFORMS (Removed)
+    # 5. DOCUMENTATION & KNOWLEDGE (from ActivityEvent)
     # ==========================================
-
-    # ==========================================
-    # 8. ANALYTICS & PRODUCT TRACKING
-    # ==========================================
-
-    if 'mixpanel' in connected_providers:
-        from models.activity_event import ActivityEvent
-        real_events = ActivityEvent.query.filter_by(
-            provider="mixpanel", is_mock=False
-        ).order_by(ActivityEvent.external_timestamp.desc()).limit(3).all()
-        for ev in real_events:
-            analytics.append({
-                "metric": ev.title,
-                "source": "Mixpanel"
-            })
-    if 'amplitude' in connected_providers:
-        from models.activity_event import ActivityEvent
-        real_events = ActivityEvent.query.filter_by(
-            provider="amplitude", is_mock=False
-        ).order_by(ActivityEvent.external_timestamp.desc()).limit(3).all()
-        for ev in real_events:
-            analytics.append({
-                "metric": ev.title,
-                "source": "Amplitude"
+    if workspace_id:
+        doc_events = ActivityEvent.query.filter(
+            ActivityEvent.workspace_id == workspace_id,
+            ActivityEvent.provider.in_(["notion", "google_docs"]),
+            ActivityEvent.is_mock == False
+        ).order_by(ActivityEvent.external_timestamp.desc()).limit(6).all()
+        for ev in doc_events:
+            ts_str = ev.external_timestamp.strftime("%Y-%m-%d") if ev.external_timestamp else "Recently"
+            provider_label = "Notion" if ev.provider == "notion" else "Google Doc"
+            docs_knowledge.append({
+                "title": f"{provider_label}: {ev.title}",
+                "updated_by": ev.actor or "Unknown",
+                "time": ts_str
             })
 
     # ==========================================
-    # 9. FINANCE
+    # 6. SALES & CRM (from ActivityEvent)
     # ==========================================
+    for provider_name in ["hubspot", "zoho_crm", "pipedrive"]:
+        if provider_name in connected_providers:
+            crm_events = ActivityEvent.query.filter(
+                ActivityEvent.workspace_id == workspace_id,
+                ActivityEvent.provider == provider_name,
+                ActivityEvent.is_mock == False
+            ).order_by(ActivityEvent.external_timestamp.desc()).limit(5).all()
+            source_label = {"hubspot": "HubSpot", "zoho_crm": "Zoho CRM", "pipedrive": "Pipedrive"}[provider_name]
+            for ev in crm_events:
+                sales_pipeline.append({
+                    "event": ev.title,
+                    "source": source_label,
+                    "stage": ev.status or "Active"
+                })
 
-    if 'posthog' in connected_providers:
-        from models.activity_event import ActivityEvent
-        real_events = ActivityEvent.query.filter_by(
-            provider="posthog", is_mock=False
-        ).order_by(ActivityEvent.external_timestamp.desc()).limit(3).all()
-        for ev in real_events:
-            analytics.append({
-                "metric": ev.title,
-                "source": "PostHog"
-            })
+    # ==========================================
+    # 7. ANALYTICS (from ActivityEvent)
+    # ==========================================
+    for provider_name in ["google_analytics"]:
+        if provider_name in connected_providers:
+            analytics_events = ActivityEvent.query.filter(
+                ActivityEvent.workspace_id == workspace_id,
+                ActivityEvent.provider == provider_name,
+                ActivityEvent.is_mock == False
+            ).order_by(ActivityEvent.external_timestamp.desc()).limit(3).all()
+            for ev in analytics_events:
+                analytics.append({
+                    "metric": ev.title,
+                    "source": "Google Analytics"
+                })
 
     # ==========================================
     # SUMMARY SYNTHESIS & AI GREETER
     # ==========================================
     # SUMMARY SYNTHESIS & AI GREETER
     # ==========================================
-    workspace_id = get_current_workspace_id(user_id)
     active_goals = Goal.query.filter_by(workspace_id=workspace_id).filter(Goal.status != 'completed').all()
     active_tasks = Task.query.filter_by(workspace_id=workspace_id).filter(Task.status != 'completed').all()
     blocked_tasks = Task.query.filter(Task.workspace_id == workspace_id, Task.blocked_at.isnot(None)).all()
@@ -742,10 +603,6 @@ def compile_morning_briefing(user_id):
         summary += strategy
 
     sync_errors = []
-    if 'google_calendar' in connected_providers and is_calendar_mock:
-        sync_errors.append('google_calendar')
-    if 'gmail' in connected_providers and is_gmail_mock:
-        sync_errors.append('gmail')
 
     return {
         "summary": summary,

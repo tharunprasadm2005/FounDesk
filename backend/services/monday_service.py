@@ -82,6 +82,8 @@ def get_items(access_token):
                 items {
                     id
                     name
+                    created_at
+                    updated_at
                     group {
                         title
                     }
@@ -147,6 +149,8 @@ def get_items(access_token):
                 elif "date" in col_type or "timeline" in col_type or "date" in col_id.lower():
                     due_date = col_text or "No Date"
                     
+            created_at = item.get("created_at")
+            updated_at = item.get("updated_at")
             parsed_items.append({
                 "id": item.get("id"),
                 "name": item.get("name"),
@@ -157,7 +161,9 @@ def get_items(access_token):
                 "progress_percentage": progress,
                 "risk_level": risk,
                 "group": item.get("group", {}).get("title") if item.get("group") else "Default Group",
-                "board": board_name
+                "board": board_name,
+                "created_at": created_at,
+                "updated_at": updated_at
             })
     return parsed_items
 

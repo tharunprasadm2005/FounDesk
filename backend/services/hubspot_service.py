@@ -28,7 +28,7 @@ def get_contacts(token, limit=20):
 
 def get_deals(token, limit=20):
     url = f"{HUBSPOT_BASE}/crm/v3/objects/deals"
-    params = {"limit": limit, "properties": ["dealname", "amount", "dealstage", "hs_notes", "description", "dealtype", "pipeline"]}
+    params = {"limit": limit, "properties": ["dealname", "amount", "dealstage", "hs_notes", "description", "dealtype", "pipeline", "createdate", "hs_lastmodifieddate"]}
     resp = requests.get(url, headers=_headers(token), params=params, timeout=10)
     resp.raise_for_status()
     return resp.json()
