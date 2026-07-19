@@ -406,11 +406,10 @@ function Goals() {
   };
 
   const PHASE_LABELS = {
-    pre_seed: "Build",
-    fundraising_sprint: "Fundraising Sprint",
-    product_launch_week: "Launch Week",
-    hiring_push: "Hiring Push",
-    post_launch_recovery: "Post-launch",
+    think: "Think",
+    build: "Build",
+    launch: "Launch",
+    scale: "Scale",
   };
 
   // ─── Follow-ups ───────────────────────────────
@@ -1259,10 +1258,10 @@ function Goals() {
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", position: "relative", margin: "32px 0 40px", padding: "0 10px" }}>
                   {/* Connecting Line */}
                   <div style={{ position: "absolute", top: "50%", left: 0, right: 0, height: "2px", background: "rgba(255,255,255,0.03)", zIndex: 1, transform: "translateY(-50%)" }} />
-                  <div style={{ position: "absolute", top: "50%", left: 0, width: `${(Math.max(0, ["think", "plan", "build", "launch"].indexOf((workspace.active_phase || "build").toLowerCase())) / 3) * 100}%`, height: "2px", background: "var(--ember)", zIndex: 1, transform: "translateY(-50%)", transition: "width 0.5s ease" }} />
+                  <div style={{ position: "absolute", top: "50%", left: 0, width: `${(Math.max(0, ["think", "build", "launch", "scale"].indexOf((workspace.active_phase || "build").toLowerCase())) / 3) * 100}%`, height: "2px", background: "var(--ember)", zIndex: 1, transform: "translateY(-50%)", transition: "width 0.5s ease" }} />
 
-                  {["think", "plan", "build", "launch"].map((p, idx) => {
-                    const activePhaseIdx = ["think", "plan", "build", "launch"].indexOf((workspace.active_phase || "build").toLowerCase());
+                  {["think", "build", "launch", "scale"].map((p, idx) => {
+                    const activePhaseIdx = ["think", "build", "launch", "scale"].indexOf((workspace.active_phase || "build").toLowerCase());
                     const isCompleted = idx < activePhaseIdx;
                     const isActive = idx === activePhaseIdx;
                     const label = p.charAt(0).toUpperCase() + p.slice(1);

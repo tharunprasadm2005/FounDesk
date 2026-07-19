@@ -264,10 +264,9 @@ function Dashboard() {
   // Active goal progress compute
   const goalProgress = cs.active_goal?.progress || 0;
 
-  const completedDataPoints = sb.completion_data_points && sb.completion_data_points.length === 7
-    ? sb.completion_data_points
-    : [0, 0, 0, 0, 0, 0, 0];
-  const totalCompletedThisWeek = sb.completed_this_week ?? completedDataPoints.reduce((a, b) => a + b, 0);
+  const hasVelocityData = sb.completion_data_points && sb.completion_data_points.length === 7;
+  const completedDataPoints = hasVelocityData ? sb.completion_data_points : null;
+  const totalCompletedThisWeek = sb.completed_this_week ?? (hasVelocityData ? completedDataPoints.reduce((a, b) => a + b, 0) : 0);
 
   if (loading) {
     return (
@@ -441,7 +440,13 @@ function Dashboard() {
               <span>Last 7 Days</span>
             </div>
           </div>
-          <ProductivityChart dataPoints={completedDataPoints} />
+          {hasVelocityData ? (
+            <ProductivityChart dataPoints={completedDataPoints} />
+          ) : (
+            <div style={{ textAlign: "center", padding: "30px 0", color: "var(--graphite)", fontSize: "12px" }}>
+              No velocity data available yet. Complete some tasks to see your trend.
+            </div>
+          )}
         </div>
 
         {/* 6. Active Blockers */}
