@@ -1,7 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import api, { API_BASE_URL } from "../utils/api";
-import { initAmplitudeFromBackend, setUserId } from "../config/amplitude";
 import { track } from "../utils/track";
 
 export default function GoogleCallback() {
@@ -33,9 +32,6 @@ export default function GoogleCallback() {
           const activeWS = wsRes.data.find((w) => w.member_status === "active");
           if (activeWS) localStorage.setItem("workspaceId", activeWS.id.toString());
         }).then(() => {
-          initAmplitudeFromBackend().then(() => {
-            setUserId(userData?.email || userData?.name);
-          });
           track("user_logged_in", { name: userData?.name, email: userData?.email });
           navigate("/dashboard", { replace: true });
         });

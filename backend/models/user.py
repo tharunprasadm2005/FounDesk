@@ -1,5 +1,6 @@
 from config.database import db
 from datetime import datetime
+import hashlib
 import bcrypt
 
 class User(db.Model):
@@ -18,12 +19,18 @@ class User(db.Model):
     totp_secret = db.Column(db.String(255), nullable=True)
     totp_enabled = db.Column(db.Boolean, default=False, nullable=False)
     avatar_url = db.Column(db.String(500), nullable=True)
+    avatar_updated_at = db.Column(db.DateTime, nullable=True)
+    recovery_codes = db.Column(db.Text, nullable=True)
     password_reset_token = db.Column(db.String(200), nullable=True)
     password_reset_expires = db.Column(db.DateTime, nullable=True)
     email_verified = db.Column(db.Boolean, default=False, nullable=False)
     email_verify_token = db.Column(db.String(200), nullable=True)
     token_version = db.Column(db.Integer, default=0, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+    @staticmethod
+    def hash_token(token):
+        return hashlib.sha256(token.encode()).hexdigest()
 
     def set_password(self, password):
         self.password_hash = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()

@@ -16,13 +16,17 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
 
   backend:
     build: ./backend
     ports:
-      - "5000:5000"
+      - "8000:8000"
     environment:
+      FLASK_ENV: ${FLASK_ENV:-production}
+      APP_ENV: ${APP_ENV:-production}
       DATABASE_URL: postgresql://postgres:${DB_PASSWORD:-postgres}@db:5432/foundesk_db
+      SECRET_KEY: ${SECRET_KEY}
       LLM_ROUTING_STRATEGY: production
       RAZORPAY_KEY_ID: ${RAZORPAY_KEY_ID}
       RAZORPAY_KEY_SECRET: ${RAZORPAY_KEY_SECRET}
@@ -31,19 +35,37 @@ services:
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
       GOOGLE_INTEGRATION_CLIENT_ID: ${GOOGLE_INTEGRATION_CLIENT_ID}
       GOOGLE_INTEGRATION_CLIENT_SECRET: ${GOOGLE_INTEGRATION_CLIENT_SECRET}
-      SECRET_KEY: ${SECRET_KEY}
       ADMIN_API_TOKEN: ${ADMIN_API_TOKEN}
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      FRONTEND_URL: ${FRONTEND_URL:-https://foundesk.onrender.com}
+    volumes:
+      - ./backend:/app
     depends_on:
       db:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
     restart: unless-stopped
 
   frontend:
     build: ./frontend
     ports:
       - "80:80"
+    environment:
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:8000}
     depends_on:
       - backend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
 
 volumes:
   pgdata:

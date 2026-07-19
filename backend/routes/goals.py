@@ -83,7 +83,11 @@ def get_goals(current_user_id):
     if not workspace_id:
         return jsonify({"error": "No active workspace context"}), 400
 
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 50, type=int)
+    per_page = min(per_page, 200)
     source = request.args.get('source')
+
     query = Goal.query.filter_by(workspace_id=workspace_id).filter(Goal.status != 'duplicate')
     if source:
         query = query.filter_by(source=source)
@@ -95,7 +99,6 @@ def get_goals(current_user_id):
     weekly_progress_map = {}
     weekly_tasks_map = {}
     weekly_decision_ids_map = {}
-    session_changed = False
 
     for g in goals:
         if g.goal_type == 'weekly':
@@ -109,21 +112,9 @@ def get_goals(current_user_id):
             if weekly_tasks:
                 completed_count = len([t for t in weekly_tasks if t.status == 'Done'])
                 progress = int((completed_count / len(weekly_tasks)) * 100)
-                if progress == 100 and g.status != 'completed':
-                    g.status = 'completed'; session_changed = True
-                elif progress > 0 and progress < 100 and g.status != 'in_progress':
-                    g.status = 'in_progress'; session_changed = True
-                elif progress == 0 and g.status != 'pending':
-                    g.status = 'pending'; session_changed = True
             else:
                 progress = 0
             weekly_progress_map[g.id] = progress
-
-    if session_changed:
-        try:
-            db.session.commit()
-        except Exception as e:
-            db.session.rollback()
 
     for g in goals:
         g_dict = g.to_dict()
@@ -166,7 +157,18 @@ def get_goals(current_user_id):
         return (risk, gd.get('due_date') or '9999-12-31')
     goal_list.sort(key=sort_key)
 
-    return jsonify(goal_list)
+    total = len(goal_list)
+    start = (page - 1) * per_page
+    end = start + per_page
+    paginated = goal_list[start:end]
+
+    return jsonify({
+        "items": paginated,
+        "total": total,
+        "page": page,
+        "per_page": per_page,
+        "pages": (total + per_page - 1) // per_page,
+    })
 
 
 @goals_bp.route('/goals', methods=['POST'])

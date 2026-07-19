@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from "react";
 import Lenis from "lenis";
 import Sidebar from "./Sidebar";
 import { NotificationProvider } from "../context/NotificationContext";
+import { ToastProvider } from "../context/ToastContext";
 import CommandBar from "./CommandBar";
 
 function Layout({ children }) {
@@ -66,17 +67,19 @@ function Layout({ children }) {
 
   return (
     <NotificationProvider>
-      <div style={styles.layout}>
-        <div style={styles.container}>
-          <Sidebar />
-          <main ref={scrollRef} style={styles.mainContent} className="main-scroll-zone">
-            <div>
-              {children}
-            </div>
-          </main>
+      <ToastProvider>
+        <div style={styles.layout}>
+          <div style={styles.container}>
+            <Sidebar />
+            <main ref={scrollRef} style={styles.mainContent} className="main-scroll-zone">
+              <div>
+                {children}
+              </div>
+            </main>
+          </div>
         </div>
-      </div>
-      <CommandBar />
+        <CommandBar />
+      </ToastProvider>
     </NotificationProvider>
   );
 }

@@ -138,30 +138,58 @@ def get_member_profile(current_user_id, workspace_id, member_id):
 @team_space_bp.route('/workspaces/<int:workspace_id>/workload', methods=['GET'])
 @token_required
 def get_workload(current_user_id, workspace_id):
-    members = WorkspaceMember.query.filter_by(workspace_id=workspace_id, status="active").all()
-    workload = []
+    from sqlalchemy.orm import joinedload
+    from sqlalchemy import func
 
+    members = WorkspaceMember.query.filter_by(workspace_id=workspace_id, status="active").options(
+        joinedload(WorkspaceMember.user)
+    ).all()
+    uids = [m.user_id for m in members if m.user_id]
+
+    task_counts = dict(db.session.query(Task.assignee_id, func.count(Task.id)).filter(
+        Task.workspace_id == workspace_id, Task.assignee_id.in_(uids)
+    ).group_by(Task.assignee_id).all())
+
+    open_task_counts = dict(db.session.query(Task.assignee_id, func.count(Task.id)).filter(
+        Task.workspace_id == workspace_id, Task.assignee_id.in_(uids),
+        Task.status.notin_(["Completed", "Done"])
+    ).group_by(Task.assignee_id).all())
+
+    goal_counts = dict(db.session.query(Goal.user_id, func.count(Goal.id)).filter(
+        Goal.workspace_id == workspace_id, Goal.user_id.in_(uids)
+    ).group_by(Goal.user_id).all())
+
+    blocker_counts = dict(db.session.query(Blocker.assigned_to, func.count(Blocker.id)).filter(
+        Blocker.workspace_id == workspace_id, Blocker.assigned_to.in_(uids), Blocker.status == "open"
+    ).group_by(Blocker.assigned_to).all())
+
+    completed_task_counts = dict(db.session.query(Task.assignee_id, func.count(Task.id)).filter(
+        Task.workspace_id == workspace_id, Task.assignee_id.in_(uids),
+        Task.status.in_(["Completed", "Done"])
+    ).group_by(Task.assignee_id).all())
+
+    workload = []
     for m in members:
         uid = m.user_id
         if not uid:
             continue
-        task_count = Task.query.filter_by(workspace_id=workspace_id, assignee_id=uid).count()
-        open_tasks = Task.query.filter_by(workspace_id=workspace_id, assignee_id=uid).filter(Task.status.notin_(["Completed", "Done"])).count()
-        goal_count = Goal.query.filter_by(workspace_id=workspace_id, user_id=uid).count()
-        blocker_count = Blocker.query.filter_by(workspace_id=workspace_id, assigned_to=uid, status="open").count()
-        completed_tasks = Task.query.filter_by(workspace_id=workspace_id, assignee_id=uid).filter(Task.status.in_(["Completed", "Done"])).count()
+        tc = task_counts.get(uid, 0)
+        ot = open_task_counts.get(uid, 0)
+        gc = goal_counts.get(uid, 0)
+        bc = blocker_counts.get(uid, 0)
+        ct = completed_task_counts.get(uid, 0)
 
         workload.append({
             "user_id": uid,
             "name": m.user.name if m.user else m.email,
             "email": m.email,
             "role": m.role,
-            "total_tasks": task_count,
-            "open_tasks": open_tasks,
-            "completed_tasks": completed_tasks,
-            "goals": goal_count,
-            "open_blockers": blocker_count,
-            "load_score": round((open_tasks * 2 + blocker_count * 3) / max(task_count, 1), 2) if task_count > 0 else 0
+            "total_tasks": tc,
+            "open_tasks": ot,
+            "completed_tasks": ct,
+            "goals": gc,
+            "open_blockers": bc,
+            "load_score": round((ot * 2 + bc * 3) / max(tc, 1), 2) if tc > 0 else 0
         })
 
     workload.sort(key=lambda x: x["load_score"], reverse=True)

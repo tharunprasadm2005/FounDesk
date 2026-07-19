@@ -22,6 +22,12 @@ class Workspace(db.Model):
     trial_ends_at = db.Column(db.DateTime, nullable=True)
     razorpay_customer_id = db.Column(db.String(100), nullable=True)
     razorpay_subscription_id = db.Column(db.String(100), nullable=True)
+    logo_url = db.Column(db.String(500), nullable=True)
+    website = db.Column(db.String(500), nullable=True)
+    industry = db.Column(db.String(100), nullable=True)
+    size = db.Column(db.String(50), nullable=True)
+    tags = db.Column(db.JSON, nullable=True)
+    template_source = db.Column(db.String(100), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
     def to_dict(self):
@@ -40,6 +46,12 @@ class Workspace(db.Model):
             "subscription_status": self.subscription_status,
             "plan": self.plan,
             "trial_ends_at": self.trial_ends_at.isoformat() if self.trial_ends_at else None,
+            "logo_url": self.logo_url,
+            "website": self.website,
+            "industry": self.industry,
+            "size": self.size,
+            "tags": self.tags,
+            "template_source": self.template_source,
             "created_at": self.created_at.isoformat() if self.created_at else None
         }
 

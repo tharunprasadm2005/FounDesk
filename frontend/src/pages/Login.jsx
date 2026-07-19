@@ -188,18 +188,18 @@ function validateEmail(email) {
 
 function validatePassword(password) {
   if (!password) return "Password is required";
-  if (password.length < 8) return "Minimum 8 characters";
+  if (password.length < 12) return "Minimum 12 characters";
   return "";
 }
 
 function getPasswordStrength(password) {
-  if (!password || password.length < 8) return { score: 0, label: "Weak", color: "var(--warning)" };
+  if (!password || password.length < 12) return { score: 0, label: "Weak", color: "var(--warning)" };
   let score = 0;
   if (/[a-z]/.test(password)) score++;
   if (/[A-Z]/.test(password)) score++;
   if (/[0-9]/.test(password)) score++;
   if (/[^a-zA-Z0-9]/.test(password)) score++;
-  if (password.length >= 12) score++;
+  if (password.length >= 16) score++;
   if (score <= 1) return { score: 1, label: "Weak", color: "var(--warning)" };
   if (score === 2) return { score: 2, label: "Fair", color: "var(--ember)" };
   if (score <= 4) return { score: 3, label: "Good", color: "#3acaa5" };
@@ -208,10 +208,11 @@ function getPasswordStrength(password) {
 
 function getPasswordChecks(password) {
   return [
-    { key: "length", label: "8 characters", met: password.length >= 8 },
+    { key: "length", label: "12 characters", met: password.length >= 12 },
     { key: "uppercase", label: "Uppercase letter", met: /[A-Z]/.test(password) },
+    { key: "lowercase", label: "Lowercase letter", met: /[a-z]/.test(password) },
     { key: "number", label: "Number", met: /[0-9]/.test(password) },
-    { key: "symbol", label: "Symbol", met: /[^a-zA-Z0-9]/.test(password) },
+    { key: "symbol", label: "Symbol (special char)", met: /[^a-zA-Z0-9]/.test(password) },
   ];
 }
 

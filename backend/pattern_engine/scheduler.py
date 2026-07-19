@@ -1,6 +1,6 @@
 import os
 from apscheduler.schedulers.background import BackgroundScheduler
-from pattern_engine.pipeline import run_all
+from pattern_engine.pipeline.core import run_all
 from services.notification_engine import run_notification_engine
 from models.workspace import Workspace
 from pattern_engine.models import PipelineLock

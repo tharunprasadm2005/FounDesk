@@ -1,9 +1,25 @@
+import os
+import secrets
 from flask import Blueprint, request, jsonify
 from config.database import db
 from utils.auth import token_required
 from models.notification_preference import NotificationPreference, InAppNotification
 from models.workspace_member import WorkspaceMember
+from models.user import User
+from models.email_notification import EmailNotification
+from utils.rate_limit import limiter
+from utils.email import send_email
 from datetime import datetime
+
+TEMPLATES = {
+    "blocker_detected": {"title": "Blocker: {blocker_title}", "message": "A blocker has been detected in {workspace_name}: {blocker_description}"},
+    "daily_briefing": {"title": "Daily Briefing - {date}", "message": "Here's your daily briefing for {workspace_name}. You have {task_count} tasks today."},
+    "follow_up_due": {"title": "Follow-up Due: {item}", "message": "Your follow-up '{item}' is due. Please review and take action."},
+    "decision_confirmation": {"title": "Decision: {decision_title}", "message": "The decision '{decision_title}' has been confirmed in {workspace_name}."},
+    "member_joined": {"title": "Welcome {member_name}", "message": "{member_name} has joined {workspace_name} as {role}."},
+    "phase_change": {"title": "Phase Change: {workspace_name}", "message": "{workspace_name} moved from {old_stage} to {new_stage}."},
+    "weekly_digest": {"title": "Weekly Digest - {workspace_name}", "message": "This week: {task_completed} tasks completed, {goals_achieved} goals achieved, {blockers_resolved} blockers resolved."},
+}
 
 notifications_bp = Blueprint('notifications', __name__)
 
@@ -173,7 +189,97 @@ def send_test_notification(current_user_id):
     return jsonify({"message": "Test notification sent", "notification": note.to_dict()})
 
 
+@notifications_bp.route('/notifications/read-all/workspace/<int:workspace_id>', methods=['POST'])
+@token_required
+def mark_all_read_workspace(current_user_id, workspace_id):
+    member = WorkspaceMember.query.filter_by(workspace_id=workspace_id, user_id=current_user_id, status='active').first()
+    if not member:
+        return jsonify({"error": "Unauthorized"}), 403
+    InAppNotification.query.filter_by(user_id=current_user_id, workspace_id=workspace_id, is_read=False).update({"is_read": True})
+    db.session.commit()
+    return jsonify({"message": "All notifications marked as read for this workspace"})
+
+
+@notifications_bp.route('/notifications/templates', methods=['GET'])
+@token_required
+def get_notification_templates(current_user_id):
+    return jsonify({"templates": TEMPLATES})
+
+
+@notifications_bp.route('/notifications/resend-verification', methods=['POST'])
+@token_required
+@limiter.limit("3 per minute")
+def resend_verification(current_user_id):
+    user = User.query.get(current_user_id)
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+    if user.email_verified:
+        return jsonify({"message": "Email already verified"})
+    import hashlib
+    raw_token = secrets.token_urlsafe(32)
+    user.email_verify_token = User.hash_token(raw_token)
+    db.session.commit()
+    frontend_url = os.getenv("FRONTEND_URL", "https://foundesk.onrender.com")
+    verify_link = f"{frontend_url}/verify-email?token={raw_token}"
+    try:
+        send_email(
+            user.email,
+            "Verify your FounDesk email",
+            f"<p>Click <a href='{verify_link}'>here</a> to verify your email.</p>",
+            f"Verify your email: {verify_link}",
+        )
+    except Exception as e:
+        return jsonify({"error": f"Failed to send verification email: {e}"}), 500
+    return jsonify({"message": "Verification email sent"})
+
+
 # ─── helpers ─────────────────────────────────
+
+def _is_in_quiet_hours(pref):
+    if not pref or not pref.quiet_hours_start or not pref.quiet_hours_end:
+        return False
+    try:
+        now = datetime.utcnow()
+        start_parts = pref.quiet_hours_start.split(":")
+        end_parts = pref.quiet_hours_end.split(":")
+        start_min = int(start_parts[0]) * 60 + int(start_parts[1])
+        end_min = int(end_parts[0]) * 60 + int(end_parts[1])
+        current_min = now.hour * 60 + now.minute
+        if start_min <= end_min:
+            return start_min <= current_min <= end_min
+        else:
+            return current_min >= start_min or current_min <= end_min
+    except (ValueError, IndexError):
+        return False
+
+
+def _send_notification_email(user_id, workspace_id, ntype, title, message):
+    user = User.query.get(user_id)
+    if not user or not user.email:
+        return False
+    email_note = EmailNotification(
+        user_id=user_id,
+        workspace_id=workspace_id,
+        notification_type=ntype,
+        recipient_email=user.email,
+        subject=title,
+        body_text=message,
+        status="pending",
+    )
+    db.session.add(email_note)
+    db.session.flush()
+    try:
+        success = send_email(user.email, title, f"<p>{message}</p>", message)
+        email_note.status = "sent" if success else "failed"
+        email_note.sent_at = datetime.utcnow() if success else None
+        if not success:
+            email_note.error_message = "Email send returned failure"
+    except Exception as e:
+        email_note.status = "failed"
+        email_note.error_message = str(e)
+    db.session.commit()
+    return email_note.status == "sent"
+
 
 def _get_ws_id(user_id):
     ws_id_str = request.headers.get("X-Workspace-Id")
@@ -186,4 +292,5 @@ def _get_ws_id(user_id):
         except ValueError:
             pass
     member = WorkspaceMember.query.filter_by(user_id=user_id, status="active").first()
-    return member.workspace_id if member else None
+    ws_id = member.workspace_id if member else None
+    return ws_id

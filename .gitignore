@@ -34,3 +34,37 @@ Thumbs.db
 backend/scratch/
 backend/venv/
 frontend/dist/
+
+# Playwright / test artifacts
+frontend/playwright-report/
+frontend/test-results/
+frontend/full-run-output.txt
+
+# Cache
+.cache/
+.vite/
+*.tsbuildinfo
+
+# Backend model artifacts
+Modelfile
+backend/Modelfile
+
+# Coverage
+htmlcov/
+.coverage
+coverage/
+
+# Temporary / cache
+*.pyc
+__pycache__/
+.cache/
+*.egg-info/
+
+# Test artifacts
+.pytest_cache/
+test-results/
+playwright-report/
+trace.zip
+
+# AI agent artifacts
+brain/

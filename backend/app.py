@@ -26,8 +26,23 @@ from routes.hubspot_data import hubspot_bp
 from routes.pipedrive_data import pipedrive_bp
 from routes.zoho_data import zoho_bp
 from routes.notion_data import notion_bp
+from health import health_bp
+import logging
+import atexit
+import signal
+
+logging.basicConfig(
+    level=logging.INFO if os.environ.get("FLASK_ENV") != "test" else logging.ERROR,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+)
+logger = logging.getLogger(__name__)
 
 load_dotenv()
+
+REQUIRED_ENV_VARS = ["DATABASE_URL", "SECRET_KEY"]
+missing = [v for v in REQUIRED_ENV_VARS if not os.environ.get(v)]
+if missing:
+    raise RuntimeError(f"Missing required environment variables: {', '.join(missing)}")
 
 # Sentry error monitoring (opt-in via SENTRY_DSN env var)
 sentry_dsn = os.environ.get("SENTRY_DSN", "")
@@ -69,6 +84,25 @@ with app.app_context():
                 ("email_verify_token", "VARCHAR(200)"),
                 ("token_version", "INTEGER NOT NULL DEFAULT 0"),
                 ("week_start_day", "VARCHAR(10) NOT NULL DEFAULT 'monday'"),
+                ("recovery_codes", "TEXT"),
+                ("avatar_updated_at", "TIMESTAMP"),
+            ],
+            "workspaces": [
+                ("logo_url", "VARCHAR(500)"),
+                ("website", "VARCHAR(500)"),
+                ("industry", "VARCHAR(100)"),
+                ("size", "VARCHAR(50)"),
+                ("tags", "JSON"),
+                ("template_source", "VARCHAR(100)"),
+            ],
+            "api_keys": [
+                ("permissions", "JSON"),
+                ("last_used_ip", "VARCHAR(45)"),
+            ],
+            "refresh_tokens": [
+                ("user_agent", "VARCHAR(500)"),
+                ("ip_address", "VARCHAR(45)"),
+                ("last_used_at", "TIMESTAMP"),
             ],
         }
         for table, cols in _COLUMNS.items():
@@ -78,6 +112,25 @@ with app.app_context():
                     db.session.commit()
                 except Exception:
                     db.session.rollback()
+        # Ensure workspace_notifications table exists
+        try:
+            db.session.execute(sa_text("""
+                CREATE TABLE IF NOT EXISTS workspace_notifications (
+                    id SERIAL PRIMARY KEY,
+                    workspace_id INTEGER NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+                    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    notification_type VARCHAR(100) NOT NULL,
+                    enabled BOOLEAN NOT NULL DEFAULT TRUE,
+                    channel VARCHAR(50) NOT NULL DEFAULT 'all',
+                    frequency VARCHAR(50) NOT NULL DEFAULT 'immediate',
+                    priority VARCHAR(50) NOT NULL DEFAULT 'normal',
+                    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+                    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+                )
+            """))
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
     except Exception as e:
         print(f"Auto-migration init: {e}")
 
@@ -116,8 +169,12 @@ from models.ai_feedback import AiFeedback
 from models.waitlist import Waitlist
 from models.knowledge_item import KnowledgeItem
 from models.notification_preference import NotificationPreference, InAppNotification
+from models.workspace_notification import WorkspaceNotification
 from models.api_key import ApiKey
 from models.error_log import ErrorLog
+from models.invoice import Invoice
+from models.api_key_audit import ApiKeyAuditLog
+from models.email_notification import EmailNotification
 
 from routes.auth import auth_bp
 from models.refresh_token import RefreshToken
@@ -167,11 +224,15 @@ app.register_blueprint(ai_bp, url_prefix='/api')
 app.register_blueprint(waitlist_bp, url_prefix='/api')
 app.register_blueprint(team_space_bp, url_prefix='/api')
 app.register_blueprint(knowledge_bp, url_prefix='/api')
+app.register_blueprint(health_bp)
 
 
 @app.route('/auth/google', methods=['POST'])
+@limiter.limit("10 per minute")
 def google_auth():
     import traceback
+    from models.workspace import Workspace
+    from models.workspace_member import WorkspaceMember
     data = request.get_json()
     if not data or not data.get('token'):
         return jsonify({"error": "Missing token"}), 400
@@ -207,7 +268,26 @@ def google_auth():
                     name=name
                 )
                 db.session.add(user)
-                print("NEW USER CREATED")
+                db.session.flush()
+                # Create workspace for Google OAuth users
+                workspace = Workspace(
+                    name=f"{name.split(' ')[0]}'s Workspace",
+                    stage="Build",
+                    creator_id=user.id,
+                    subscription_status="trial",
+                    plan="starter",
+                )
+                db.session.add(workspace)
+                db.session.flush()
+                member = WorkspaceMember(
+                    workspace_id=workspace.id,
+                    user_id=user.id,
+                    email=email,
+                    role="owner",
+                    status="active",
+                )
+                db.session.add(member)
+                print("NEW USER CREATED WITH WORKSPACE")
             db.session.commit()
         else:
             print("USER ALREADY EXISTS")
@@ -353,7 +433,7 @@ def trigger_pipeline():
     import threading
     def _run():
         with app.app_context():
-            from pattern_engine.pipeline import run_all
+            from pattern_engine.pipeline.core import run_all
             from models.workspace import Workspace
             for ws in Workspace.query.all():
                 try:
@@ -385,6 +465,21 @@ if os.environ.get("SKIP_SCHEDULER", "0") != "1":
             start_scheduler(app)
         except Exception as e:
             print(f"Scheduler init skipped: {e}")
+
+def graceful_shutdown(*args):
+    try:
+        if hasattr(db, 'engine'):
+            try:
+                db.engine.dispose()
+            except Exception:
+                pass
+    except Exception:
+        pass
+
+if os.environ.get("FLASK_ENV") != "test":
+    atexit.register(graceful_shutdown)
+    signal.signal(signal.SIGTERM, graceful_shutdown)
+    signal.signal(signal.SIGINT, graceful_shutdown)
 
 if __name__ == '__main__':
     port = int(os.environ.get("FLASK_RUN_PORT", 5000))

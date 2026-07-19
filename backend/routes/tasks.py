@@ -15,14 +15,17 @@ def get_tasks(current_user_id):
     if not workspace_id:
         return jsonify({"error": "No active workspace context"}), 400
 
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 50, type=int)
+    per_page = min(per_page, 200)
     flat = request.args.get('flat', 'false').lower() == 'true'
     status = request.args.get('status')
     priority = request.args.get('priority')
     goal_id = request.args.get('goal_id')
     source = request.args.get('source')
-    
+
     query = Task.query.filter_by(workspace_id=workspace_id)
-    
+
     if status:
         query = query.filter_by(status=status)
     if priority:
@@ -31,14 +34,23 @@ def get_tasks(current_user_id):
         query = query.filter_by(goal_id=goal_id)
     if source:
         query = query.filter_by(source=source)
-        
+
     if not flat and not status and not priority and not goal_id and not source:
-        # Return only top-level tasks; sub_tasks are nested recursively
-        tasks = query.filter_by(parent_id=None).order_by(Task.created_at.desc()).all()
+        base = query.filter_by(parent_id=None)
     else:
-        tasks = query.order_by(Task.created_at.desc()).all()
-        
-    return jsonify([t.to_dict() for t in tasks])
+        base = query
+
+    total = base.count()
+
+    tasks = base.order_by(Task.created_at.desc()).paginate(page=page, per_page=per_page, error_out=False)
+
+    return jsonify({
+        "items": [t.to_dict() for t in tasks.items],
+        "total": total,
+        "page": page,
+        "per_page": per_page,
+        "pages": (total + per_page - 1) // per_page,
+    })
 
 @tasks_bp.route('/tasks', methods=['POST'])
 @token_required

@@ -1,8 +1,6 @@
 import api from "./api";
-import { trackEvent } from "../config/amplitude";
 
 export async function track(event, properties = {}) {
-  trackEvent(event, properties);
   if (typeof gtag === "function") {
     try {
       gtag("event", event, properties);

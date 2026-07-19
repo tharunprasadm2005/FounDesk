@@ -1,3 +1,4 @@
+import os
 from flask import Blueprint, request, jsonify
 from config.database import db
 from utils.auth import token_required
@@ -9,6 +10,9 @@ from models.task import Task
 from models.blocker import Blocker
 from models.api_key import ApiKey
 from models.workspace import Workspace
+from models.refresh_token import RefreshToken
+from models.email_notification import EmailNotification
+from utils.email import send_email
 from datetime import datetime, timedelta
 import json, base64, hashlib, secrets
 
@@ -195,12 +199,98 @@ def disable_2fa(current_user_id):
     return jsonify({"message": "2FA disabled", "totp_enabled": False})
 
 
+@users_bp.route('/users/me/2fa/recovery-codes', methods=['GET'])
+@token_required
+def get_recovery_codes(current_user_id):
+    user = User.query.get(current_user_id)
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+    if not user.totp_enabled:
+        return jsonify({"error": "2FA is not enabled"}), 400
+    codes = [secrets.token_hex(5) for _ in range(10)]
+    import bcrypt
+    hashed_codes = [bcrypt.hashpw(c.encode(), bcrypt.gensalt()).decode() for c in codes]
+    user.recovery_codes = json.dumps(hashed_codes)
+    db.session.commit()
+    return jsonify({"recovery_codes": codes, "message": "These codes will not be shown again."})
+
+
+@users_bp.route('/users/me/2fa/verify-recovery', methods=['POST'])
+@token_required
+def verify_recovery_code(current_user_id):
+    user = User.query.get(current_user_id)
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+    if not user.totp_enabled:
+        return jsonify({"error": "2FA is not enabled"}), 400
+    data = request.get_json() or {}
+    code = data.get("code", "")
+    if not code:
+        return jsonify({"error": "Code is required"}), 400
+    import bcrypt
+    stored_codes = json.loads(user.recovery_codes) if user.recovery_codes else []
+    for i, hashed in enumerate(stored_codes):
+        if bcrypt.checkpw(code.encode(), hashed.encode()):
+            stored_codes.pop(i)
+            user.recovery_codes = json.dumps(stored_codes) if stored_codes else None
+            db.session.commit()
+            return jsonify({"message": "Recovery code valid", "valid": True})
+    return jsonify({"error": "Invalid recovery code", "valid": False}), 400
+
+
+@users_bp.route('/users/me/avatar', methods=['POST'])
+@token_required
+def upload_avatar(current_user_id):
+    user = User.query.get(current_user_id)
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+    if 'avatar' not in request.files:
+        return jsonify({"error": "No avatar file provided"}), 400
+    file = request.files['avatar']
+    if file.filename == '':
+        return jsonify({"error": "Empty filename"}), 400
+    ALLOWED_TYPES = {'image/png', 'image/jpeg', 'image/gif', 'image/webp'}
+    if file.content_type not in ALLOWED_TYPES:
+        return jsonify({"error": f"Invalid file type. Allowed: {', '.join(ALLOWED_TYPES)}"}), 400
+    file.seek(0, 2)
+    size = file.tell()
+    file.seek(0)
+    if size > 5 * 1024 * 1024:
+        return jsonify({"error": "File too large. Maximum size is 5MB."}), 400
+    static_dir = os.getenv("STATIC_DIR", "")
+    if static_dir and os.path.isdir(static_dir):
+        import uuid
+        ext = file.filename.rsplit('.', 1)[-1] if '.' in file.filename else 'png'
+        filename = f"avatar_{current_user_id}_{uuid.uuid4().hex[:8]}.{ext}"
+        filepath = os.path.join(static_dir, filename)
+        file.save(filepath)
+        user.avatar_url = f"/static/{filename}"
+    else:
+        import base64
+        data = file.read()
+        b64 = base64.b64encode(data).decode()
+        user.avatar_url = f"data:{file.content_type or 'image/png'};base64,{b64}"
+    user.avatar_updated_at = datetime.utcnow()
+    db.session.commit()
+    return jsonify({"avatar_url": user.avatar_url, "message": "Avatar updated"})
+
+
 # ─── Sessions ─────────────────────────────────
 
 @users_bp.route('/users/me/sessions', methods=['GET'])
 @token_required
 def get_sessions(current_user_id):
-    return jsonify({"sessions": []})
+    tokens = RefreshToken.query.filter_by(user_id=current_user_id, revoked=False).order_by(RefreshToken.created_at.desc()).limit(20).all()
+    sessions = []
+    for t in tokens:
+        sessions.append({
+            "id": t.id,
+            "device": t.user_agent or "Unknown",
+            "ip_address": t.ip_address or request.remote_addr or "",
+            "last_active_at": t.last_used_at.isoformat() if t.last_used_at else t.created_at.isoformat() if t.created_at else None,
+            "created_at": t.created_at.isoformat() if t.created_at else None,
+        })
+    return jsonify({"sessions": sessions})
 
 
 # ─── Connected Accounts ───────────────────────

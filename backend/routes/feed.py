@@ -31,17 +31,22 @@ def get_legacy_feed(current_user_id):
     if not workspace_id:
         return jsonify({"error": "No active workspace context"}), 400
 
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 25, type=int)
+    per_page = min(per_page, 200)
+
     try:
         compile_activity_feed(workspace_id)
     except Exception as e:
         print("Warning: compile_activity_feed failed during legacy feed:", e)
 
-    events = ActivityEvent.query.filter(
-        ActivityEvent.workspace_id == workspace_id
-    ).order_by(ActivityEvent.external_timestamp.desc()).all()
+    base = ActivityEvent.query.filter(ActivityEvent.workspace_id == workspace_id)
+    total = base.count()
+
+    events = base.order_by(ActivityEvent.external_timestamp.desc()).paginate(page=page, per_page=per_page, error_out=False)
 
     feed_data = []
-    for ev in events:
+    for ev in events.items:
         feed_data.append({
             "type": ev.activity_type,
             "source": ev.provider,
@@ -52,7 +57,13 @@ def get_legacy_feed(current_user_id):
             "priority": ev.priority
         })
 
-    return jsonify(feed_data), 200
+    return jsonify({
+        "items": feed_data,
+        "total": total,
+        "page": page,
+        "per_page": per_page,
+        "pages": (total + per_page - 1) // per_page,
+    }), 200
 
 
 def clean_task_title(name, status):
@@ -277,6 +288,10 @@ def get_unified_feed(current_user_id):
     if not workspace_id:
         return jsonify({"error": "No active workspace context"}), 400
 
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 25, type=int)
+    per_page = min(per_page, 200)
+
     newest_event = ActivityEvent.query.filter_by(workspace_id=workspace_id).order_by(ActivityEvent.fetched_at.desc()).first()
     should_compile = True
     if newest_event:
@@ -291,12 +306,16 @@ def get_unified_feed(current_user_id):
             print("Warning: compile_activity_feed failed during unified feed:", e)
 
     unique_feed = get_normalized_feed_data(workspace_id)
-    
+    total = len(unique_feed)
+    start = (page - 1) * per_page
+    end = start + per_page
+    page_items = unique_feed[start:end]
+
     blocked_count = 0
     important_emails = 0
     meetings_today = 0
-    
-    for item in unique_feed[:25]:
+
+    for item in unique_feed[:100]:
         title = (item.get("title") or "").lower()
         if "blocked" in title or "stuck" in title or (item.get("priority") == "high" and item.get("type") == "task"):
             blocked_count += 1
@@ -304,7 +323,7 @@ def get_unified_feed(current_user_id):
             important_emails += 1
         if item.get("type") == "meeting":
             meetings_today += 1
-            
+
     summary = {
         "blocked": blocked_count,
         "emails": important_emails,
@@ -312,7 +331,11 @@ def get_unified_feed(current_user_id):
     }
 
     return jsonify({
-        "feed": unique_feed[:25],
+        "feed": page_items,
+        "total": total,
+        "page": page,
+        "per_page": per_page,
+        "pages": (total + per_page - 1) // per_page,
         "summary": summary
     }), 200
 

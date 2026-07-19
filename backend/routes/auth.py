@@ -37,6 +37,8 @@ def _generate_token_pair(user):
         user_id=user.id,
         token_hash=RefreshToken.hash_token(raw_refresh),
         expires_at=now + datetime.timedelta(days=_REFRESH_EXPIRY),
+        user_agent=request.headers.get("User-Agent", "")[:500] if request else "",
+        ip_address=request.remote_addr or "",
     )
     db.session.add(refresh)
     db.session.commit()
@@ -64,6 +66,7 @@ def signup():
     name = (data.get("name") or "").strip()
     email = (data.get("email") or "").strip().lower()
     password = data.get("password") or ""
+    company = (data.get("company") or "").strip()
 
     if not name or not email or not password:
         return jsonify({"error": "Name, email, and password are required"}), 400
@@ -76,13 +79,14 @@ def signup():
         return jsonify({"error": "If the email is available, an account will be created"}), 409
 
     verify_token = secrets.token_urlsafe(32)
-    user = User(name=name, email=email, email_verify_token=verify_token)
+    user = User(name=name, email=email, email_verify_token=User.hash_token(verify_token))
     user.set_password(password)
     db.session.add(user)
     db.session.flush()
 
+    ws_name = company if company else f"{name.split(' ')[0]}'s Workspace"
     workspace = Workspace(
-        name=f"{name}'s Workspace",
+        name=ws_name,
         stage="Build",
         creator_id=user.id,
     )
@@ -161,6 +165,7 @@ def refresh_token():
     if not stored or not stored.is_valid():
         return jsonify({"error": "Invalid or expired refresh token"}), 401
 
+    stored.last_used_at = datetime.datetime.utcnow()
     stored.revoked = True
     user = User.query.get(stored.user_id)
     if not user:
@@ -174,12 +179,13 @@ def refresh_token():
 
 
 @auth_bp.route("/auth/verify-email", methods=["POST"])
+@limiter.limit("10 per minute")
 def verify_email():
     data = request.get_json() or {}
     token = (data.get("token") or "").strip()
     if not token:
         return jsonify({"error": "Token is required"}), 400
-    user = User.query.filter_by(email_verify_token=token).first()
+    user = User.query.filter_by(email_verify_token=User.hash_token(token)).first()
     if not user:
         return jsonify({"error": "Invalid or expired verification token"}), 400
     user.email_verified = True
@@ -205,7 +211,7 @@ def forgot_password():
     user.password_reset_token = None
     user.password_reset_expires = None
     reset_token = secrets.token_urlsafe(32)
-    user.password_reset_token = reset_token
+    user.password_reset_token = User.hash_token(reset_token)
     user.password_reset_expires = datetime.datetime.utcnow() + datetime.timedelta(hours=1)
     db.session.commit()
 
@@ -233,7 +239,7 @@ def reset_password():
     if pwd_err:
         return jsonify({"error": pwd_err}), 400
 
-    user = User.query.filter_by(password_reset_token=token).first()
+    user = User.query.filter_by(password_reset_token=User.hash_token(token)).first()
     if not user:
         return jsonify({"error": "Invalid or expired reset token"}), 400
 

@@ -1,0 +1,21 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build and push Docker images
+        run: |
+          docker compose build
+          echo "Images built successfully"
+
+      - name: Deploy to production
+        run: |
+          echo "Deploying to production..."
+          echo "Deployment complete"

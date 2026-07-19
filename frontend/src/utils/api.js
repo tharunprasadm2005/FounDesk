@@ -32,14 +32,33 @@ api.interceptors.request.use(
   }
 );
 
-// Catch 401 Unauthorized errors (invalid or expired token)
+// Catch 401 Unauthorized errors (invalid or expired token) — attempt refresh first
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    const isAuthRequest = error.config && error.config.url && (error.config.url.includes("/auth/login") || error.config.url.includes("/auth/signup"));
-    if (error.response && error.response.status === 401 && !isAuthRequest) {
+  async (error) => {
+    const originalRequest = error.config;
+    const isAuthRequest = originalRequest && originalRequest.url && 
+      (originalRequest.url.includes("/auth/login") || originalRequest.url.includes("/auth/signup") || 
+       originalRequest.url.includes("/auth/refresh"));
+    
+    if (error.response && error.response.status === 401 && !isAuthRequest && !originalRequest._retry) {
+      originalRequest._retry = true;
+      const refreshToken = localStorage.getItem("refresh_token");
+      if (refreshToken) {
+        try {
+          const res = await axios.post(API_BASE_URL + "/api/auth/refresh", { refresh_token: refreshToken });
+          const { token, refresh_token: newRefresh } = res.data;
+          localStorage.setItem("token", token);
+          if (newRefresh) localStorage.setItem("refresh_token", newRefresh);
+          originalRequest.headers.Authorization = `Bearer ${token}`;
+          return api(originalRequest);
+        } catch (refreshError) {
+          console.warn("Token refresh failed. Logging out.");
+        }
+      }
       console.warn("Unauthorized request detected (401). Clearing token and logging out.");
       localStorage.removeItem("token");
+      localStorage.removeItem("refresh_token");
       localStorage.removeItem("user");
       localStorage.removeItem("workspaceId");
       window.location.href = "/";

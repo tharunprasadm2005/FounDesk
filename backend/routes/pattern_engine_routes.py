@@ -10,7 +10,7 @@ from models.blocker import Blocker
 from models.meeting_notes import MeetingNotes
 from models.knowledge_item import KnowledgeItem
 from pattern_engine.models import PatternCorrection
-from pattern_engine.pipeline import run_for_integration, run_all
+from pattern_engine.pipeline.core import run_for_integration, run_all
 from models.user_integration import UserIntegration
 from services.notification_engine import run_notification_engine
 

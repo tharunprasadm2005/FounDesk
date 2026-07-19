@@ -11,6 +11,7 @@ from models.handoff_packet import HandoffPacket
 from models.task import Task
 from models.decision_log import DecisionLog
 from models.meeting_notes import MeetingNotes
+from models.workspace_notification import WorkspaceNotification
 from utils.auth import token_required
 
 workspaces_bp = Blueprint('workspaces', __name__)
@@ -18,17 +19,30 @@ workspaces_bp = Blueprint('workspaces', __name__)
 @workspaces_bp.route('/workspaces', methods=['GET'])
 @token_required
 def get_workspaces(current_user_id):
-    memberships = WorkspaceMember.query.filter_by(user_id=current_user_id).all()
+    from sqlalchemy.orm import joinedload
+    memberships = WorkspaceMember.query.filter_by(user_id=current_user_id).options(
+        joinedload(WorkspaceMember.workspace),
+        joinedload(WorkspaceMember.user),
+    ).all()
+    ws_ids = [m.workspace_id for m in memberships]
+    ws_members_map = {}
+    if ws_ids:
+        all_member_rows = WorkspaceMember.query.filter(
+            WorkspaceMember.workspace_id.in_(ws_ids)
+        ).options(joinedload(WorkspaceMember.user)).all()
+        for m_row in all_member_rows:
+            ws_members_map.setdefault(m_row.workspace_id, []).append(m_row)
+
     result = []
     for m in memberships:
-        ws = Workspace.query.get(m.workspace_id)
+        ws = m.workspace
         if not ws:
             continue
         ws_dict = ws.to_dict()
         ws_dict['role'] = m.role
         ws_dict['member_status'] = m.status
         
-        all_members = WorkspaceMember.query.filter_by(workspace_id=ws.id).all()
+        all_members = ws_members_map.get(ws.id, [])
         is_owner = m.role in ("owner", "founder", "admin")
         ws_dict['members'] = [
             {
@@ -58,8 +72,12 @@ def create_workspace(current_user_id):
     ws = Workspace(
         name=data['name'],
         description=data.get('description', ''),
-        stage=data.get('stage', 'Build'),
+        stage=data.get('stage', 'Think'),
         color=data.get('color', '#ff751f'),
+        logo_url=data.get('logo_url'),
+        website=data.get('website'),
+        industry=data.get('industry'),
+        size=data.get('size'),
         creator_id=current_user_id,
         subscription_status="trial",
         plan="starter",
@@ -153,6 +171,14 @@ def update_workspace(current_user_id, workspace_id):
         ws.active_phase = data['active_phase'] if data['active_phase'] != '' else None
     if 'calendar_rules' in data:
         ws.calendar_rules = data['calendar_rules']
+    if 'logo_url' in data:
+        ws.logo_url = data['logo_url']
+    if 'website' in data:
+        ws.website = data['website']
+    if 'industry' in data:
+        ws.industry = data['industry']
+    if 'size' in data:
+        ws.size = data['size']
 
     db.session.commit()
 
@@ -179,7 +205,7 @@ def invite_member(current_user_id, workspace_id):
     if not email:
         return jsonify({"error": "Email is required"}), 400
         
-    if role not in ['admin', 'member']:
+    if role not in ['founder', 'admin', 'manager', 'developer', 'designer', 'viewer', 'member']:
         return jsonify({"error": "Invalid role specified"}), 400
         
     # Check if already has workspace membership or pending invitation
@@ -433,39 +459,66 @@ def workspaces_health(current_user_id):
     from models.goal import Goal
     from models.task import Task
     from models.blocker import Blocker
+    from sqlalchemy import func
     from datetime import datetime, timedelta
+
+    if not memberships:
+        return jsonify([])
+
+    ws_ids = [m.workspace_id for m in memberships]
+    ws_map = {ws.id: ws for ws in Workspace.query.filter(Workspace.id.in_(ws_ids)).all()}
+
+    total_goals_map = dict(db.session.query(Goal.workspace_id, func.count(Goal.id)).filter(
+        Goal.workspace_id.in_(ws_ids)).group_by(Goal.workspace_id).all())
+    completed_goals_map = dict(db.session.query(Goal.workspace_id, func.count(Goal.id)).filter(
+        Goal.workspace_id.in_(ws_ids), Goal.status == 'completed').group_by(Goal.workspace_id).all())
+    total_tasks_map = dict(db.session.query(Task.workspace_id, func.count(Task.id)).filter(
+        Task.workspace_id.in_(ws_ids)).group_by(Task.workspace_id).all())
+    open_tasks_map = dict(db.session.query(Task.workspace_id, func.count(Task.id)).filter(
+        Task.workspace_id.in_(ws_ids), func.lower(Task.status).notin_(['completed', 'done'])
+    ).group_by(Task.workspace_id).all())
+    completed_tasks_map = dict(db.session.query(Task.workspace_id, func.count(Task.id)).filter(
+        Task.workspace_id.in_(ws_ids), func.lower(Task.status).in_(['completed', 'done'])
+    ).group_by(Task.workspace_id).all())
+    blockers_map = dict(db.session.query(Blocker.workspace_id, func.count(Blocker.id)).filter(
+        Blocker.workspace_id.in_(ws_ids)).group_by(Blocker.workspace_id).all())
+    recent_activity_map = dict(db.session.query(ChronicleEvent.workspace_id, func.count(ChronicleEvent.id)).filter(
+        ChronicleEvent.workspace_id.in_(ws_ids),
+        ChronicleEvent.created_at >= datetime.utcnow() - timedelta(days=7)
+    ).group_by(ChronicleEvent.workspace_id).all())
+    active_members_map = dict(db.session.query(WorkspaceMember.workspace_id, func.count(WorkspaceMember.id)).filter(
+        WorkspaceMember.workspace_id.in_(ws_ids), WorkspaceMember.status == 'active'
+    ).group_by(WorkspaceMember.workspace_id).all())
+    pending_members_map = dict(db.session.query(WorkspaceMember.workspace_id, func.count(WorkspaceMember.id)).filter(
+        WorkspaceMember.workspace_id.in_(ws_ids), WorkspaceMember.status == 'pending'
+    ).group_by(WorkspaceMember.workspace_id).all())
 
     result = []
     for m in memberships:
-        ws = Workspace.query.get(m.workspace_id)
+        ws = ws_map.get(m.workspace_id)
         if not ws:
             continue
 
         ws_id = ws.id
-        total_goals = Goal.query.filter_by(workspace_id=ws_id).count()
-        completed_goals = Goal.query.filter_by(workspace_id=ws_id, status='completed').count()
-        total_tasks = Task.query.filter_by(workspace_id=ws_id).count()
-        from sqlalchemy import func
-        open_tasks = Task.query.filter(Task.workspace_id == ws_id, func.lower(Task.status).notin_(['completed', 'done'])).count()
-        completed_tasks = Task.query.filter(Task.workspace_id == ws_id, func.lower(Task.status).in_(['completed', 'done'])).count()
-        blockers = Blocker.query.filter_by(workspace_id=ws_id).count()
-        recent_activity = ChronicleEvent.query.filter(
-            ChronicleEvent.workspace_id == ws_id,
-            ChronicleEvent.created_at >= datetime.utcnow() - timedelta(days=7)
-        ).count()
+        tg = total_goals_map.get(ws_id, 0)
+        cg = completed_goals_map.get(ws_id, 0)
+        tt = total_tasks_map.get(ws_id, 0)
+        ot = open_tasks_map.get(ws_id, 0)
+        ct = completed_tasks_map.get(ws_id, 0)
+        bl = blockers_map.get(ws_id, 0)
+        ra = recent_activity_map.get(ws_id, 0)
+        am = active_members_map.get(ws_id, 0)
+        pm = pending_members_map.get(ws_id, 0)
 
-        goal_pct = (completed_goals / total_goals * 100) if total_goals > 0 else 0
-        task_pct = (completed_tasks / total_tasks * 100) if total_tasks > 0 else 0
+        goal_pct = (cg / tg * 100) if tg > 0 else 0
+        task_pct = (ct / tt * 100) if tt > 0 else 0
 
         health_score = min(100, round(
             goal_pct * 0.3 +
             task_pct * 0.3 +
-            max(0, 100 - blockers * 10) * 0.2 +
-            min(100, recent_activity * 10) * 0.2
+            max(0, 100 - bl * 10) * 0.2 +
+            min(100, ra * 10) * 0.2
         ))
-
-        active_members = WorkspaceMember.query.filter_by(workspace_id=ws_id, status='active').count()
-        pending_members = WorkspaceMember.query.filter_by(workspace_id=ws_id, status='pending').count()
 
         result.append({
             "id": ws_id,
@@ -476,15 +529,15 @@ def workspaces_health(current_user_id):
             "is_archived": ws.is_archived,
             "active_phase": ws.active_phase,
             "health_score": health_score,
-            "total_goals": total_goals,
-            "completed_goals": completed_goals,
-            "total_tasks": total_tasks,
-            "open_tasks": open_tasks,
-            "completed_tasks": completed_tasks,
-            "blockers": blockers,
-            "active_members": active_members,
-            "pending_members": pending_members,
-            "recent_activity": recent_activity,
+            "total_goals": tg,
+            "completed_goals": cg,
+            "total_tasks": tt,
+            "open_tasks": ot,
+            "completed_tasks": ct,
+            "blockers": bl,
+            "active_members": am,
+            "pending_members": pm,
+            "recent_activity": ra,
             "role": m.role
         })
 
@@ -499,8 +552,8 @@ def update_member_role(current_user_id, workspace_id, member_id):
 
     data = request.get_json()
     new_role = data.get('role')
-    if new_role not in ['admin', 'member']:
-        return jsonify({"error": "Invalid role. Must be 'admin' or 'member'"}), 400
+    if new_role not in ['founder', 'admin', 'manager', 'developer', 'designer', 'viewer', 'member']:
+        return jsonify({"error": f"Invalid role '{new_role}'"}), 400
 
     target = WorkspaceMember.query.filter_by(id=member_id, workspace_id=workspace_id).first()
     if not target:
@@ -511,3 +564,183 @@ def update_member_role(current_user_id, workspace_id, member_id):
     target.role = new_role
     db.session.commit()
     return jsonify(target.to_dict())
+
+
+@workspaces_bp.route('/workspaces/<int:workspace_id>/notifications', methods=['GET'])
+@token_required
+def get_workspace_notifications(current_user_id, workspace_id):
+    member = WorkspaceMember.query.filter_by(workspace_id=workspace_id, user_id=current_user_id, status='active').first()
+    if not member:
+        return jsonify({"error": "Unauthorized"}), 403
+    prefs = WorkspaceNotification.query.filter_by(workspace_id=workspace_id, user_id=current_user_id).all()
+    return jsonify([p.to_dict() for p in prefs])
+
+
+@workspaces_bp.route('/workspaces/<int:workspace_id>/notifications', methods=['PUT'])
+@token_required
+def save_workspace_notifications(current_user_id, workspace_id):
+    member = WorkspaceMember.query.filter_by(workspace_id=workspace_id, user_id=current_user_id, status='active').first()
+    if not member:
+        return jsonify({"error": "Unauthorized"}), 403
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "No data provided"}), 400
+    for ntype, settings in data.items():
+        pref = WorkspaceNotification.query.filter_by(
+            workspace_id=workspace_id, user_id=current_user_id, notification_type=ntype
+        ).first()
+        if not pref:
+            pref = WorkspaceNotification(
+                workspace_id=workspace_id, user_id=current_user_id, notification_type=ntype
+            )
+            db.session.add(pref)
+        if isinstance(settings, dict):
+            pref.enabled = bool(settings.get("enabled", True))
+            if "channel" in settings:
+                pref.channel = settings["channel"]
+            if "frequency" in settings:
+                pref.frequency = settings["frequency"]
+            if "priority" in settings:
+                pref.priority = settings["priority"]
+        else:
+            pref.enabled = bool(settings)
+    db.session.commit()
+    return jsonify({"message": "Workspace notification preferences saved"})
+
+
+@workspaces_bp.route('/workspaces/<int:workspace_id>/transfer', methods=['POST'])
+@token_required
+def transfer_ownership(current_user_id, workspace_id):
+    member = WorkspaceMember.query.filter_by(workspace_id=workspace_id, user_id=current_user_id).first()
+    if not member or member.role != 'founder':
+        return jsonify({"error": "Only the founder can transfer ownership"}), 403
+
+    data = request.get_json()
+    new_owner_id = data.get('new_owner_id')
+    if not new_owner_id:
+        return jsonify({"error": "new_owner_id is required"}), 400
+
+    new_owner_member = WorkspaceMember.query.filter_by(workspace_id=workspace_id, user_id=new_owner_id).first()
+    if not new_owner_member:
+        return jsonify({"error": "Target user is not a member of this workspace"}), 404
+
+    member.role = 'admin'
+    new_owner_member.role = 'founder'
+
+    ws = Workspace.query.get(workspace_id)
+    event = ChronicleEvent(
+        workspace_id=workspace_id,
+        event_type="ownership_transfer",
+        title="Ownership Transferred",
+        description=f"Ownership transferred to user {new_owner_id}.",
+        stage=ws.stage if ws else "Think",
+        user_id=current_user_id,
+    )
+    db.session.add(event)
+    db.session.commit()
+    return jsonify({"message": "Ownership transferred successfully"})
+
+
+@workspaces_bp.route('/workspaces/<int:workspace_id>/duplicate', methods=['POST'])
+@token_required
+def duplicate_workspace(current_user_id, workspace_id):
+    member = WorkspaceMember.query.filter_by(workspace_id=workspace_id, user_id=current_user_id).first()
+    if not member or member.role not in ['founder', 'admin']:
+        return jsonify({"error": "Unauthorized"}), 403
+
+    ws = Workspace.query.get(workspace_id)
+    if not ws:
+        return jsonify({"error": "Workspace not found"}), 404
+
+    copy = Workspace(
+        name=ws.name + " (Copy)",
+        description=ws.description,
+        stage=ws.stage,
+        color=ws.color,
+        creator_id=current_user_id,
+        subscription_status="trial",
+        plan="starter",
+    )
+    db.session.add(copy)
+    db.session.flush()
+
+    user = User.query.get(current_user_id)
+    new_member = WorkspaceMember(
+        workspace_id=copy.id,
+        user_id=current_user_id,
+        email=user.email,
+        role="founder",
+        status="active"
+    )
+    db.session.add(new_member)
+
+    event = ChronicleEvent(
+        workspace_id=copy.id,
+        event_type="workspace_duplicated",
+        title="Workspace Duplicated",
+        description=f"Duplicated from '{ws.name}' (ID: {workspace_id}).",
+        stage=copy.stage,
+    )
+    db.session.add(event)
+    db.session.commit()
+
+    return jsonify(copy.to_dict()), 201
+
+
+@workspaces_bp.route('/workspaces/<int:workspace_id>/restore', methods=['POST'])
+@token_required
+def restore_workspace(current_user_id, workspace_id):
+    member = WorkspaceMember.query.filter_by(workspace_id=workspace_id, user_id=current_user_id).first()
+    if not member or member.role not in ['founder', 'admin']:
+        return jsonify({"error": "Unauthorized"}), 403
+
+    ws = Workspace.query.get(workspace_id)
+    if not ws:
+        return jsonify({"error": "Workspace not found"}), 404
+
+    ws.is_archived = False
+    db.session.commit()
+    return jsonify({"message": f"Workspace '{ws.name}' restored", "is_archived": ws.is_archived})
+
+
+@workspaces_bp.route('/workspaces/<int:workspace_id>/tags', methods=['PUT'])
+@token_required
+def update_workspace_tags(current_user_id, workspace_id):
+    member = WorkspaceMember.query.filter_by(workspace_id=workspace_id, user_id=current_user_id).first()
+    if not member or member.role not in ['founder', 'admin']:
+        return jsonify({"error": "Unauthorized"}), 403
+
+    ws = Workspace.query.get(workspace_id)
+    if not ws:
+        return jsonify({"error": "Workspace not found"}), 404
+
+    data = request.get_json()
+    tags = data.get('tags', [])
+    ws.tags = tags
+    db.session.commit()
+    return jsonify({"message": "Tags updated", "tags": ws.tags})
+
+
+@workspaces_bp.route('/workspaces/bulk-archive', methods=['POST'])
+@token_required
+def bulk_archive_workspaces(current_user_id):
+    data = request.get_json()
+    workspace_ids = data.get('workspace_ids', [])
+    if not workspace_ids:
+        return jsonify({"error": "workspace_ids is required"}), 400
+
+    archived = 0
+    skipped = 0
+    for ws_id in workspace_ids:
+        member = WorkspaceMember.query.filter_by(workspace_id=ws_id, user_id=current_user_id).first()
+        if member and member.role in ['founder', 'admin']:
+            ws = Workspace.query.get(ws_id)
+            if ws:
+                ws.is_archived = True
+                archived += 1
+            else:
+                skipped += 1
+        else:
+            skipped += 1
+    db.session.commit()
+    return jsonify({"message": f"Archived {archived} workspace(s)", "archived": archived, "skipped": skipped})

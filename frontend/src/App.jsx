@@ -3,7 +3,6 @@ import { lazy, Suspense, useEffect, useState } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import api, { API_BASE_URL } from "./utils/api";
 import { track } from "./utils/track";
-import { initAmplitudeFromBackend, setUserId } from "./config/amplitude";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Layout from "./components/Layout";
 
@@ -43,9 +42,6 @@ function App() {
     if (savedUser) {
       const userData = JSON.parse(savedUser);
       setUser(userData);
-      initAmplitudeFromBackend().then(() => {
-        setUserId(userData?.email || userData?.name);
-      });
     }
   }, []);
 
@@ -88,9 +84,6 @@ function App() {
       }
 
       navigate("/dashboard");
-      initAmplitudeFromBackend().then(() => {
-        setUserId(userData?.email || userData?.name);
-      });
       track("user_logged_in", { name: userData?.name, email: userData?.email });
 
     } catch (error) {
