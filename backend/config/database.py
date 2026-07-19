@@ -12,9 +12,9 @@ def init_db(app):
     db_uri = os.getenv("DATABASE_URL", "")
     if db_uri and "sqlite" not in db_uri:
         app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
-            'pool_size': 10,
+            'pool_size': 2,
             'pool_recycle': 300,
             'pool_pre_ping': True,
-            'max_overflow': 20,
+            'max_overflow': 4,
         }
     db.init_app(app)

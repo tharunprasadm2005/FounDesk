@@ -31,12 +31,16 @@ def get_dashboard(current_user_id):
 
     now = datetime.utcnow()
 
-    # Refresh activity feed in background thread so dashboard responds immediately
+    # Refresh activity feed in background — use separate session to avoid thread safety issues
     try:
         from services.activity_compiler import compile_activity_feed
-        @copy_current_request_context
         def _refresh_feed(wid):
-            compile_activity_feed(wid)
+            try:
+                from config.database import db as _db
+                _db.session.remove()
+                compile_activity_feed(wid)
+            except Exception as inner:
+                print("Dashboard: activity compile thread error:", inner)
         t = threading.Thread(target=_refresh_feed, args=(workspace_id,), daemon=True)
         t.start()
     except Exception as e:
