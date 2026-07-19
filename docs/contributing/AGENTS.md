@@ -135,10 +135,10 @@ Or use Render Dashboard → foundesk-backend → Manual Deploy → Deploy latest
 2. Check Render dashboard → deploy should show "Live" green status
 3. Frontend at `https://foundesk.onrender.com` → open browser console → no 500 or CORS errors
 
-### Environment variables (set in render.yaml or Render dashboard)
+### Environment variables (set in ../../infra/../../infra/render.yaml or Render dashboard)
 | Variable | Value |
 |----------|-------|
-| `DATABASE_URL` | Neon PostgreSQL URL (set in Render dashboard, not in render.yaml) |
+| `DATABASE_URL` | Neon PostgreSQL URL (set in Render dashboard, not in ../../infra/../../infra/render.yaml) |
 | `SECRET_KEY` | Set in Render dashboard |
 | `FRONTEND_URL` | `https://foundesk.onrender.com` |
 | `APP_ENV` | `production` |
@@ -187,7 +187,7 @@ def add_cors_headers(response):
 |------|---------|
 | `backend/app.py` | Flask app factory, global error handlers, CORS config, blueprint registration |
 | `backend/Dockerfile` | Container: installs deps, starts gunicorn (NO migrations) |
-| `backend/render.yaml` | Render service definitions (backend Docker, frontend static, env vars) |
+| `backend/../../infra/render.yaml` | Render service definitions (backend Docker, frontend static, env vars) |
 | `backend/models/workspace_member.py` | **WARNING:** Do NOT add columns here without ALTER TABLE on Neon |
 | `backend/routes/tracking.py` | Analytics tracking — must NEVER break UI (silent failure) |
 | `backend/routes/decisions.py` | Uses `_safe_to_dict()` pattern for resilient serialization |

@@ -57,7 +57,7 @@ Use this checklist before, during, and after every deployment to ensure a smooth
 - [ ] Pull latest code: `git pull origin main`
 - [ ] Build images: `docker-compose build`
 - [ ] Run migrations: `docker-compose run backend alembic upgrade head`
-- [ ] Start services: `docker-compose up -d`
+- [ ] Start services: `docker compose -f infra/docker-compose.yml up -d`
 - [ ] Check container status: `docker-compose ps`
 - [ ] Verify backend health: `curl http://localhost:5000/api/health`
 - [ ] Verify frontend loads: `curl http://localhost:80`
@@ -113,7 +113,7 @@ If deployment has critical issues:
 - [ ] `docker-compose down`
 - [ ] `git checkout <previous-version>`
 - [ ] Restore database from backup
-- [ ] `docker-compose up --build -d`
+- [ ] `docker compose -f infra/docker-compose.yml up --build -d`
 
 ### Database Rollback
 - [ ] `cd backend`

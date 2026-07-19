@@ -19,7 +19,7 @@ services:
     restart: unless-stopped
 
   backend:
-    build: ./backend
+    build: ../backend
     ports:
       - "8001:5000"
     environment:
@@ -39,7 +39,7 @@ services:
       SENTRY_DSN: ${SENTRY_DSN:-}
       FRONTEND_URL: ${FRONTEND_URL:-https://foundesk.onrender.com}
     volumes:
-      - ./backend:/app
+      - ../backend:/app
     depends_on:
       db:
         condition: service_healthy
@@ -52,7 +52,7 @@ services:
     restart: unless-stopped
 
   frontend:
-    build: ./frontend
+    build: ../frontend
     ports:
       - "3000:80"
     environment:

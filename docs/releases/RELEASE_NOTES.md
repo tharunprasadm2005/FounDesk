@@ -58,7 +58,7 @@ Google (Gmail, Calendar, Docs, Analytics), Linear, Trello, Asana, Monday.com, Gi
 
 ## Breaking Changes
 
-- **Database migration required**: All data must be migrated from JSON snapshots to PostgreSQL. See [MIGRATION_GUIDE.md](MIGRATION_GUIDE.md) for details.
+- **Database migration required**: All data must be migrated from JSON snapshots to PostgreSQL. See [MIGRATION_GUIDE.md](../deployment/MIGRATION_GUIDE.md) for details.
 - **Environment variables restructured**: All configuration is now via `.env` file. Previous configuration methods are deprecated.
 - **API endpoint changes**: All endpoints are now under `/api/` prefix. Old endpoint paths are not supported.
 - **OAuth flow updated**: Google OAuth now requires the integration client ID. Previous token-based auth is deprecated.
@@ -108,7 +108,7 @@ Google (Gmail, Calendar, Docs, Analytics), Linear, Trello, Asana, Monday.com, Gi
 ## Links
 
 - **Documentation**: [README.md](README.md)
-- **Migration Guide**: [MIGRATION_GUIDE.md](MIGRATION_GUIDE.md)
-- **Deployment Guide**: [DEPLOYMENT.md](DEPLOYMENT.md)
-- **Architecture**: [ARCHITECTURE.md](ARCHITECTURE.md)
+- **Migration Guide**: [MIGRATION_GUIDE.md](../deployment/MIGRATION_GUIDE.md)
+- **Deployment Guide**: [DEPLOYMENT.md](../deployment/DEPLOYMENT.md)
+- **Architecture**: [ARCHITECTURE.md](../architecture/ARCHITECTURE.md)
 - **Issue Tracker**: [GitHub Issues](https://github.com/your-org/foundesk/issues)

@@ -215,5 +215,5 @@ psql -h localhost -U postgres foundesk_db < foundesk_backup.sql
 git checkout <previous-tag>
 
 # 4. Restart
-docker-compose up -d
+docker compose -f infra/docker-compose.yml up -d
 ```

@@ -119,7 +119,7 @@ The backend runs on `http://localhost:5000` and the frontend on `http://localhos
 
 ```bash
 # From project root
-docker-compose up --build
+docker compose -f infra/docker-compose.yml up --build
 ```
 
 ---
@@ -195,8 +195,8 @@ FounDesk/
 │   ├── Dockerfile
 │   ├── nginx.conf
 │   └── package.json
-├── docker-compose.yml            # Multi-service Docker setup
-├── render.yaml                   # Render deployment config
+├── infra/infra/docker-compose.yml            # Multi-service Docker setup
+├── infra/infra/render.yaml                   # Render deployment config
 └── SYSTEM_SUMMARY.md             # Detailed system documentation
 ```
 
@@ -248,7 +248,7 @@ Full API documentation is available via the `/api/` endpoints or generated docs.
 
 ## Contributing
 
-Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
+Please read [CONTRIBUTING.md](docs/contributing/CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
 
 ---
 

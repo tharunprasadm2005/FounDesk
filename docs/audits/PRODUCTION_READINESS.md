@@ -131,7 +131,7 @@
 | Monitoring | ⚠️ | Sentry (opt-in), no APM |
 | Logging | ⚠️ | Basic Python logging, no aggregation |
 | Backup strategy | ❌ | No automated backups |
-| Infrastructure as code | ⚠️ | Docker Compose + render.yaml |
+| Infrastructure as code | ⚠️ | Docker Compose + ../../infra/../../infra/render.yaml |
 | Scalability plan | ❌ | Not documented |
 | Incident response | ❌ | Not documented |
 

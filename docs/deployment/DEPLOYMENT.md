@@ -59,7 +59,7 @@ export FRONTEND_URL=https://your-domain.com
 ### Build and Run with Docker Compose
 
 ```bash
-docker-compose up --build -d
+docker compose -f infra/docker-compose.yml up --build -d
 ```
 
 This starts three services:
@@ -125,7 +125,7 @@ services:
 
 Run with:
 ```bash
-docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+docker-compose -f ../../infra/../../infra/docker-compose.yml -f docker-compose.prod.yml up -d
 ```
 
 ---
@@ -259,7 +259,7 @@ Log levels can be configured via the logging config in `app.py`.
 # Docker deployment
 docker-compose down
 git checkout <previous-tag>
-docker-compose up --build -d
+docker compose -f infra/docker-compose.yml up --build -d
 
 # Render deployment
 # Use Render dashboard to redeploy a previous version
