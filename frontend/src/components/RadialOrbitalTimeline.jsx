@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { ArrowRight, Link, Zap } from "lucide-react";
 
-const A = "var(--brand-orange)";
+const A = "var(--japandi-accent)";
 const C = {
   bg: "transparent",
   card: "#161614",

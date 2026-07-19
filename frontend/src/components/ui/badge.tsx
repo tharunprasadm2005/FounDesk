@@ -6,7 +6,7 @@ interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
 }
 
 export function Badge({ variant = "default", children, style, className = "", ...props }: BadgeProps) {
-  let colorValue = "var(--light-gray)";
+  let colorValue = "var(--japandi-muted)";
   let bgValue = "rgba(167, 167, 167, 0.12)";
 
   if (variant === "success") {
@@ -16,7 +16,7 @@ export function Badge({ variant = "default", children, style, className = "", ..
     colorValue = "var(--error)";
     bgValue = "rgba(193, 8, 1, 0.14)";
   } else if (variant === "warning") {
-    colorValue = "var(--warning)";
+    colorValue = "var(--japandi-red)";
     bgValue = "rgba(241, 96, 1, 0.14)";
   } else if (variant === "info") {
     colorValue = "var(--info)";

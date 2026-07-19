@@ -68,13 +68,13 @@ export default function BillingTab() {
                   Current
                 </span>
               )}
-              <div style={{ fontSize: "14px", fontWeight: 700, color: "var(--sand)", marginBottom: "8px", fontFamily: FONT_SANS }}>{tier.name}</div>
-              <div style={{ fontSize: "22px", fontWeight: 800, color: "var(--sand)", marginBottom: "12px" }}>
-                {tier.currency === "INR" ? "\u20B9" : "$"}{tier.price}<span style={{ fontSize: "12px", fontWeight: 400, color: "var(--graphite)" }}>/mo</span>
+              <div style={{ fontSize: "14px", fontWeight: 700, color: "var(--japandi-text)", marginBottom: "8px", fontFamily: FONT_SANS }}>{tier.name}</div>
+              <div style={{ fontSize: "22px", fontWeight: 800, color: "var(--japandi-text)", marginBottom: "12px" }}>
+                {tier.currency === "INR" ? "\u20B9" : "$"}{tier.price}<span style={{ fontSize: "12px", fontWeight: 400, color: "var(--japandi-muted)" }}>/mo</span>
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginBottom: "16px" }}>
                 {tier.features.map((f, i) => (
-                  <div key={i} style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", color: "var(--sand)" }}>
+                  <div key={i} style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", color: "var(--japandi-text)" }}>
                     <CheckCircle size={10} style={{ color: tier.color }} />
                     {f}
                   </div>
@@ -99,11 +99,11 @@ export default function BillingTab() {
 
       {trialDays !== null && trialDays !== undefined && (
         <div className="card-glass" style={{ padding: "16px", marginBottom: "12px" }}>
-          <div style={{ fontSize: "11px", color: "var(--graphite)", marginBottom: "4px", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+          <div style={{ fontSize: "11px", color: "var(--japandi-muted)", marginBottom: "4px", textTransform: "uppercase", letterSpacing: "0.04em" }}>
             Trial {trialDays > 0 ? `${trialDays} days remaining` : "expired"}
           </div>
           <div style={{ height: "4px", backgroundColor: "rgba(107,107,111,0.15)", borderRadius: "2px", overflow: "hidden" }}>
-            <div style={{ height: "100%", width: `${Math.min(100, Math.max(0, (trialDays / 30) * 100))}%`, backgroundColor: trialDays > 7 ? "var(--brand-orange)" : "#ef4444", borderRadius: "2px", transition: "width 0.3s" }} />
+            <div style={{ height: "100%", width: `${Math.min(100, Math.max(0, (trialDays / 30) * 100))}%`, backgroundColor: trialDays > 7 ? "var(--japandi-accent)" : "#ef4444", borderRadius: "2px", transition: "width 0.3s" }} />
           </div>
         </div>
       )}
@@ -113,12 +113,12 @@ export default function BillingTab() {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div>
               <div className="card-label" style={{ margin: 0 }}>Subscription Status</div>
-              <div style={{ fontSize: "12px", color: "var(--sand)", marginTop: "4px" }}>
+              <div style={{ fontSize: "12px", color: "var(--japandi-text)", marginTop: "4px" }}>
                 {status.charAt(0).toUpperCase() + status.slice(1)}
                 {billing?.current_period_end && ` \u00B7 Renews ${new Date(billing.current_period_end).toLocaleDateString()}`}
               </div>
             </div>
-            <span className="badge" style={{ backgroundColor: status === "active" ? "rgba(62,207,142,0.15)" : "rgba(255,90,0,0.15)", color: status === "active" ? "#4ade80" : "var(--brand-orange)", border: "1px solid " + (status === "active" ? "rgba(62,207,142,0.2)" : "rgba(255,90,0,0.2)") }}>
+            <span className="badge" style={{ backgroundColor: status === "active" ? "rgba(62,207,142,0.15)" : "rgba(255,90,0,0.15)", color: status === "active" ? "#4ade80" : "var(--japandi-accent)", border: "1px solid " + (status === "active" ? "rgba(62,207,142,0.2)" : "rgba(255,90,0,0.2)") }}>
               {status.charAt(0).toUpperCase() + status.slice(1)}
             </span>
           </div>
@@ -132,15 +132,15 @@ export default function BillingTab() {
             {Object.entries(usage).map(([key, val]) => (
               <div key={key}>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", marginBottom: "4px" }}>
-                  <span style={{ color: "var(--graphite)", textTransform: "capitalize" }}>{key.replace(/_/g, " ")}</span>
-                  <span style={{ color: "var(--sand)", fontWeight: 600 }}>
+                  <span style={{ color: "var(--japandi-muted)", textTransform: "capitalize" }}>{key.replace(/_/g, " ")}</span>
+                  <span style={{ color: "var(--japandi-text)", fontWeight: 600 }}>
                     {val.used || 0}{val.limit ? ` / ${val.limit}` : ""}
                     {val.limits_exceeded && <AlertCircle size={12} style={{ color: "#ef4444", marginLeft: "4px", verticalAlign: "middle" }} />}
                   </span>
                 </div>
                 {val.limit && (
                   <div style={{ height: "3px", backgroundColor: "rgba(107,107,111,0.1)", borderRadius: "2px", overflow: "hidden", position: "relative" }}>
-                    <div style={{ height: "100%", width: `${Math.min(100, ((val.used || 0) / val.limit) * 100)}%`, backgroundColor: ((val.used || 0) / val.limit) > 0.8 || val.limits_exceeded ? "#ef4444" : "var(--brand-orange)", borderRadius: "2px" }} />
+                    <div style={{ height: "100%", width: `${Math.min(100, ((val.used || 0) / val.limit) * 100)}%`, backgroundColor: ((val.used || 0) / val.limit) > 0.8 || val.limits_exceeded ? "#ef4444" : "var(--japandi-accent)", borderRadius: "2px" }} />
                   </div>
                 )}
                 {val.limits_exceeded && (
@@ -152,7 +152,7 @@ export default function BillingTab() {
             ))}
           </div>
         ) : (
-          <div style={{ fontSize: "12px", color: "var(--graphite)" }}>No usage data available.</div>
+          <div style={{ fontSize: "12px", color: "var(--japandi-muted)" }}>No usage data available.</div>
         )}
       </div>
 
@@ -164,28 +164,28 @@ export default function BillingTab() {
         <div className="card-glass" style={{ padding: "16px", marginBottom: "12px" }}>
           <div className="card-label" style={{ marginBottom: "8px" }}>Invoice History</div>
           {invoices.length === 0 ? (
-            <div style={{ fontSize: "12px", color: "var(--graphite)" }}>No invoices found.</div>
+            <div style={{ fontSize: "12px", color: "var(--japandi-muted)" }}>No invoices found.</div>
           ) : (
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "11px" }}>
               <thead>
                 <tr style={{ borderBottom: "1px solid rgba(107,107,111,0.08)" }}>
                   {["Date", "Amount", "Status", "Plan", "Payment ID"].map(h => (
-                    <th key={h} style={{ textAlign: "left", padding: "8px 10px", color: "var(--graphite)", fontWeight: 600, textTransform: "uppercase", fontSize: "9px", letterSpacing: "1px" }}>{h}</th>
+                    <th key={h} style={{ textAlign: "left", padding: "8px 10px", color: "var(--japandi-muted)", fontWeight: 600, textTransform: "uppercase", fontSize: "9px", letterSpacing: "1px" }}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {invoices.map((inv, i) => (
                   <tr key={inv.id || i} style={{ borderBottom: "1px solid rgba(107,107,111,0.06)" }}>
-                    <td style={{ padding: "8px 10px", color: "var(--sand)" }}>{inv.date ? new Date(inv.date).toLocaleDateString() : inv.created_at ? new Date(inv.created_at).toLocaleDateString() : "\u2014"}</td>
-                    <td style={{ padding: "8px 10px", color: "var(--sand)", fontWeight: 600 }}>{inv.amount ? `${inv.currency || "$"}${(inv.amount / 100).toFixed(2)}` : "\u2014"}</td>
+                    <td style={{ padding: "8px 10px", color: "var(--japandi-text)" }}>{inv.date ? new Date(inv.date).toLocaleDateString() : inv.created_at ? new Date(inv.created_at).toLocaleDateString() : "\u2014"}</td>
+                    <td style={{ padding: "8px 10px", color: "var(--japandi-text)", fontWeight: 600 }}>{inv.amount ? `${inv.currency || "$"}${(inv.amount / 100).toFixed(2)}` : "\u2014"}</td>
                     <td style={{ padding: "8px 10px" }}>
-                      <span className="badge" style={{ backgroundColor: inv.status === "paid" ? "rgba(62,207,142,0.12)" : "rgba(107,107,111,0.12)", color: inv.status === "paid" ? "#4ade80" : "var(--graphite)", fontSize: "9px" }}>
+                      <span className="badge" style={{ backgroundColor: inv.status === "paid" ? "rgba(62,207,142,0.12)" : "rgba(107,107,111,0.12)", color: inv.status === "paid" ? "#4ade80" : "var(--japandi-muted)", fontSize: "9px" }}>
                         {inv.status || "\u2014"}
                       </span>
                     </td>
-                    <td style={{ padding: "8px 10px", color: "var(--graphite)" }}>{inv.plan || inv.plan_id || "\u2014"}</td>
-                    <td style={{ padding: "8px 10px", color: "var(--graphite)", fontFamily: "monospace", fontSize: "10px" }}>{inv.payment_id || inv.id || "\u2014"}</td>
+                    <td style={{ padding: "8px 10px", color: "var(--japandi-muted)" }}>{inv.plan || inv.plan_id || "\u2014"}</td>
+                    <td style={{ padding: "8px 10px", color: "var(--japandi-muted)", fontFamily: "monospace", fontSize: "10px" }}>{inv.payment_id || inv.id || "\u2014"}</td>
                   </tr>
                 ))}
               </tbody>

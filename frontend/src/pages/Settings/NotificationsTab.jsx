@@ -52,22 +52,22 @@ export default function NotificationsTab({ notificationPrefs, onNotificationPref
         <div className="card-glass" style={{ padding: "16px", marginBottom: "16px" }}>
           <div className="card-label" style={{ marginBottom: "8px" }}>Email Notification Templates</div>
           {emailTemplates.length === 0 ? (
-            <div style={{ fontSize: "12px", color: "var(--graphite)" }}>No templates found.</div>
+            <div style={{ fontSize: "12px", color: "var(--japandi-muted)" }}>No templates found.</div>
           ) : (
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "11px" }}>
               <thead>
                 <tr style={{ borderBottom: "1px solid rgba(107,107,111,0.08)" }}>
                   {["Type", "Title", "Message"].map(h => (
-                    <th key={h} style={{ textAlign: "left", padding: "8px 10px", color: "var(--graphite)", fontWeight: 600, textTransform: "uppercase", fontSize: "9px", letterSpacing: "1px" }}>{h}</th>
+                    <th key={h} style={{ textAlign: "left", padding: "8px 10px", color: "var(--japandi-muted)", fontWeight: 600, textTransform: "uppercase", fontSize: "9px", letterSpacing: "1px" }}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {emailTemplates.map((tpl, i) => (
                   <tr key={i} style={{ borderBottom: "1px solid rgba(107,107,111,0.06)" }}>
-                    <td style={{ padding: "8px 10px", color: "var(--sand)", fontWeight: 600 }}>{tpl.type || tpl.name || "—"}</td>
-                    <td style={{ padding: "8px 10px", color: "var(--sand)" }}>{tpl.title || tpl.subject || "—"}</td>
-                    <td style={{ padding: "8px 10px", color: "var(--graphite)", maxWidth: "200px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{tpl.message || tpl.body || "—"}</td>
+                    <td style={{ padding: "8px 10px", color: "var(--japandi-text)", fontWeight: 600 }}>{tpl.type || tpl.name || "—"}</td>
+                    <td style={{ padding: "8px 10px", color: "var(--japandi-text)" }}>{tpl.title || tpl.subject || "—"}</td>
+                    <td style={{ padding: "8px 10px", color: "var(--japandi-muted)", maxWidth: "200px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{tpl.message || tpl.body || "—"}</td>
                   </tr>
                 ))}
               </tbody>
@@ -89,8 +89,8 @@ export default function NotificationsTab({ notificationPrefs, onNotificationPref
             <div key={n.key} className="card-glass" style={{ padding: "14px" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: expanded ? "10px" : 0 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                  <NotifIcon size={14} style={{ color: "var(--graphite)" }} />
-                  <span style={{ fontSize: "13px", fontWeight: 600, color: "var(--sand)" }}>{n.label}</span>
+                  <NotifIcon size={14} style={{ color: "var(--japandi-muted)" }} />
+                  <span style={{ fontSize: "13px", fontWeight: 600, color: "var(--japandi-text)" }}>{n.label}</span>
                   {inQuietHours && (
                     <span className="badge" style={{ backgroundColor: "rgba(59,130,246,0.15)", color: "#3b82f6", border: "1px solid rgba(59,130,246,0.2)", fontSize: "9px" }}>
                       <Moon size={10} style={{ verticalAlign: "middle", marginRight: "2px" }} /> Quiet Hours
@@ -128,11 +128,11 @@ export default function NotificationsTab({ notificationPrefs, onNotificationPref
                     </select>
                   </div>
                   <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
-                    <div style={{ fontSize: "10px", color: "var(--graphite)" }}>Quiet Hours:</div>
+                    <div style={{ fontSize: "10px", color: "var(--japandi-muted)" }}>Quiet Hours:</div>
                     <input type="time" className="plan-input" style={{ width: "100px", fontSize: "11px", padding: "4px 6px" }}
                       value={notificationPrefs[`${n.key}_quiet_hours_start`] || ""}
                       onChange={e => onNotificationPrefsChange({ ...notificationPrefs, [`${n.key}_quiet_hours_start`]: e.target.value })} />
-                    <span style={{ fontSize: "10px", color: "var(--graphite)" }}>to</span>
+                    <span style={{ fontSize: "10px", color: "var(--japandi-muted)" }}>to</span>
                     <input type="time" className="plan-input" style={{ width: "100px", fontSize: "11px", padding: "4px 6px" }}
                       value={notificationPrefs[`${n.key}_quiet_hours_end`] || ""}
                       onChange={e => onNotificationPrefsChange({ ...notificationPrefs, [`${n.key}_quiet_hours_end`]: e.target.value })} />

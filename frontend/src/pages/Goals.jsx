@@ -58,13 +58,13 @@ export default function Goals() {
         .orange-btn-hover:active { transform: translateY(0); }
         .select-custom { outline: none; font-family: inherit; }
         .select-custom:hover { border-color: transparent !important;!important; background-color: rgba(255, 255, 255, 0.05) !important; }
-        .goal-checkbox:hover { color: var(--ember) !important; }
+        .goal-checkbox:hover { color: var(--japandi-accent) !important; }
       `}</style>
 
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
         <div>
-          <h1 style={{ fontSize: "24px", fontWeight: "800", color: "var(--white)", margin: "0 0 2px", fontFamily: "'Clash Display', sans-serif" }}>Plan</h1>
-          <p style={{ fontSize: "12.5px", color: "var(--light-gray)", margin: 0 }}>Map your startup roadmap and defend operational focus.</p>
+          <h1 style={{ fontSize: "24px", fontWeight: "800", color: "var(--japandi-text)", margin: "0 0 2px", fontFamily: "'Clash Display', sans-serif" }}>Plan</h1>
+          <p style={{ fontSize: "12.5px", color: "var(--japandi-muted)", margin: 0 }}>Map your startup roadmap and defend operational focus.</p>
         </div>
       </div>
 

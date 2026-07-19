@@ -6,8 +6,8 @@ const ToastContext = createContext(null);
 
 const TOAST_TYPES = {
   success: { icon: CheckCircle, color: "#3acaa5", bg: "rgba(58, 202, 165, 0.1)", border: "rgba(58, 202, 165, 0.2)" },
-  error: { icon: AlertCircle, color: "var(--warning)", bg: "rgba(232, 67, 79, 0.1)", border: "rgba(232, 67, 79, 0.2)" },
-  info: { icon: Info, color: "var(--ember-light)", bg: "rgba(232, 80, 2, 0.08)", border: "rgba(232, 80, 2, 0.15)" },
+  error: { icon: AlertCircle, color: "var(--japandi-red)", bg: "rgba(232, 67, 79, 0.1)", border: "rgba(232, 67, 79, 0.2)" },
+  info: { icon: Info, color: "var(--japandi-accent)", bg: "rgba(232, 80, 2, 0.08)", border: "rgba(232, 80, 2, 0.15)" },
 };
 
 export function ToastProvider({ children }) {
@@ -53,7 +53,7 @@ export function ToastProvider({ children }) {
                   border: `1px solid ${config.border}`,
                   boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
                   fontFamily: "'Satoshi', system-ui, sans-serif",
-                  fontSize: "13px", color: "var(--sand)",
+                  fontSize: "13px", color: "var(--japandi-text)",
                   lineHeight: "1.4",
                 }}
               >
@@ -63,11 +63,11 @@ export function ToastProvider({ children }) {
                   onClick={() => removeToast(t.id)}
                   style={{
                     background: "none", border: "none", cursor: "pointer",
-                    color: "var(--graphite)", padding: "2px", display: "flex",
+                    color: "var(--japandi-muted)", padding: "2px", display: "flex",
                     transition: "color 0.2s",
                   }}
-                  onMouseEnter={e => e.currentTarget.style.color = "var(--sand)"}
-                  onMouseLeave={e => e.currentTarget.style.color = "var(--graphite)"}
+                  onMouseEnter={e => e.currentTarget.style.color = "var(--japandi-text)"}
+                  onMouseLeave={e => e.currentTarget.style.color = "var(--japandi-muted)"}
                 >
                   <X size={14} />
                 </button>

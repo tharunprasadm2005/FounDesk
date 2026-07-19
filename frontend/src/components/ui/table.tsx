@@ -51,7 +51,7 @@ export function Table({ columns, data, onRowClick }: TableProps) {
                 style={{
                   padding: "14px 16px",
                   fontWeight: 700,
-                  color: "var(--light-gray)",
+                  color: "var(--japandi-muted)",
                   textTransform: "uppercase",
                   fontSize: "11px",
                   letterSpacing: "0.05em",
@@ -71,7 +71,7 @@ export function Table({ columns, data, onRowClick }: TableProps) {
                 style={{
                   padding: "24px",
                   textAlign: "center",
-                  color: "var(--light-gray)",
+                  color: "var(--japandi-muted)",
                 }}
               >
                 No data available
@@ -94,7 +94,7 @@ export function Table({ columns, data, onRowClick }: TableProps) {
                     key={col.key}
                     style={{
                       padding: "14px 16px",
-                      color: "var(--white)",
+                      color: "var(--japandi-text)",
                       textAlign: col.isNumeric ? "right" : "left",
                       fontFamily: col.isNumeric ? "'JetBrains Mono', monospace" : "'Satoshi', sans-serif",
                       fontVariantNumeric: col.isNumeric ? "tabular-nums" : "normal",

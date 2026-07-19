@@ -91,7 +91,7 @@ function Navbar({ user }) {
                   height: "28px",
                   borderRadius: "50%",
                   backgroundColor: "rgba(232, 80, 2, 0.15)",
-                  color: "var(--brand-orange)",
+                  color: "var(--japandi-accent)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -103,7 +103,7 @@ function Navbar({ user }) {
                 {user?.name ? user.name.charAt(0).toUpperCase() : "F"}
               </div>
             )}
-            <span style={{ fontSize: "13px", fontWeight: 600, color: "var(--white)" }}>
+            <span style={{ fontSize: "13px", fontWeight: 600, color: "var(--japandi-text)" }}>
               {user?.name || "Founder"}
             </span>
           </div>
@@ -133,7 +133,7 @@ function Navbar({ user }) {
                   background: "transparent",
                   border: "none",
                   padding: "8px 12px",
-                  color: "var(--white)",
+                  color: "var(--japandi-text)",
                   fontSize: "12px",
                   cursor: "pointer",
                   borderRadius: "6px",

@@ -105,7 +105,7 @@ export default function DefenseTab({ activeTab }) {
     <div className="fade-in" style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
       {defenseLoading ? (
         <div className="card-glass" style={{ textAlign: "center" }}>
-          <p style={{ fontSize: "13px", color: "var(--light-gray)", margin: 0 }}>Analyzing schedule defense configurations...</p>
+          <p style={{ fontSize: "13px", color: "var(--japandi-muted)", margin: 0 }}>Analyzing schedule defense configurations...</p>
         </div>
       ) : (
         <>
@@ -116,14 +116,14 @@ export default function DefenseTab({ activeTab }) {
             <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
               <Icon name="calendar" size={14} style={{ color: "var(--muted-gold)" }} />
               <div>
-                <span style={{ fontSize: "13.5px", fontWeight: "700", color: "var(--white)" }}>Google Calendar</span>
+                <span style={{ fontSize: "13.5px", fontWeight: "700", color: "var(--japandi-text)" }}>Google Calendar</span>
                 <span className={`badge ${calendarConnected ? 'badge-positive' : 'badge-warning'}`} style={{ marginLeft: "12px" }}>
                   {calendarConnected ? "Connected" : "Not connected"}
                 </span>
               </div>
             </div>
             {!calendarConnected && (
-              <span style={{ fontSize: "11px", color: "var(--light-gray)", fontWeight: "600" }}>
+              <span style={{ fontSize: "11px", color: "var(--japandi-muted)", fontWeight: "600" }}>
                 Connect in Settings → Integrations
               </span>
             )}
@@ -138,19 +138,19 @@ export default function DefenseTab({ activeTab }) {
                 <p className="card-label">Working Hours</p>
                 <div style={{ display: "flex", gap: "10px", alignItems: "flex-end", marginTop: "12px" }}>
                   <div style={{ flex: 1 }}>
-                    <label style={{ fontSize: "10px", color: "var(--light-gray)", fontWeight: "700", marginBottom: "4px", display: "block" }}>Start</label>
+                    <label style={{ fontSize: "10px", color: "var(--japandi-muted)", fontWeight: "700", marginBottom: "4px", display: "block" }}>Start</label>
                     <input type="time" className="plan-input" value={`${String(wsCalendarRules.start_hour).padStart(2, "0")}:00`}
                       onChange={(e) => setWsCalendarRules(p => ({ ...p, start_hour: parseInt(e.target.value.split(":")[0]) }))}
                       style={{ width: "100%" }} />
                   </div>
                   <div style={{ flex: 1 }}>
-                    <label style={{ fontSize: "10px", color: "var(--light-gray)", fontWeight: "700", marginBottom: "4px", display: "block" }}>End</label>
+                    <label style={{ fontSize: "10px", color: "var(--japandi-muted)", fontWeight: "700", marginBottom: "4px", display: "block" }}>End</label>
                     <input type="time" className="plan-input" value={`${String(wsCalendarRules.end_hour).padStart(2, "0")}:00`}
                       onChange={(e) => setWsCalendarRules(p => ({ ...p, end_hour: parseInt(e.target.value.split(":")[0]) }))}
                       style={{ width: "100%" }} />
                   </div>
                   <button onClick={handleSaveHours} disabled={savingHours}
-                    style={{ padding: "10px 16px", borderRadius: "10px", border: "none", background: "var(--ember)", color: "var(--void)", fontWeight: "700", cursor: "pointer", fontSize: "11px" }}>
+                    style={{ padding: "10px 16px", borderRadius: "10px", border: "none", background: "var(--japandi-accent)", color: "var(--japandi-bg)", fontWeight: "700", cursor: "pointer", fontSize: "11px" }}>
                     {savingHours ? "Saving..." : "Save"}
                   </button>
                 </div>
@@ -165,11 +165,11 @@ export default function DefenseTab({ activeTab }) {
                       padding: "8px 12px", borderRadius: "8px",
                       background: "rgba(255,255,255,0.01)"
                     }}>
-                      <Icon name="shield" size={13} stroke={2} style={{ color: "var(--ember-light)" }} />
-                      <span style={{ fontSize: "12px", color: "var(--white)", fontWeight: "600" }}>{r.label}</span>
+                      <Icon name="shield" size={13} stroke={2} style={{ color: "var(--japandi-accent)" }} />
+                      <span style={{ fontSize: "12px", color: "var(--japandi-text)", fontWeight: "600" }}>{r.label}</span>
                     </div>
                   )) : (
-                    <p style={{ fontSize: "12px", color: "var(--light-gray)", margin: 0 }}>No shields active. Set working hours and connect a calendar.</p>
+                    <p style={{ fontSize: "12px", color: "var(--japandi-muted)", margin: 0 }}>No shields active. Set working hours and connect a calendar.</p>
                   )}
                 </div>
               </div>
@@ -210,7 +210,7 @@ export default function DefenseTab({ activeTab }) {
                     });
                     return (
                       <div key={hour} style={{ display: "flex", alignItems: "center", gap: "6px", opacity: hour < 8 || hour > 19 ? 0.3 : 1 }}>
-                        <span style={{ fontSize: "8.5px", color: "var(--graphite)", fontWeight: "700", width: "22px", textAlign: "right", flexShrink: 0 }}>
+                        <span style={{ fontSize: "8.5px", color: "var(--japandi-muted)", fontWeight: "700", width: "22px", textAlign: "right", flexShrink: 0 }}>
                           {hour}:00
                         </span>
                         <div style={{
@@ -224,8 +224,8 @@ export default function DefenseTab({ activeTab }) {
                               height: "100%", borderRadius: "2px",
                               width: "100%",
                               background: hasMeeting
-                                ? "linear-gradient(90deg, var(--warning), transparent)"
-                                : "linear-gradient(90deg, var(--positive), transparent)"
+                                ? "linear-gradient(90deg, var(--japandi-red), transparent)"
+                                : "linear-gradient(90deg, var(--japandi-green), transparent)"
                             }} />
                           )}
                         </div>
@@ -233,9 +233,9 @@ export default function DefenseTab({ activeTab }) {
                     );
                   })}
                 </div>
-                <div style={{ display: "flex", gap: "14px", marginTop: "12px", fontSize: "9px", color: "var(--graphite)" }}>
-                  <span><span style={{ color: "var(--positive)", marginRight: "4px" }}>■</span> Protected</span>
-                  <span><span style={{ color: "var(--warning)", marginRight: "4px" }}>■</span> Meeting</span>
+                <div style={{ display: "flex", gap: "14px", marginTop: "12px", fontSize: "9px", color: "var(--japandi-muted)" }}>
+                  <span><span style={{ color: "var(--japandi-green)", marginRight: "4px" }}>■</span> Protected</span>
+                  <span><span style={{ color: "var(--japandi-red)", marginRight: "4px" }}>■</span> Meeting</span>
                   <span><span style={{ color: "rgba(255, 255, 255, 0.05)", marginRight: "4px" }}>■</span> Available</span>
                 </div>
               </div>
@@ -256,21 +256,21 @@ export default function DefenseTab({ activeTab }) {
                     border: "none",
                   }}>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: "13.5px", fontWeight: "700", color: "var(--white)", marginBottom: "4px" }}>
+                      <div style={{ fontSize: "13.5px", fontWeight: "700", color: "var(--japandi-text)", marginBottom: "4px" }}>
                         📅 {s.meeting_title}
                       </div>
-                      <div style={{ fontSize: "11px", color: "var(--graphite)", display: "flex", gap: "12px", flexWrap: "wrap" }}>
+                      <div style={{ fontSize: "11px", color: "var(--japandi-muted)", display: "flex", gap: "12px", flexWrap: "wrap" }}>
                         {s.start_time && <span>Cur: {formatTime(s.start_time)}–{formatTime(s.end_time)} ({calcDuration(s.start_time, s.end_time)})</span>}
-                        {s.action && <span style={{ color: "var(--ember-light)", fontWeight: "600" }}>→ {s.action}</span>}
+                        {s.action && <span style={{ color: "var(--japandi-accent)", fontWeight: "600" }}>→ {s.action}</span>}
                       </div>
                     </div>
                     <div style={{ display: "flex", gap: "12px", flexShrink: 0 }}>
                       <button onClick={() => handleApproveSuggestion(s)}
-                        style={{ fontSize: "11.5px", color: "var(--void)", background: "var(--ember)", padding: "8px 14px", borderRadius: "8px", cursor: "pointer", fontWeight: "750", border: "none" }}>
+                        style={{ fontSize: "11.5px", color: "var(--japandi-bg)", background: "var(--japandi-accent)", padding: "8px 14px", borderRadius: "8px", cursor: "pointer", fontWeight: "750", border: "none" }}>
                         Approve Move
                       </button>
                       <button onClick={() => handleDismissSuggestion(s)}
-                        style={{ fontSize: "11.5px", color: "var(--graphite)", background: "transparent", cursor: "pointer", border: "none", fontWeight: "600" }}>
+                        style={{ fontSize: "11.5px", color: "var(--japandi-muted)", background: "transparent", cursor: "pointer", border: "none", fontWeight: "600" }}>
                         Dismiss
                       </button>
                     </div>
@@ -279,10 +279,10 @@ export default function DefenseTab({ activeTab }) {
               </div>
             ) : (
               <div style={{ textAlign: "center", padding: "20px 0" }}>
-                <p style={{ fontSize: "13px", color: "var(--light-gray)", margin: "0 0 4px" }}>
+                <p style={{ fontSize: "13px", color: "var(--japandi-muted)", margin: "0 0 4px" }}>
                   No meeting alerts or overlaps today.
                 </p>
-                <p style={{ fontSize: "11px", color: "var(--graphite)", margin: 0 }}>
+                <p style={{ fontSize: "11px", color: "var(--japandi-muted)", margin: 0 }}>
                   All scheduled events respect your protected hours.
                 </p>
               </div>

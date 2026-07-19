@@ -42,54 +42,30 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
 
   return (
     <div
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        width: "100vw",
-        height: "100vh",
-        backgroundColor: "rgba(0, 0, 0, 0.75)",
-        backdropFilter: "blur(4px)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        zIndex: 9999,
-      }}
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
       onClick={onClose}
     >
       <div
         ref={modalRef}
-        style={{
-          width: "480px",
-          maxWidth: "calc(100% - 32px)",
-          padding: "24px",
-          display: "flex",
-          flexDirection: "column",
-          gap: "16px",
-        }}
-        className="glass-panel"
+        className="card-japandi w-full max-w-[480px] flex flex-col gap-4 relative animate-in fade-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <h2 style={{ margin: 0, fontSize: "18px" }}>{title}</h2>
+        <div className="flex items-center justify-between pb-4 border-b border-border">
+          <h2 className="text-lg font-heading m-0">{title}</h2>
           <button
             onClick={onClose}
-            style={{
-              background: "transparent",
-              border: "none",
-              color: "var(--light-gray)",
-              cursor: "pointer",
-              fontSize: "20px",
-            }}
+            className="text-stone-400 hover:text-foreground text-xl leading-none transition-colors"
           >
             &times;
           </button>
         </div>
-        <div style={{ flex: 1 }}>{children}</div>
+        <div className="flex-1 overflow-y-auto custom-scroll">
+          {children}
+        </div>
       </div>
     </div>
   );
 }
 
-export default Modal;
 export { Modal };
+export default Modal;

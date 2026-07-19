@@ -144,7 +144,7 @@ export default function LandingNavbar({ onLaunch }) {
                 >
                   {item.label}
                   <span
-                    className="absolute bottom-0 left-0 h-[2px] bg-[var(--ember)] transition-all duration-300 origin-center scale-x-0 group-hover:scale-x-100"
+                    className="absolute bottom-0 left-0 h-[2px] bg-[var(--japandi-accent)] transition-all duration-300 origin-center scale-x-0 group-hover:scale-x-100"
                     style={{
                       width: "100%",
                       transform: isActive ? "scaleX(1)" : undefined,

@@ -16,7 +16,7 @@ const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
           userSelect: "none",
           fontFamily: "'Satoshi', sans-serif",
           fontSize: "14px",
-          color: "var(--white)",
+          color: "var(--japandi-text)",
           ...style,
         }}
       >
@@ -48,7 +48,7 @@ const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
               boxShadow: checked
                 ? "inset 2px 2px 5px rgba(0,0,0,0.8), inset -2px -2px 5px rgba(100,100,100,0.08)"
                 : "3px 3px 8px rgba(0,0,0,0.8), -3px -3px 8px rgba(100,100,100,0.12)",
-              border: checked ? "1px solid var(--brand-orange)" : "1px solid transparent",
+              border: checked ? "1px solid var(--japandi-accent)" : "1px solid transparent",
               background: checked ? "rgba(232, 80, 2, 0.2)" : "var(--dark-gray)",
             }}
           >
@@ -62,7 +62,7 @@ const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
               >
                 <path
                   d="M1.5 5L4.5 8L10.5 1.5"
-                  stroke="var(--brand-orange)"
+                  stroke="var(--japandi-accent)"
                   strokeWidth="2.5"
                   strokeLinecap="round"
                   strokeLinejoin="round"

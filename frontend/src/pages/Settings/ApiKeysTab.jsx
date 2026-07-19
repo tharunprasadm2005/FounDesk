@@ -74,7 +74,7 @@ export default function ApiKeysTab() {
         <div className="card-glass" style={{ padding: "16px", border: "1px solid rgba(62,207,142,0.2)", backgroundColor: "rgba(62,207,142,0.05)", marginBottom: "16px" }}>
           <div style={{ fontSize: "11px", color: "#4ade80", marginBottom: "4px", fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}>Key created — copy it now</div>
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <code style={{ flex: 1, fontSize: "11px", color: "var(--sand)", backgroundColor: "rgba(0,0,0,0.3)", padding: "6px 8px", borderRadius: "4px", wordBreak: "break-all" }}>{newlyCreatedKey}</code>
+            <code style={{ flex: 1, fontSize: "11px", color: "var(--japandi-text)", backgroundColor: "rgba(0,0,0,0.3)", padding: "6px 8px", borderRadius: "4px", wordBreak: "break-all" }}>{newlyCreatedKey}</code>
             <button onClick={() => { copyToClipboard(newlyCreatedKey); toast("Copied!", "success"); }} className="btn-action-secondary" title="Copy"><Copy size={14} /></button>
           </div>
           <div style={{ fontSize: "10px", color: "#ef4444", marginTop: "6px" }}>This secret will only be shown once.</div>
@@ -90,20 +90,20 @@ export default function ApiKeysTab() {
 
       {showNewKeyForm && (
         <div className="card-glass" style={{ padding: "20px", marginBottom: "16px" }}>
-          <h4 style={{ fontSize: "14px", fontWeight: 700, color: "var(--sand)", margin: "0 0 12px" }}>Create API Key</h4>
+          <h4 style={{ fontSize: "14px", fontWeight: 700, color: "var(--japandi-text)", margin: "0 0 12px" }}>Create API Key</h4>
           <div style={{ display: "flex", gap: "8px", alignItems: "center", marginBottom: "12px" }}>
             <input type="text" placeholder="Key name (e.g., production, dev)" value={newKeyName} onChange={e => setNewKeyName(e.target.value)} className="plan-input" style={{ flex: 1 }} autoFocus />
           </div>
           <div style={{ marginBottom: "12px" }}>
-            <div style={{ fontSize: "11px", fontWeight: 600, color: "var(--graphite)", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.04em" }}>Permissions</div>
+            <div style={{ fontSize: "11px", fontWeight: 600, color: "var(--japandi-muted)", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.04em" }}>Permissions</div>
             <div style={{ display: "flex", gap: "16px" }}>
               {[
                 { key: "read", label: "Read" },
                 { key: "write", label: "Write" },
                 { key: "admin", label: "Admin" },
               ].map(p => (
-                <label key={p.key} style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", color: "var(--sand)", cursor: "pointer" }}>
-                  <input type="checkbox" checked={keyPermissions[p.key]} onChange={e => setKeyPermissions(k => ({ ...k, [p.key]: e.target.checked }))} style={{ accentColor: "var(--brand-orange)" }} />
+                <label key={p.key} style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", color: "var(--japandi-text)", cursor: "pointer" }}>
+                  <input type="checkbox" checked={keyPermissions[p.key]} onChange={e => setKeyPermissions(k => ({ ...k, [p.key]: e.target.checked }))} style={{ accentColor: "var(--japandi-accent)" }} />
                   {p.label}
                 </label>
               ))}
@@ -114,9 +114,9 @@ export default function ApiKeysTab() {
       )}
 
       {apiKeys.length === 0 ? (
-        <div style={{ textAlign: "center", padding: "40px 20px", color: "var(--graphite)" }}>
+        <div style={{ textAlign: "center", padding: "40px 20px", color: "var(--japandi-muted)" }}>
           <Key size={32} style={{ marginBottom: "12px", opacity: 0.3 }} />
-          <div style={{ fontSize: "14px", fontWeight: 600, color: "var(--sand)", marginBottom: "4px" }}>No API keys yet</div>
+          <div style={{ fontSize: "14px", fontWeight: 600, color: "var(--japandi-text)", marginBottom: "4px" }}>No API keys yet</div>
           <div style={{ fontSize: "12px" }}>Create an API key to access FounDesk programmatically.</div>
         </div>
       ) : (
@@ -125,14 +125,14 @@ export default function ApiKeysTab() {
             <thead>
               <tr style={{ borderBottom: "1px solid rgba(107,107,111,0.08)" }}>
                 {["Name", "Prefix", "Permissions", "Created", "Last Used", "Status", "Actions"].map(h => (
-                  <th key={h} style={{ textAlign: "left", padding: "10px 14px", color: "var(--graphite)", fontWeight: 600, textTransform: "uppercase", fontSize: "9px", letterSpacing: "1px" }}>{h}</th>
+                  <th key={h} style={{ textAlign: "left", padding: "10px 14px", color: "var(--japandi-muted)", fontWeight: 600, textTransform: "uppercase", fontSize: "9px", letterSpacing: "1px" }}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {apiKeys.map(key => (
                 <tr key={key.id} style={{ borderBottom: "1px solid rgba(107,107,111,0.06)" }}>
-                  <td style={{ padding: "10px 14px", fontWeight: 600, color: "var(--sand)" }}>
+                  <td style={{ padding: "10px 14px", fontWeight: 600, color: "var(--japandi-text)" }}>
                     {editingKeyId === key.id ? (
                       <input type="text" value={editingKeyName} onChange={e => setEditingKeyName(e.target.value)}
                         onBlur={() => handleKeyRename(key.id)} onKeyDown={e => { if (e.key === "Enter") handleKeyRename(key.id); }}
@@ -141,7 +141,7 @@ export default function ApiKeysTab() {
                       key.name
                     )}
                   </td>
-                  <td style={{ padding: "10px 14px", fontFamily: "monospace", fontSize: "11px", color: "var(--graphite)" }}>{key.prefix || (key.key ? key.key.substring(0, 8) + "..." : "—")}</td>
+                  <td style={{ padding: "10px 14px", fontFamily: "monospace", fontSize: "11px", color: "var(--japandi-muted)" }}>{key.prefix || (key.key ? key.key.substring(0, 8) + "..." : "—")}</td>
                   <td style={{ padding: "10px 14px" }}>
                     <div style={{ display: "flex", gap: "3px", flexWrap: "wrap" }}>
                       {(key.permissions ? Object.entries(key.permissions).filter(([, v]) => v).map(([k]) => k) : ["read"]).map(p => (
@@ -151,10 +151,10 @@ export default function ApiKeysTab() {
                       ))}
                     </div>
                   </td>
-                  <td style={{ padding: "10px 14px", color: "var(--graphite)" }}>{key.created_at ? new Date(key.created_at).toLocaleDateString() : "—"}</td>
-                  <td style={{ padding: "10px 14px", color: "var(--graphite)" }}>{key.last_used_at ? new Date(key.last_used_at).toLocaleDateString() : "Never"}</td>
+                  <td style={{ padding: "10px 14px", color: "var(--japandi-muted)" }}>{key.created_at ? new Date(key.created_at).toLocaleDateString() : "—"}</td>
+                  <td style={{ padding: "10px 14px", color: "var(--japandi-muted)" }}>{key.last_used_at ? new Date(key.last_used_at).toLocaleDateString() : "Never"}</td>
                   <td style={{ padding: "10px 14px" }}>
-                    <span className="badge" style={{ backgroundColor: key.is_active !== false ? "rgba(62,207,142,0.12)" : "rgba(107,107,111,0.12)", color: key.is_active !== false ? "#4ade80" : "var(--graphite)" }}>
+                    <span className="badge" style={{ backgroundColor: key.is_active !== false ? "rgba(62,207,142,0.12)" : "rgba(107,107,111,0.12)", color: key.is_active !== false ? "#4ade80" : "var(--japandi-muted)" }}>
                       {key.is_active !== false ? "Active" : "Revoked"}
                     </span>
                   </td>
@@ -174,25 +174,25 @@ export default function ApiKeysTab() {
                     </div>
                     {auditLogKeyId === key.id && (
                       <div style={{ marginTop: "8px", backgroundColor: "rgba(0,0,0,0.2)", borderRadius: "6px", padding: "8px" }}>
-                        <div style={{ fontSize: "10px", color: "var(--graphite)", fontWeight: 600, marginBottom: "4px", textTransform: "uppercase" }}>Audit Log</div>
+                        <div style={{ fontSize: "10px", color: "var(--japandi-muted)", fontWeight: 600, marginBottom: "4px", textTransform: "uppercase" }}>Audit Log</div>
                         {auditLogs.length === 0 ? (
-                          <div style={{ fontSize: "10px", color: "var(--graphite)" }}>No audit entries.</div>
+                          <div style={{ fontSize: "10px", color: "var(--japandi-muted)" }}>No audit entries.</div>
                         ) : (
                           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "10px" }}>
                             <thead>
                               <tr style={{ borderBottom: "1px solid rgba(107,107,111,0.08)" }}>
                                 {["Action", "Details", "IP", "Date"].map(h => (
-                                  <th key={h} style={{ textAlign: "left", padding: "4px 6px", color: "var(--graphite)", fontWeight: 600, fontSize: "8px", textTransform: "uppercase", letterSpacing: "0.5px" }}>{h}</th>
+                                  <th key={h} style={{ textAlign: "left", padding: "4px 6px", color: "var(--japandi-muted)", fontWeight: 600, fontSize: "8px", textTransform: "uppercase", letterSpacing: "0.5px" }}>{h}</th>
                                 ))}
                               </tr>
                             </thead>
                             <tbody>
                               {auditLogs.map((log, i) => (
                                 <tr key={log.id || i} style={{ borderBottom: "1px solid rgba(107,107,111,0.06)" }}>
-                                  <td style={{ padding: "4px 6px", color: "var(--sand)" }}>{log.action || "—"}</td>
-                                  <td style={{ padding: "4px 6px", color: "var(--graphite)" }}>{log.details || "—"}</td>
-                                  <td style={{ padding: "4px 6px", color: "var(--graphite)" }}>{log.ip_address || "—"}</td>
-                                  <td style={{ padding: "4px 6px", color: "var(--graphite)" }}>{log.created_at ? new Date(log.created_at).toLocaleDateString() : log.date ? new Date(log.date).toLocaleDateString() : "—"}</td>
+                                  <td style={{ padding: "4px 6px", color: "var(--japandi-text)" }}>{log.action || "—"}</td>
+                                  <td style={{ padding: "4px 6px", color: "var(--japandi-muted)" }}>{log.details || "—"}</td>
+                                  <td style={{ padding: "4px 6px", color: "var(--japandi-muted)" }}>{log.ip_address || "—"}</td>
+                                  <td style={{ padding: "4px 6px", color: "var(--japandi-muted)" }}>{log.created_at ? new Date(log.created_at).toLocaleDateString() : log.date ? new Date(log.date).toLocaleDateString() : "—"}</td>
                                 </tr>
                               ))}
                             </tbody>
@@ -210,9 +210,9 @@ export default function ApiKeysTab() {
 
       {showHardDeleteModal && (
         <div style={s.overlay} onClick={() => { setShowHardDeleteModal(false); setHardDeleteKeyId(null); }}>
-          <div className="card-glass" style={{ border: "1px solid var(--border-glass)", background: "rgba(20,20,23,0.95)", backdropFilter: "blur(22px)", padding: "28px", maxWidth: "460px", width: "100%" }} onClick={e => e.stopPropagation()}>
+          <div className="card-glass" style={{ border: "1px solid var(--japandi-border)", background: "rgba(20,20,23,0.95)", backdropFilter: "blur(22px)", padding: "28px", maxWidth: "460px", width: "100%" }} onClick={e => e.stopPropagation()}>
             <h3 style={{ ...s.modalTitle, color: "#ef4444" }}>Delete API Key Permanently</h3>
-            <p style={{ fontSize: "13px", color: "var(--graphite)", margin: "0 0 16px" }}>Delete this key permanently? This action cannot be undone.</p>
+            <p style={{ fontSize: "13px", color: "var(--japandi-muted)", margin: "0 0 16px" }}>Delete this key permanently? This action cannot be undone.</p>
             <div style={{ display: "flex", gap: "8px" }}>
               <button onClick={handleHardDeleteKey} className="btn-destructive-outline">Delete Permanently</button>
               <button onClick={() => { setShowHardDeleteModal(false); setHardDeleteKeyId(null); }} className="btn-action-secondary">Cancel</button>

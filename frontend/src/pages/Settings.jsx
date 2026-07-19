@@ -105,8 +105,8 @@ export default function Settings() {
   return (
     <div className="settings-page" style={{ padding: "24px 32px", fontFamily: "'Satoshi', sans-serif" }}>
       <div style={{ marginBottom: 24 }}>
-        <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: "var(--white)", fontFamily: "'Clash Display', sans-serif" }}>Settings</h1>
-        <p style={{ margin: "4px 0 0", fontSize: 12, color: "var(--gray)", fontWeight: 500 }}>{SUBTITLE_MAP[activeTab]}</p>
+        <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: "var(--japandi-text)", fontFamily: "'Clash Display', sans-serif" }}>Settings</h1>
+        <p style={{ margin: "4px 0 0", fontSize: 12, color: "var(--japandi-muted)", fontWeight: 500 }}>{SUBTITLE_MAP[activeTab]}</p>
       </div>
       <div className="view-tabs" style={{ marginBottom: 24 }}>
         {TABS.map(tab => (

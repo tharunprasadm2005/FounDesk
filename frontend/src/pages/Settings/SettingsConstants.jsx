@@ -126,7 +126,7 @@ export const getPlanBadgeLabel = (plan) => {
 
 export const SETTINGS_STYLE = {
   overlay: { position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 },
-  modalTitle: { margin: "0 0 16px", fontSize: "16px", fontWeight: 700, color: "var(--sand)", fontFamily: "'Clash Display', sans-serif" },
+  modalTitle: { margin: "0 0 16px", fontSize: "16px", fontWeight: 700, color: "var(--japandi-text)", fontFamily: "'Clash Display', sans-serif" },
   field: { marginBottom: "12px" },
-  label: { display: "block", fontSize: "11px", fontWeight: 700, color: "var(--graphite)", marginBottom: "4px", textTransform: "uppercase", letterSpacing: "0.04em" },
+  label: { display: "block", fontSize: "11px", fontWeight: 700, color: "var(--japandi-muted)", marginBottom: "4px", textTransform: "uppercase", letterSpacing: "0.04em" },
 };

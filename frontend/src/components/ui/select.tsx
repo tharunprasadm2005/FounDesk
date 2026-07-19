@@ -16,7 +16,7 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
       paddingLeft: "12px",
       paddingRight: "12px",
       fontSize: "13px",
-      color: "var(--white)",
+      color: "var(--japandi-text)",
       fontFamily: "'Satoshi', sans-serif",
       outline: "none",
       transition: "all 0.2s ease-in-out",

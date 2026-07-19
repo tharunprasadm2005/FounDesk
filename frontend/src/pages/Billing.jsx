@@ -136,7 +136,7 @@ export default function Billing() {
   };
 
   if (loading) return (
-    <div style={{ padding: "80px 0", textAlign: "center", color: "var(--light-gray)", fontFamily: FONT_BODY }}>
+    <div style={{ padding: "80px 0", textAlign: "center", color: "var(--japandi-muted)", fontFamily: FONT_BODY }}>
       <p>Loading billing info...</p>
     </div>
   );
@@ -157,7 +157,7 @@ export default function Billing() {
 
   return (
     <div style={{ padding: 24, maxWidth: 800, margin: "0 auto", fontFamily: FONT_BODY }} className="fade-in">
-      <h1 style={{ fontSize: 24, marginBottom: 24, color: "var(--sand)", fontFamily: FONT_SANS, fontWeight: 800 }}>Billing</h1>
+      <h1 style={{ fontSize: 24, marginBottom: 24, color: "var(--japandi-text)", fontFamily: FONT_SANS, fontWeight: 800 }}>Billing</h1>
 
       {/* Plan Tiers */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 12, marginBottom: 24 }}>
@@ -170,14 +170,14 @@ export default function Billing() {
               padding: 20, border: isCurrent ? "1px solid rgba(255,90,0,0.3)" : "1px solid rgba(107,107,111,0.12)",
               position: "relative",
             }}>
-              {isCurrent && <span style={{ position: "absolute", top: 8, right: 8, fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "1px", color: "var(--brand-orange)", background: "rgba(255,90,0,0.1)", padding: "2px 8px", borderRadius: 4 }}>Current</span>}
-              <h3 style={{ margin: "0 0 4px", fontSize: 15, fontWeight: 700, color: "var(--sand)", fontFamily: FONT_SANS }}>{p.name}</h3>
-              <div style={{ fontSize: 22, fontWeight: 800, color: "var(--sand)", marginBottom: 12 }}>
-                ₹{(p.amount || 999) / 100}<span style={{ fontSize: 12, fontWeight: 400, color: "var(--graphite)" }}>/mo</span>
+              {isCurrent && <span style={{ position: "absolute", top: 8, right: 8, fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "1px", color: "var(--japandi-accent)", background: "rgba(255,90,0,0.1)", padding: "2px 8px", borderRadius: 4 }}>Current</span>}
+              <h3 style={{ margin: "0 0 4px", fontSize: 15, fontWeight: 700, color: "var(--japandi-text)", fontFamily: FONT_SANS }}>{p.name}</h3>
+              <div style={{ fontSize: 22, fontWeight: 800, color: "var(--japandi-text)", marginBottom: 12 }}>
+                ₹{(p.amount || 999) / 100}<span style={{ fontSize: 12, fontWeight: 400, color: "var(--japandi-muted)" }}>/mo</span>
               </div>
               <div style={{ marginBottom: 16 }}>
                 {(p.features || []).map((f) => (
-                  <div key={f} style={{ display: "flex", alignItems: "center", gap: 6, padding: "4px 0", fontSize: 12, color: "var(--sand)" }}>
+                  <div key={f} style={{ display: "flex", alignItems: "center", gap: 6, padding: "4px 0", fontSize: 12, color: "var(--japandi-text)" }}>
                     <CheckCircle size={12} style={{ color: "#4ade80", flexShrink: 0 }} />
                     {f}
                   </div>
@@ -213,7 +213,7 @@ export default function Billing() {
           <div>
             <span style={badgeStyle(currentStatus)}>{currentStatus.toUpperCase()}</span>
             {currentStatus === "trial" && plan?.trial_remaining_days !== null && (
-              <span style={{ marginLeft: 12, fontSize: 12, color: "var(--graphite)" }}>
+              <span style={{ marginLeft: 12, fontSize: 12, color: "var(--japandi-muted)" }}>
                 Trial ends in <strong>{plan.trial_remaining_days}</strong> days
               </span>
             )}
@@ -241,8 +241,8 @@ export default function Billing() {
             {Object.entries(plan.usage).map(([key, val]) => (
               <div key={key}>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, marginBottom: 4 }}>
-                  <span style={{ color: "var(--graphite)", textTransform: "capitalize" }}>{key.replace(/_/g, " ")}</span>
-                  <span style={{ color: "var(--sand)", fontWeight: 600 }}>
+                  <span style={{ color: "var(--japandi-muted)", textTransform: "capitalize" }}>{key.replace(/_/g, " ")}</span>
+                  <span style={{ color: "var(--japandi-text)", fontWeight: 600 }}>
                     {val.used || 0}{val.limit ? ` / ${val.limit}` : ""}
                     {val.exceeded && <span style={{ color: "#ef4444", marginLeft: 4 }}>⚠</span>}
                   </span>
@@ -250,7 +250,7 @@ export default function Billing() {
                 {val.limit && (
                   <div style={{ height: 3, backgroundColor: "rgba(107,107,111,0.1)", borderRadius: 2, overflow: "hidden" }}>
                     <div style={{ height: "100%", width: `${Math.min(100, ((val.used || 0) / val.limit) * 100)}%`,
-                      backgroundColor: val.exceeded ? "#ef4444" : ((val.used || 0) / val.limit) > 0.8 ? "#f59e0b" : "var(--brand-orange)", borderRadius: 2 }} />
+                      backgroundColor: val.exceeded ? "#ef4444" : ((val.used || 0) / val.limit) > 0.8 ? "#f59e0b" : "var(--japandi-accent)", borderRadius: 2 }} />
                   </div>
                 )}
               </div>
@@ -270,29 +270,29 @@ export default function Billing() {
         {showInvoices && (
           <div>
             {invoices.length === 0 ? (
-              <div style={{ fontSize: 12, color: "var(--graphite)", padding: "12px 0" }}>No invoices found.</div>
+              <div style={{ fontSize: 12, color: "var(--japandi-muted)", padding: "12px 0" }}>No invoices found.</div>
             ) : (
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
                 <thead>
                   <tr style={{ borderBottom: "1px solid rgba(107,107,111,0.08)" }}>
                     {["Date", "Plan", "Amount", "Status", "Payment ID"].map(h => (
-                      <th key={h} style={{ textAlign: "left", padding: "8px 10px", color: "var(--graphite)", fontWeight: 600, textTransform: "uppercase", fontSize: 9, letterSpacing: "1px" }}>{h}</th>
+                      <th key={h} style={{ textAlign: "left", padding: "8px 10px", color: "var(--japandi-muted)", fontWeight: 600, textTransform: "uppercase", fontSize: 9, letterSpacing: "1px" }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {invoices.map((inv) => (
                     <tr key={inv.id} style={{ borderBottom: "1px solid rgba(107,107,111,0.06)" }}>
-                      <td style={{ padding: "8px 10px", color: "var(--sand)" }}>{inv.paid_at ? new Date(inv.paid_at).toLocaleDateString() : new Date(inv.created_at).toLocaleDateString()}</td>
-                      <td style={{ padding: "8px 10px", color: "var(--sand)", textTransform: "capitalize" }}>{inv.plan_name || "starter"}</td>
-                      <td style={{ padding: "8px 10px", color: "var(--sand)" }}>₹{(inv.amount || 0) / 100}</td>
+                      <td style={{ padding: "8px 10px", color: "var(--japandi-text)" }}>{inv.paid_at ? new Date(inv.paid_at).toLocaleDateString() : new Date(inv.created_at).toLocaleDateString()}</td>
+                      <td style={{ padding: "8px 10px", color: "var(--japandi-text)", textTransform: "capitalize" }}>{inv.plan_name || "starter"}</td>
+                      <td style={{ padding: "8px 10px", color: "var(--japandi-text)" }}>₹{(inv.amount || 0) / 100}</td>
                       <td style={{ padding: "8px 10px" }}>
                         <span className="badge" style={{
                           backgroundColor: inv.status === "paid" ? "rgba(62,207,142,0.12)" : "rgba(239,68,68,0.12)",
                           color: inv.status === "paid" ? "#4ade80" : "#ef4444",
                         }}>{inv.status}</span>
                       </td>
-                      <td style={{ padding: "8px 10px", fontFamily: "monospace", fontSize: 10, color: "var(--graphite)" }}>{(inv.razorpay_payment_id || "").slice(0, 12)}...</td>
+                      <td style={{ padding: "8px 10px", fontFamily: "monospace", fontSize: 10, color: "var(--japandi-muted)" }}>{(inv.razorpay_payment_id || "").slice(0, 12)}...</td>
                     </tr>
                   ))}
                 </tbody>
@@ -313,7 +313,7 @@ export default function Billing() {
             { name: "Priority Support", included: currentPlan !== "starter" }, { name: "Custom Branding", included: currentPlan === "enterprise" },
             { name: "SSO/SAML", included: currentPlan === "enterprise" }, { name: "Audit Logs", included: currentPlan === "enterprise" },
           ].map(f => (
-            <div key={f.name} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: f.included ? "var(--sand)" : "var(--graphite)" }}>
+            <div key={f.name} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: f.included ? "var(--japandi-text)" : "var(--japandi-muted)" }}>
               {f.included ? <CheckCircle size={12} style={{ color: "#4ade80" }} /> : <XCircle size={12} style={{ color: "#6b6b6f" }} />}
               {f.name}
             </div>

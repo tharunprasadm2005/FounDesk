@@ -135,28 +135,28 @@ export default function AccountTab() {
       <div className="card-glass" style={{ padding: "24px", marginBottom: "12px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "20px" }}>
           <div style={{ position: "relative" }}>
-            <div style={{ width: "56px", height: "56px", borderRadius: "14px", backgroundColor: "rgba(255,90,0,0.15)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--brand-orange)", fontWeight: 700, fontSize: "20px", border: "1px solid rgba(255,90,0,0.2)" }}>
+            <div style={{ width: "56px", height: "56px", borderRadius: "14px", backgroundColor: "rgba(255,90,0,0.15)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--japandi-accent)", fontWeight: 700, fontSize: "20px", border: "1px solid rgba(255,90,0,0.2)" }}>
               {(currentUser.name || currentUser.email || "U")[0].toUpperCase()}
             </div>
             <input type="file" accept="image/*" ref={avatarFileRef} onChange={handleAvatarUpload} style={{ display: "none" }} />
-            <button onClick={() => avatarFileRef.current?.click()} style={{ position: "absolute", bottom: "-2px", right: "-2px", width: "20px", height: "20px", borderRadius: "50%", backgroundColor: "var(--brand-orange)", border: "2px solid #18181b", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }} title="Upload photo">
+            <button onClick={() => avatarFileRef.current?.click()} style={{ position: "absolute", bottom: "-2px", right: "-2px", width: "20px", height: "20px", borderRadius: "50%", backgroundColor: "var(--japandi-accent)", border: "2px solid #18181b", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }} title="Upload photo">
               <Camera size={10} style={{ color: "#fff" }} />
             </button>
           </div>
           <div style={{ flex: 1 }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              <span style={{ fontSize: "17px", fontWeight: 700, color: "var(--sand)", fontFamily: FONT_SANS }}>{currentUser.name || "User"}</span>
+              <span style={{ fontSize: "17px", fontWeight: 700, color: "var(--japandi-text)", fontFamily: FONT_SANS }}>{currentUser.name || "User"}</span>
               {currentUser.totp_enabled && <ShieldCheck size={14} style={{ color: "#4ade80" }} />}
             </div>
-            <div style={{ fontSize: "12px", color: "var(--graphite)" }}>{currentUser.email}</div>
+            <div style={{ fontSize: "12px", color: "var(--japandi-muted)" }}>{currentUser.email}</div>
           </div>
           <div style={{ textAlign: "right" }}>
-            <div style={{ fontSize: "11px", color: "var(--graphite)", marginBottom: "4px" }}>Profile</div>
+            <div style={{ fontSize: "11px", color: "var(--japandi-muted)", marginBottom: "4px" }}>Profile</div>
             <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
               <div style={{ width: "60px", height: "4px", backgroundColor: "rgba(107,107,111,0.15)", borderRadius: "2px", overflow: "hidden" }}>
-                <div style={{ height: "100%", width: `${score}%`, backgroundColor: score === 100 ? "#4ade80" : "var(--brand-orange)", borderRadius: "2px", transition: "width 0.3s" }} />
+                <div style={{ height: "100%", width: `${score}%`, backgroundColor: score === 100 ? "#4ade80" : "var(--japandi-accent)", borderRadius: "2px", transition: "width 0.3s" }} />
               </div>
-              <span style={{ fontSize: "10px", color: "var(--graphite)", fontWeight: 600 }}>{score}%</span>
+              <span style={{ fontSize: "10px", color: "var(--japandi-muted)", fontWeight: 600 }}>{score}%</span>
             </div>
           </div>
         </div>
@@ -200,11 +200,11 @@ export default function AccountTab() {
 
       {show2FA && totpData && (
         <div className="card-glass" style={{ padding: "20px", marginBottom: "12px" }}>
-          <h4 style={{ fontSize: "14px", fontWeight: 700, color: "var(--sand)", margin: "0 0 12px" }}>Set Up Two-Factor Authentication</h4>
+          <h4 style={{ fontSize: "14px", fontWeight: 700, color: "var(--japandi-text)", margin: "0 0 12px" }}>Set Up Two-Factor Authentication</h4>
           {totpData.otpauth_url && (
             <div style={{ marginBottom: "12px" }}>
-              <div style={{ fontSize: "12px", color: "var(--graphite)", marginBottom: "8px" }}>Scan this QR code with your authenticator app:</div>
-              <div style={{ padding: "12px", backgroundColor: "rgba(0,0,0,0.3)", borderRadius: "8px", textAlign: "center", fontFamily: "monospace", fontSize: "11px", color: "var(--sand)", wordBreak: "break-all" }}>
+              <div style={{ fontSize: "12px", color: "var(--japandi-muted)", marginBottom: "8px" }}>Scan this QR code with your authenticator app:</div>
+              <div style={{ padding: "12px", backgroundColor: "rgba(0,0,0,0.3)", borderRadius: "8px", textAlign: "center", fontFamily: "monospace", fontSize: "11px", color: "var(--japandi-text)", wordBreak: "break-all" }}>
                 {totpData.otpauth_url}
               </div>
             </div>
@@ -220,15 +220,15 @@ export default function AccountTab() {
       {showRecoveryCodes && (
         <div className="card-glass" style={{ padding: "20px", marginBottom: "12px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-            <h4 style={{ fontSize: "14px", fontWeight: 700, color: "var(--sand)", margin: 0 }}>Recovery Codes</h4>
+            <h4 style={{ fontSize: "14px", fontWeight: 700, color: "var(--japandi-text)", margin: 0 }}>Recovery Codes</h4>
             <button onClick={() => { setShowRecoveryCodes(false); setRecoveryCodes([]); }} className="btn-action-secondary" style={{ padding: "4px" }}><X size={14} /></button>
           </div>
           <p style={{ fontSize: "11px", color: "#ef4444", margin: "0 0 12px", fontWeight: 600 }}>Store these safely — they won't be shown again.</p>
           <div style={{ fontFamily: "monospace", fontSize: "13px", backgroundColor: "rgba(0,0,0,0.3)", padding: "12px", borderRadius: "8px", lineHeight: 1.8 }}>
             {recoveryCodes.length === 0 ? (
-              <span style={{ color: "var(--graphite)" }}>No codes available.</span>
+              <span style={{ color: "var(--japandi-muted)" }}>No codes available.</span>
             ) : recoveryCodes.map((code, i) => (
-              <div key={i} style={{ color: "var(--sand)" }}>{code}</div>
+              <div key={i} style={{ color: "var(--japandi-text)" }}>{code}</div>
             ))}
           </div>
           {recoveryCodes.length > 0 && (
@@ -246,13 +246,13 @@ export default function AccountTab() {
             <button onClick={() => setShowSessions(false)} className="btn-action-secondary" style={{ padding: "4px" }}><X size="12" /></button>
           </div>
           {sessions.length === 0 ? (
-            <div style={{ fontSize: "12px", color: "var(--graphite)" }}>No active sessions found.</div>
+            <div style={{ fontSize: "12px", color: "var(--japandi-muted)" }}>No active sessions found.</div>
           ) : sessions.map(s => (
             <div key={s.id} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "8px 0", borderBottom: "1px solid rgba(107,107,111,0.06)", fontSize: "12px" }}>
-              <Smartphone size={14} style={{ color: "var(--graphite)" }} />
+              <Smartphone size={14} style={{ color: "var(--japandi-muted)" }} />
               <div style={{ flex: 1 }}>
-                <div style={{ color: "var(--sand)", fontWeight: 600 }}>{s.device || s.user_agent || "Unknown device"}</div>
-                <div style={{ color: "var(--graphite)", fontSize: "10px" }}>{s.ip_address || ""} · Last active: {s.last_active_at ? new Date(s.last_active_at).toLocaleDateString() : "now"}</div>
+                <div style={{ color: "var(--japandi-text)", fontWeight: 600 }}>{s.device || s.user_agent || "Unknown device"}</div>
+                <div style={{ color: "var(--japandi-muted)", fontSize: "10px" }}>{s.ip_address || ""} · Last active: {s.last_active_at ? new Date(s.last_active_at).toLocaleDateString() : "now"}</div>
               </div>
               <button onClick={() => handleRevokeSession(s.id)} className="btn-destructive-outline-sm"><LogOut size={12} /></button>
             </div>
@@ -267,15 +267,15 @@ export default function AccountTab() {
             <button onClick={() => setShowConnectedAccounts(false)} className="btn-action-secondary" style={{ padding: "4px" }}><X size="12" /></button>
           </div>
           {connectedAccounts.length === 0 ? (
-            <div style={{ fontSize: "12px", color: "var(--graphite)" }}>No connected accounts. Link Google, GitHub, or Slack from Connected Apps.</div>
+            <div style={{ fontSize: "12px", color: "var(--japandi-muted)" }}>No connected accounts. Link Google, GitHub, or Slack from Connected Apps.</div>
           ) : connectedAccounts.map(a => (
             <div key={a.provider || a.id} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "8px 0", borderBottom: "1px solid rgba(107,107,111,0.06)", fontSize: "12px" }}>
-              <div style={{ width: "28px", height: "28px", borderRadius: "6px", backgroundColor: "rgba(255,90,0,0.1)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--brand-orange)", fontSize: "10px", fontWeight: 700, textTransform: "uppercase" }}>
+              <div style={{ width: "28px", height: "28px", borderRadius: "6px", backgroundColor: "rgba(255,90,0,0.1)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--japandi-accent)", fontSize: "10px", fontWeight: 700, textTransform: "uppercase" }}>
                 {(a.provider || "?")[0]}
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ color: "var(--sand)", fontWeight: 600, textTransform: "capitalize" }}>{a.provider}</div>
-                <div style={{ color: "var(--graphite)", fontSize: "10px" }}>{a.email || a.name || ""}</div>
+                <div style={{ color: "var(--japandi-text)", fontWeight: 600, textTransform: "capitalize" }}>{a.provider}</div>
+                <div style={{ color: "var(--japandi-muted)", fontSize: "10px" }}>{a.email || a.name || ""}</div>
               </div>
               <span className="badge badge-positive">Connected</span>
             </div>
@@ -285,7 +285,7 @@ export default function AccountTab() {
 
       {showPasswordChange && (
         <div style={s.overlay} onClick={() => setShowPasswordChange(false)}>
-          <div className="card-glass" style={{ border: "1px solid var(--border-glass)", background: "rgba(20,20,23,0.95)", backdropFilter: "blur(22px)", padding: "28px", maxWidth: "480px", width: "100%" }} onClick={e => e.stopPropagation()}>
+          <div className="card-glass" style={{ border: "1px solid var(--japandi-border)", background: "rgba(20,20,23,0.95)", backdropFilter: "blur(22px)", padding: "28px", maxWidth: "480px", width: "100%" }} onClick={e => e.stopPropagation()}>
             <h3 style={s.modalTitle}>Change Password</h3>
             <div style={s.field}><label style={s.label}>Current Password</label><input type="password" value={passwordForm.current_password} onChange={e => setPasswordForm(p => ({ ...p, current_password: e.target.value }))} className="plan-input" style={{ width: "100%", boxSizing: "border-box" }} /></div>
             <div style={s.field}><label style={s.label}>New Password</label><input type="password" value={passwordForm.new_password} onChange={e => setPasswordForm(p => ({ ...p, new_password: e.target.value }))} className="plan-input" style={{ width: "100%", boxSizing: "border-box" }} /></div>
@@ -300,9 +300,9 @@ export default function AccountTab() {
 
       {showDeleteConfirm && (
         <div style={s.overlay} onClick={() => setShowDeleteConfirm(false)}>
-          <div className="card-glass" style={{ border: "1px solid var(--border-glass)", background: "rgba(20,20,23,0.95)", backdropFilter: "blur(22px)", padding: "28px", maxWidth: "480px", width: "100%" }} onClick={e => e.stopPropagation()}>
+          <div className="card-glass" style={{ border: "1px solid var(--japandi-border)", background: "rgba(20,20,23,0.95)", backdropFilter: "blur(22px)", padding: "28px", maxWidth: "480px", width: "100%" }} onClick={e => e.stopPropagation()}>
             <h3 style={{ ...s.modalTitle, color: "#ef4444" }}>Delete Account</h3>
-            <p style={{ fontSize: "13px", color: "var(--graphite)", margin: "0 0 16px" }}>This action is irreversible. All your data will be permanently deleted. Are you absolutely sure?</p>
+            <p style={{ fontSize: "13px", color: "var(--japandi-muted)", margin: "0 0 16px" }}>This action is irreversible. All your data will be permanently deleted. Are you absolutely sure?</p>
             <div style={{ display: "flex", gap: "8px" }}>
               <button onClick={handleDeleteAccount} className="btn-destructive-outline">Delete My Account</button>
               <button onClick={() => setShowDeleteConfirm(false)} className="btn-action-secondary">Cancel</button>

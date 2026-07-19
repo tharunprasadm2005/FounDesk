@@ -21,10 +21,10 @@ function LoadingFallback() {
     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", background: "#030303" }}>
       <div style={{ display: "inline-flex", flexDirection: "column", alignItems: "center", gap: "14px" }}>
         <div className="relative flex items-center justify-center" style={{ width: "40px", height: "40px" }}>
-          <span style={{ fontFamily: "'Clash Display', sans-serif", fontSize: "36px", fontWeight: "950", color: "var(--brand-orange)", lineHeight: 1, letterSpacing: "-0.04em" }}>F</span>
-          <span style={{ fontFamily: "'Clash Display', sans-serif", fontSize: "36px", fontWeight: "950", color: "transparent", WebkitTextStroke: "1.5px var(--brand-orange)", lineHeight: 1, marginLeft: "1.5px" }}>d</span>
+          <span style={{ fontFamily: "'Clash Display', sans-serif", fontSize: "36px", fontWeight: "950", color: "var(--japandi-accent)", lineHeight: 1, letterSpacing: "-0.04em" }}>F</span>
+          <span style={{ fontFamily: "'Clash Display', sans-serif", fontSize: "36px", fontWeight: "950", color: "transparent", WebkitTextStroke: "1.5px var(--japandi-accent)", lineHeight: 1, marginLeft: "1.5px" }}>d</span>
         </div>
-        <p style={{ fontSize: "12px", color: "var(--gray)", fontFamily: "'JetBrains Mono', monospace", letterSpacing: "1.5px", textTransform: "uppercase" }} className="animate-pulse">
+        <p style={{ fontSize: "12px", color: "var(--japandi-muted)", fontFamily: "'JetBrains Mono', monospace", letterSpacing: "1.5px", textTransform: "uppercase" }} className="animate-pulse">
           Loading...
         </p>
       </div>

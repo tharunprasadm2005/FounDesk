@@ -32,7 +32,7 @@ export default function NotificationBell() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          color: activeCount > 0 ? "var(--brand-orange)" : "var(--light-gray)",
+          color: activeCount > 0 ? "var(--japandi-accent)" : "var(--japandi-muted)",
           transition: "all 0.2s ease",
           position: "relative"
         }}
@@ -49,7 +49,7 @@ export default function NotificationBell() {
               right: "6px",
               width: "14px",
               height: "14px",
-              backgroundColor: "var(--brand-orange)",
+              backgroundColor: "var(--japandi-accent)",
               color: "var(--primary)",
               fontWeight: 900,
               fontSize: "9px",
@@ -88,7 +88,7 @@ export default function NotificationBell() {
               borderBottom: "1px solid var(--edge)"
             }}
           >
-            <span style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--light-gray)" }}>
+            <span style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--japandi-muted)" }}>
               Notifications
             </span>
             {activeCount > 0 && (
@@ -100,7 +100,7 @@ export default function NotificationBell() {
                 style={{
                   background: "transparent",
                   border: "none",
-                  color: "var(--brand-orange)",
+                  color: "var(--japandi-accent)",
                   cursor: "pointer",
                   fontSize: "11px",
                   fontWeight: 700,
@@ -118,9 +118,9 @@ export default function NotificationBell() {
           </div>
           <div style={{ maxHeight: "360px", overflowY: "auto" }}>
             {loading && notifications.length === 0 ? (
-              <div style={{ padding: "24px", textAlign: "center", fontSize: "12px", color: "var(--light-gray)" }}>Loading...</div>
+              <div style={{ padding: "24px", textAlign: "center", fontSize: "12px", color: "var(--japandi-muted)" }}>Loading...</div>
             ) : notifications.length === 0 ? (
-              <div style={{ padding: "24px", textAlign: "center", fontSize: "12px", color: "var(--light-gray)" }}>No notifications yet</div>
+              <div style={{ padding: "24px", textAlign: "center", fontSize: "12px", color: "var(--japandi-muted)" }}>No notifications yet</div>
             ) : (
               notifications.map((n) => (
                 <div
@@ -137,9 +137,9 @@ export default function NotificationBell() {
                   }}
                   className="hover:bg-white/5"
                 >
-                  <div style={{ fontSize: "12px", fontWeight: 700, color: "var(--white)", marginBottom: "2px" }}>{n.title}</div>
-                  {n.message && <div style={{ fontSize: "11px", color: "var(--light-gray)", lineHeight: "1.4" }}>{n.message}</div>}
-                  <div style={{ fontSize: "9px", color: "var(--gray)", marginTop: "4px" }}>
+                  <div style={{ fontSize: "12px", fontWeight: 700, color: "var(--japandi-text)", marginBottom: "2px" }}>{n.title}</div>
+                  {n.message && <div style={{ fontSize: "11px", color: "var(--japandi-muted)", lineHeight: "1.4" }}>{n.message}</div>}
+                  <div style={{ fontSize: "9px", color: "var(--japandi-muted)", marginTop: "4px" }}>
                     {new Date(n.created_at).toLocaleDateString("en-US", {
                       month: "short",
                       day: "numeric",

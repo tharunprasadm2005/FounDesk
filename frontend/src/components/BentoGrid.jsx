@@ -1,6 +1,6 @@
 import { TrendingUp, CheckCircle, Video, Globe, GitBranch, Shield } from "lucide-react";
 
-const A = "var(--brand-orange)";
+const A = "var(--japandi-accent)";
 const FONT_SERIF = "'Fraunces', Georgia, serif";
 const FONT_SANS = "'DM Sans', system-ui, sans-serif";
 

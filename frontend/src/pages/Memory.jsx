@@ -20,9 +20,9 @@ function renderMarkdown(md) {
   if (!md) return "";
   let html = md
     .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
-    .replace(/^### (.*$)/gm, "<strong style='font-size:13px;display:block;margin:10px 0 4px;color:var(--white)'>$1</strong>")
-    .replace(/^## (.*$)/gm, "<strong style='font-size:14px;display:block;margin:12px 0 6px;color:var(--white)'>$1</strong>")
-    .replace(/^# (.*$)/gm, "<strong style='font-size:16px;display:block;margin:14px 0 8px;color:var(--white);border-bottom: none;padding-bottom:4px'>$1</strong>")
+    .replace(/^### (.*$)/gm, "<strong style='font-size:13px;display:block;margin:10px 0 4px;color:var(--japandi-text)'>$1</strong>")
+    .replace(/^## (.*$)/gm, "<strong style='font-size:14px;display:block;margin:12px 0 6px;color:var(--japandi-text)'>$1</strong>")
+    .replace(/^# (.*$)/gm, "<strong style='font-size:16px;display:block;margin:14px 0 8px;color:var(--japandi-text);border-bottom: none;padding-bottom:4px'>$1</strong>")
     .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
     .replace(/`([^`]+)`/g, "<code style='background:rgba(232,80,2,0.1);padding:1px 5px;border-radius:3px;font-size:11px'>$1</code>")
     .replace(/^- (.*$)/gm, "<span style='display:block;padding-left:14px;position:relative;margin:2px 0'>• $1</span>")
@@ -371,7 +371,7 @@ function Memory() {
         }
         .memory-page input:focus, .memory-page select:focus, .memory-page textarea:focus {
           outline: none;
-          border-color: var(--brand-orange) !important;
+          border-color: var(--japandi-accent) !important;
         }
         @keyframes fadeSlide {
           from { opacity: 0; transform: translateY(6px); }
@@ -390,10 +390,10 @@ function Memory() {
       `}</style>
 
       <div style={{ marginBottom: 24 }}>
-        <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: "var(--white)", fontFamily: "'Clash Display', sans-serif" }}>
+        <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: "var(--japandi-text)", fontFamily: "'Clash Display', sans-serif" }}>
           Memory Vault
         </h1>
-        <p style={{ margin: "4px 0 0", fontSize: 12, color: "var(--gray)", fontWeight: 500 }}>
+        <p style={{ margin: "4px 0 0", fontSize: 12, color: "var(--japandi-muted)", fontWeight: 500 }}>
           {subtitleMap[activeTab]}
         </p>
       </div>
@@ -420,7 +420,7 @@ function Memory() {
         <div className="fade-in">
           <div style={{ display: "flex", gap: 10, marginBottom: 20, flexWrap: "wrap", alignItems: "center" }}>
             <div style={{ position: "relative", flex: 1, minWidth: 200, maxWidth: 320 }}>
-              <Search size={14} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--gray)" }} />
+              <Search size={14} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--japandi-muted)" }} />
               <input
                 placeholder="Search decisions..."
                 value={searchQuery}
@@ -453,7 +453,7 @@ function Memory() {
             <button onClick={() => setShowAddDecision(!showAddDecision)} className="btn-ember">
               + Log Decision
             </button>
-            <span style={{ fontSize: 11, color: "var(--gray)", fontWeight: 600 }}>{decisions.length} {decisions.length === 1 ? 'decision' : 'decisions'}</span>
+            <span style={{ fontSize: 11, color: "var(--japandi-muted)", fontWeight: 600 }}>{decisions.length} {decisions.length === 1 ? 'decision' : 'decisions'}</span>
           </div>
 
           {showAddDecision && (
@@ -479,12 +479,12 @@ function Memory() {
           )}
 
           {loading ? (
-            <div style={{ padding: "60px 0", textAlign: "center", color: "var(--gray)", fontSize: 13 }}>Loading...</div>
+            <div style={{ padding: "60px 0", textAlign: "center", color: "var(--japandi-muted)", fontSize: 13 }}>Loading...</div>
           ) : decisions.length === 0 ? (
             <div style={{ padding: 40, textAlign: "center", borderRadius: 12, border: "1px dashed var(--edge)", background: "rgba(255,255,255,0.02)" }}>
-              <p style={{ color: "var(--gray)", fontSize: 13, fontWeight: 600, marginBottom: 12 }}>No decisions yet</p>
+              <p style={{ color: "var(--japandi-muted)", fontSize: 13, fontWeight: 600, marginBottom: 12 }}>No decisions yet</p>
               {pipelineInfo && (
-                <div style={{ fontSize: 11, color: "var(--gray)", lineHeight: 1.8 }}>
+                <div style={{ fontSize: 11, color: "var(--japandi-muted)", lineHeight: 1.8 }}>
                   <div>Integrations: {(pipelineInfo.integrations_connected || 0)} connected</div>
                   <div>Events fetched: {pipelineInfo.raw_events_count || 0}</div>
                   <div>Last LLM call: {pipelineInfo.last_llm_call || "Never"}</div>
@@ -553,13 +553,13 @@ function Memory() {
                       </div>
                     ) : (
                       <>
-                        <div style={{ fontSize: 13.5, fontWeight: 700, color: "var(--white)", fontFamily: "'Clash Display', sans-serif", lineHeight: 1.3 }}>{d.decision}</div>
-                        <div style={{ fontSize: 11.5, color: "var(--gray)", lineHeight: 1.5, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{d.context}</div>
+                        <div style={{ fontSize: 13.5, fontWeight: 700, color: "var(--japandi-text)", fontFamily: "'Clash Display', sans-serif", lineHeight: 1.3 }}>{d.decision}</div>
+                        <div style={{ fontSize: 11.5, color: "var(--japandi-muted)", lineHeight: 1.5, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{d.context}</div>
                       </>
                     )}
 
                     {!isEditing && (
-                      <div style={{ display: "flex", gap: 6, marginTop: "auto", paddingTop: 8, borderTop: "1px solid var(--border-soft)", width: "100%" }}>
+                      <div style={{ display: "flex", gap: 6, marginTop: "auto", paddingTop: 8, borderTop: "1px solid var(--japandi-border)", width: "100%" }}>
                         {needsConfirm && (
                           <button onClick={() => handleConfirmDecision(d.id)} className="btn-action-success">
                             ✓ Confirm
@@ -585,7 +585,7 @@ function Memory() {
         <div className="fade-in">
           <div style={{ display: "flex", gap: 10, marginBottom: 20, flexWrap: "wrap", alignItems: "center" }}>
             <div style={{ position: "relative", flex: 1, minWidth: 200, maxWidth: 320 }}>
-              <Search size={14} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--gray)" }} />
+              <Search size={14} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--japandi-muted)" }} />
               <input
                 placeholder="Search notes..."
                 value={notesSearchQuery}
@@ -615,14 +615,14 @@ function Memory() {
               <option value="Finalized">Finalized</option>
               <option value="Archived">Archived</option>
             </select>
-            <span style={{ fontSize: 11, color: "var(--gray)", fontWeight: 600 }}>{notes.length} notes</span>
+            <span style={{ fontSize: 11, color: "var(--japandi-muted)", fontWeight: 600 }}>{notes.length} notes</span>
           </div>
 
           {loading ? (
-            <div style={{ padding: "60px 0", textAlign: "center", color: "var(--gray)", fontSize: 13 }}>Loading...</div>
+            <div style={{ padding: "60px 0", textAlign: "center", color: "var(--japandi-muted)", fontSize: 13 }}>Loading...</div>
           ) : notes.length === 0 ? (
             <div style={{ padding: 40, textAlign: "center", borderRadius: 12, border: "1px dashed var(--edge)", background: "rgba(255,255,255,0.02)" }}>
-              <p style={{ color: "var(--gray)", fontSize: 13, fontWeight: 600 }}>No meeting notes yet</p>
+              <p style={{ color: "var(--japandi-muted)", fontSize: 13, fontWeight: 600 }}>No meeting notes yet</p>
             </div>
           ) : (
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 12 }}>
@@ -640,17 +640,17 @@ function Memory() {
                   <div key={n.id} className="card-glass" style={{ padding: "16px !important", display: "flex", flexDirection: "column", gap: 10 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8, flexWrap: "wrap" }}>
                       <span className={getMeetingTypeTagClass(n.meeting_type)}>{n.meeting_type}</span>
-                      <span style={{ fontSize: 10, color: "var(--gray)", fontFamily: "'JetBrains Mono', monospace" }}>{n.meeting_date || n.created_at?.split("T")[0] || ""}</span>
+                      <span style={{ fontSize: 10, color: "var(--japandi-muted)", fontFamily: "'JetBrains Mono', monospace" }}>{n.meeting_date || n.created_at?.split("T")[0] || ""}</span>
                     </div>
-                    <div style={{ fontSize: 13.5, fontWeight: 700, color: "var(--white)", fontFamily: "'Clash Display', sans-serif" }}>{n.title}</div>
-                    <div style={{ fontSize: 11, color: "var(--gray)" }}>{n.attendees}</div>
-                    <div style={{ fontSize: 11.5, color: "var(--gray)", lineHeight: 1.5, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{n.summary}</div>
-                    <div style={{ display: "flex", gap: 10, marginTop: "auto", paddingTop: 8, borderTop: "1px solid var(--border-soft)", alignItems: "center" }}>
+                    <div style={{ fontSize: 13.5, fontWeight: 700, color: "var(--japandi-text)", fontFamily: "'Clash Display', sans-serif" }}>{n.title}</div>
+                    <div style={{ fontSize: 11, color: "var(--japandi-muted)" }}>{n.attendees}</div>
+                    <div style={{ fontSize: 11.5, color: "var(--japandi-muted)", lineHeight: 1.5, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{n.summary}</div>
+                    <div style={{ display: "flex", gap: 10, marginTop: "auto", paddingTop: 8, borderTop: "1px solid var(--japandi-border)", alignItems: "center" }}>
                       <select value={n.status || "Draft"} onChange={e => handleNoteStatusChange(n.id, e.target.value)}
-                        className="neu-control select-custom" style={{ cursor: "pointer", fontSize: "11px", padding: "6px 12px", border: "none", color: isFinalized ? "var(--positive)" : "var(--sand)", outline: "none" }}>
-                        <option value="Draft" style={{ background: "var(--dark-gray)", color: "var(--graphite)" }}>Draft</option>
-                        <option value="Finalized" style={{ background: "var(--dark-gray)", color: "var(--positive)" }}>Finalized</option>
-                        <option value="Archived" style={{ background: "var(--dark-gray)", color: "var(--graphite)" }}>Archived</option>
+                        className="neu-control select-custom" style={{ cursor: "pointer", fontSize: "11px", padding: "6px 12px", border: "none", color: isFinalized ? "var(--japandi-green)" : "var(--japandi-text)", outline: "none" }}>
+                        <option value="Draft" style={{ background: "var(--dark-gray)", color: "var(--japandi-muted)" }}>Draft</option>
+                        <option value="Finalized" style={{ background: "var(--dark-gray)", color: "var(--japandi-green)" }}>Finalized</option>
+                        <option value="Archived" style={{ background: "var(--dark-gray)", color: "var(--japandi-muted)" }}>Archived</option>
                       </select>
                       <button onClick={() => handleDeleteNote(n.id)} className="btn-action-danger" style={{ marginLeft: "auto" }}>
                         Delete
@@ -668,7 +668,7 @@ function Memory() {
         <div className="fade-in">
           <div style={{ display: "flex", gap: 10, marginBottom: 20, flexWrap: "wrap", alignItems: "center" }}>
             <div style={{ position: "relative", flex: 1, minWidth: 200, maxWidth: 320 }}>
-              <Search size={14} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--gray)" }} />
+              <Search size={14} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--japandi-muted)" }} />
               <input
                 placeholder="Search knowledge..."
                 value={knowledgeSearchQuery}
@@ -728,7 +728,7 @@ function Memory() {
 
           {knowledgeItems.length === 0 ? (
             <div style={{ padding: 40, textAlign: "center", borderRadius: 12, border: "1px dashed var(--edge)", background: "rgba(255,255,255,0.02)" }}>
-              <p style={{ color: "var(--gray)", fontSize: 13, fontWeight: 600 }}>No knowledge items yet</p>
+              <p style={{ color: "var(--japandi-muted)", fontSize: 13, fontWeight: 600 }}>No knowledge items yet</p>
             </div>
           ) : (
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 12 }}>
@@ -747,18 +747,18 @@ function Memory() {
                       <span className={getKnowledgeTagClass(k.knowledge_type)}>
                         {k.knowledge_type?.replace(/_/g, " ")}
                       </span>
-                      <span style={{ fontSize: 10, color: "var(--gray)", fontFamily: "'JetBrains Mono', monospace" }}>{k.created_at?.split("T")[0] || ""}</span>
+                      <span style={{ fontSize: 10, color: "var(--japandi-muted)", fontFamily: "'JetBrains Mono', monospace" }}>{k.created_at?.split("T")[0] || ""}</span>
                     </div>
-                    <div style={{ fontSize: 13.5, fontWeight: 700, color: "var(--white)", fontFamily: "'Clash Display', sans-serif" }}>{k.title}</div>
-                    <div style={{ fontSize: 11.5, color: "var(--gray)", lineHeight: 1.5 }}>{k.summary}</div>
+                    <div style={{ fontSize: 13.5, fontWeight: 700, color: "var(--japandi-text)", fontFamily: "'Clash Display', sans-serif" }}>{k.title}</div>
+                    <div style={{ fontSize: 11.5, color: "var(--japandi-muted)", lineHeight: 1.5 }}>{k.summary}</div>
                     {k.key_points?.length > 0 && (
-                      <div style={{ fontSize: 11, color: "var(--light-gray)", lineHeight: 1.6, paddingLeft: 12 }}>
+                      <div style={{ fontSize: 11, color: "var(--japandi-muted)", lineHeight: 1.6, paddingLeft: 12 }}>
                         {k.key_points.map((kp, i) => (
                           <div key={i} style={{ position: "relative", paddingLeft: 10 }}>• {kp}</div>
                         ))}
                       </div>
                     )}
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: "auto", paddingTop: 8, borderTop: "1px solid var(--border-soft)", fontSize: 11 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: "auto", paddingTop: 8, borderTop: "1px solid var(--japandi-border)", fontSize: 11 }}>
                       {k.status === "auto_inferred" && (
                         <button onClick={() => handleVerifyKnowledge(k.id)} className="btn-action-success">Verify</button>
                       )}
@@ -773,33 +773,33 @@ function Memory() {
           {/* ── Handoff Packets ── */}
           <div style={{ marginTop: 48, marginBottom: 16, display: "flex", alignItems: "center", gap: 12 }}>
             <div style={{ flex: 1, height: 1, background: "var(--edge)" }} />
-            <span style={{ fontSize: 11, fontWeight: 700, color: "var(--gray)", letterSpacing: 1, textTransform: "uppercase" }}>Handoff Packets</span>
+            <span style={{ fontSize: 11, fontWeight: 700, color: "var(--japandi-muted)", letterSpacing: 1, textTransform: "uppercase" }}>Handoff Packets</span>
             <div style={{ flex: 1, height: 1, background: "var(--edge)" }} />
           </div>
 
           {pastPackets.length === 0 ? (
             <div style={{ padding: 30, textAlign: "center", borderRadius: 12, border: "1px dashed var(--edge)", background: "rgba(255,255,255,0.02)" }}>
-              <p style={{ color: "var(--gray)", fontSize: 12, fontWeight: 600 }}>No handoff packets yet — generated automatically when team members join or leave</p>
+              <p style={{ color: "var(--japandi-muted)", fontSize: 12, fontWeight: 600 }}>No handoff packets yet — generated automatically when team members join or leave</p>
             </div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {pastPackets.map(p => (
                 <div key={p.id} className="card-glass" onClick={() => setSelectedPacket(p)}
                   style={{ padding: "12px 16px !important", display: "flex", alignItems: "center", gap: 12, cursor: "pointer", width: "100%" }}>
-                  <div style={{ width: 32, height: 32, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, background: p.packet_type === "onboarding" ? "rgba(62, 207, 142, 0.15)" : "rgba(232, 67, 79, 0.12)", color: p.packet_type === "onboarding" ? "var(--positive)" : "var(--warning)" }}>
+                  <div style={{ width: 32, height: 32, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, background: p.packet_type === "onboarding" ? "rgba(62, 207, 142, 0.15)" : "rgba(232, 67, 79, 0.12)", color: p.packet_type === "onboarding" ? "var(--japandi-green)" : "var(--japandi-red)" }}>
                     {p.packet_type === "onboarding" ? "→" : "←"}
                   </div>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 12.5, fontWeight: 700, color: "var(--white)", fontFamily: "'Clash Display', sans-serif" }}>
+                    <div style={{ fontSize: 12.5, fontWeight: 700, color: "var(--japandi-text)", fontFamily: "'Clash Display', sans-serif" }}>
                       {p.packet_type === "onboarding" ? "Onboarding" : "Offboarding"}: {p.user_name || "Unknown"}
                     </div>
-                    <div style={{ fontSize: 10.5, color: "var(--gray)" }}>
+                    <div style={{ fontSize: 10.5, color: "var(--japandi-muted)" }}>
                       <span style={{ fontFamily: "'JetBrains Mono', monospace" }}>{p.created_at?.split("T")[0] || ""}</span>
                       {p.reassign_to_name ? ` · Reassigned to ${p.reassign_to_name}` : ""}
                       {p.reassigned_count ? ` · ${p.reassigned_count} tasks reassigned` : ""}
                     </div>
                   </div>
-                  <span style={{ color: "var(--gray)", fontSize: 16, fontWeight: 600 }}>›</span>
+                  <span style={{ color: "var(--japandi-muted)", fontSize: 16, fontWeight: 600 }}>›</span>
                 </div>
               ))}
             </div>
@@ -811,17 +811,17 @@ function Memory() {
               <div onClick={e => e.stopPropagation()} className="card-glass" style={{ maxWidth: 680, width: "100%", maxHeight: "80vh", overflow: "auto", padding: "28px !important" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
                   <div>
-                    <span style={{ fontSize: 10, fontWeight: 800, padding: "3px 8px", borderRadius: 5, textTransform: "uppercase", background: selectedPacket.packet_type === "onboarding" ? "rgba(62, 207, 142, 0.15)" : "rgba(232, 67, 79, 0.12)", color: selectedPacket.packet_type === "onboarding" ? "var(--positive)" : "var(--warning)" }}>
+                    <span style={{ fontSize: 10, fontWeight: 800, padding: "3px 8px", borderRadius: 5, textTransform: "uppercase", background: selectedPacket.packet_type === "onboarding" ? "rgba(62, 207, 142, 0.15)" : "rgba(232, 67, 79, 0.12)", color: selectedPacket.packet_type === "onboarding" ? "var(--japandi-green)" : "var(--japandi-red)" }}>
                       {selectedPacket.packet_type}
                     </span>
-                    <div style={{ fontSize: 16, fontWeight: 700, color: "var(--white)", fontFamily: "'Clash Display', sans-serif", marginTop: 8 }}>
+                    <div style={{ fontSize: 16, fontWeight: 700, color: "var(--japandi-text)", fontFamily: "'Clash Display', sans-serif", marginTop: 8 }}>
                       {selectedPacket.user_name}
                     </div>
-                    <div style={{ fontSize: 11, color: "var(--gray)", marginTop: 2, fontFamily: "'JetBrains Mono', monospace" }}>{selectedPacket.created_at?.split("T")[0] || ""}</div>
+                    <div style={{ fontSize: 11, color: "var(--japandi-muted)", marginTop: 2, fontFamily: "'JetBrains Mono', monospace" }}>{selectedPacket.created_at?.split("T")[0] || ""}</div>
                   </div>
                   <button onClick={() => setSelectedPacket(null)} className="btn-action-secondary" style={{ fontSize: 14, padding: "6px 12px" }}>✕</button>
                 </div>
-                <div style={{ fontSize: 12.5, color: "var(--light-gray)", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>
+                <div style={{ fontSize: 12.5, color: "var(--japandi-muted)", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>
                   {selectedPacket.markdown_content}
                 </div>
               </div>
@@ -834,7 +834,7 @@ function Memory() {
         <div className="fade-in">
           <div style={{ display: "flex", gap: 10, marginBottom: 20, flexWrap: "wrap", alignItems: "center" }}>
             <div style={{ position: "relative", flex: 1, minWidth: 200, maxWidth: 320 }}>
-              <Search size={14} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--gray)" }} />
+              <Search size={14} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--japandi-muted)" }} />
               <input placeholder="Search timeline..." value={chronicleSearch} onChange={e => setChronicleSearch(e.target.value)}
                 className="plan-input" style={{ width: "100%", paddingLeft: "32px", fontSize: "12.5px" }} />
             </div>
@@ -855,14 +855,14 @@ function Memory() {
               <option value="Launch">Launch</option>
               <option value="Grow">Grow</option>
             </select>
-            <span style={{ fontSize: 11, color: "var(--gray)", fontWeight: 600 }}>{chronicleTotalCount} {chronicleTotalCount === 1 ? 'event' : 'events'}</span>
+            <span style={{ fontSize: 11, color: "var(--japandi-muted)", fontWeight: 600 }}>{chronicleTotalCount} {chronicleTotalCount === 1 ? 'event' : 'events'}</span>
           </div>
 
           {chronicleLoading && chronicleEvents.length === 0 ? (
-            <div style={{ padding: "60px 0", textAlign: "center", color: "var(--gray)", fontSize: 13 }}>Loading...</div>
+            <div style={{ padding: "60px 0", textAlign: "center", color: "var(--japandi-muted)", fontSize: 13 }}>Loading...</div>
           ) : chronicleEvents.length === 0 ? (
             <div style={{ padding: 40, textAlign: "center", borderRadius: 12, border: "1px dashed var(--edge)", background: "rgba(255,255,255,0.02)" }}>
-              <p style={{ color: "var(--gray)", fontSize: 13, fontWeight: 600 }}>No timeline events yet</p>
+              <p style={{ color: "var(--japandi-muted)", fontSize: 13, fontWeight: 600 }}>No timeline events yet</p>
             </div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -874,7 +874,7 @@ function Memory() {
                     style={{
                       padding: "16px 20px",
                       cursor: "pointer",
-                      borderBottom: i === chronicleEvents.length - 1 ? "none" : "1px solid var(--border-soft)",
+                      borderBottom: i === chronicleEvents.length - 1 ? "none" : "1px solid var(--japandi-border)",
                     }}
                     onClick={() => {
                       if (ev.source_url) {
@@ -886,7 +886,7 @@ function Memory() {
                   >
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, marginBottom: expandedEventId === ev.id ? 8 : 4 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                        <span style={{ fontSize: 10, color: "var(--gray)", fontFamily: "'JetBrains Mono', monospace", whiteSpace: "nowrap" }}>
+                        <span style={{ fontSize: 10, color: "var(--japandi-muted)", fontFamily: "'JetBrains Mono', monospace", whiteSpace: "nowrap" }}>
                           {ev.date || ""}
                         </span>
                         <span className="tag tag-graphite">
@@ -897,9 +897,9 @@ function Memory() {
                         <span className="tag tag-graphite">{ev.stage}</span>
                       )}
                     </div>
-                    <div style={{ fontSize: 12.5, fontWeight: 600, color: "var(--white)", fontFamily: "'Clash Display', sans-serif" }}>{ev.title}</div>
+                    <div style={{ fontSize: 12.5, fontWeight: 600, color: "var(--japandi-text)", fontFamily: "'Clash Display', sans-serif" }}>{ev.title}</div>
                     {expandedEventId === ev.id && ev.description && (
-                      <div style={{ marginTop: 8, fontSize: 11.5, color: "var(--gray)", lineHeight: 1.6 }}
+                      <div style={{ marginTop: 8, fontSize: 11.5, color: "var(--japandi-muted)", lineHeight: 1.6 }}
                         dangerouslySetInnerHTML={{ __html: renderMarkdown(ev.description) }} />
                     )}
                   </div>

@@ -54,7 +54,7 @@ export function Gauge({ value, title = "", size = "S", subtitle = "" }: GaugePro
           boxShadow: isLarge
             ? "inset -4px -4px 10px rgba(255, 255, 255, 0.08), inset 4px 4px 10px rgba(0, 0, 0, 0.4)"
             : "inset -2px -2px 5px rgba(255, 255, 255, 0.08), inset 2px 2px 5px rgba(0, 0, 0, 0.4)",
-          backgroundColor: "var(--surface)",
+          backgroundColor: "var(--japandi-surface)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -74,8 +74,8 @@ export function Gauge({ value, title = "", size = "S", subtitle = "" }: GaugePro
           <defs>
             {/* Ember gradient stops: #FF7A33 to #E85002 */}
             <linearGradient id={uniqueId} x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="var(--ember-light)" />
-              <stop offset="100%" stopColor="var(--ember)" />
+              <stop offset="0%" stopColor="var(--japandi-accent)" />
+              <stop offset="100%" stopColor="var(--japandi-accent)" />
             </linearGradient>
           </defs>
           {/* Background track (adapts to theme border variables) */}
@@ -84,7 +84,7 @@ export function Gauge({ value, title = "", size = "S", subtitle = "" }: GaugePro
             cy={diameter / 2}
             r={radius}
             fill="none"
-            stroke="var(--border-soft)"
+            stroke="var(--japandi-border)"
             strokeWidth={strokeWidth}
             opacity="1"
           />
@@ -119,7 +119,7 @@ export function Gauge({ value, title = "", size = "S", subtitle = "" }: GaugePro
               fontFamily: "'JetBrains Mono', monospace",
               fontSize: isLarge ? "28px" : "12px",
               fontWeight: 700,
-              color: "var(--sand)",
+              color: "var(--japandi-text)",
             }}
           >
             {value}%
@@ -129,7 +129,7 @@ export function Gauge({ value, title = "", size = "S", subtitle = "" }: GaugePro
               style={{
                 fontFamily: "'Satoshi', sans-serif",
                 fontSize: "10px",
-                color: "var(--graphite)",
+                color: "var(--japandi-muted)",
                 marginTop: "2px",
               }}
             >
@@ -143,7 +143,7 @@ export function Gauge({ value, title = "", size = "S", subtitle = "" }: GaugePro
           style={{
             fontFamily: "'Satoshi', sans-serif",
             fontSize: "11px",
-            color: "var(--graphite)",
+            color: "var(--japandi-muted)",
             marginTop: "8px",
             fontWeight: 500,
           }}

@@ -65,7 +65,7 @@ export function Drawer({ isOpen, onClose, title, children }: DrawerProps) {
             style={{
               background: "transparent",
               border: "none",
-              color: "var(--light-gray)",
+              color: "var(--japandi-muted)",
               cursor: "pointer",
               fontSize: "22px",
             }}

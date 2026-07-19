@@ -151,19 +151,19 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
               <option value="deadline" style={{ background: "var(--dark-gray)" }}>By Deadline</option>
             </select>
           </div>
-          <div style={{ fontSize: "11px", color: "var(--light-gray)", fontWeight: "600" }}>
+          <div style={{ fontSize: "11px", color: "var(--japandi-muted)", fontWeight: "600" }}>
             {goals.length} goal{goals.length !== 1 ? "s" : ""}
           </div>
         </div>
 
         {goalsLoading ? (
-          <div style={{ padding: "40px 0", textAlign: "center", color: "var(--light-gray)" }}>
+          <div style={{ padding: "40px 0", textAlign: "center", color: "var(--japandi-muted)" }}>
             <span className="animate-pulse font-mono text-xs uppercase tracking-wider">Syncing Milestone Feed...</span>
           </div>
         ) : monthlyGoals.filter(mg => filterStatus === "all" || mg.status === filterStatus).length === 0 &&
           weeklyGoals.filter(w => !w.parent_id).filter(w => filterStatus === "all" || w.status === filterStatus).length === 0 ? (
           <div className="card-glass" style={{ textAlign: "center" }}>
-            <p style={{ margin: "0 0 16px", color: "var(--light-gray)", fontSize: "14px" }}>
+            <p style={{ margin: "0 0 16px", color: "var(--japandi-muted)", fontSize: "14px" }}>
               No milestones mapped for this phase.
             </p>
             <button style={orangePill} className="orange-btn-hover" onClick={() => setShowGoalForm(true)}>
@@ -196,19 +196,19 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
                           const next = new Set(expandedMilestones);
                           isExpanded ? next.delete(mg.id) : next.add(mg.id);
                           setExpandedMilestones(next);
-                        }} style={{ fontSize: "10px", color: "var(--light-gray)", cursor: "pointer", width: "18px", textAlign: "center", userSelect: "none" }}>
+                        }} style={{ fontSize: "10px", color: "var(--japandi-muted)", cursor: "pointer", width: "18px", textAlign: "center", userSelect: "none" }}>
                           {isExpanded ? "▼" : "▶"}
                         </span>
-                        <span style={{ fontSize: "9.5px", color: "var(--brand-orange)", fontWeight: "800", textTransform: "uppercase", letterSpacing: "1px", backgroundColor: "rgba(232, 80, 2, 0.08)", padding: "3px 8px", borderRadius: "5px" }}>
+                        <span style={{ fontSize: "9.5px", color: "var(--japandi-accent)", fontWeight: "800", textTransform: "uppercase", letterSpacing: "1px", backgroundColor: "rgba(232, 80, 2, 0.08)", padding: "3px 8px", borderRadius: "5px" }}>
                           Monthly
                         </span>
                         {health && <span style={{ fontSize: "9.5px", fontWeight: "700", color: health.color }}>{health.label}</span>}
                       </div>
                       <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
                         <select value={mg.status} onChange={(e) => handleStatusChange(mg.id, e.target.value)}
-                          className="neu-control select-custom" style={{ cursor: "pointer", fontSize: "11px", padding: "6px 12px", border: "none", color: "var(--sand)", outline: "none" }}>
+                          className="neu-control select-custom" style={{ cursor: "pointer", fontSize: "11px", padding: "6px 12px", border: "none", color: "var(--japandi-text)", outline: "none" }}>
                           <option value="pending" style={{ background: "var(--dark-gray)", color: "#8a8a85" }}>Pending</option>
-                          <option value="in_progress" style={{ background: "var(--dark-gray)", color: "var(--brand-orange)" }}>In Progress</option>
+                          <option value="in_progress" style={{ background: "var(--dark-gray)", color: "var(--japandi-accent)" }}>In Progress</option>
                           <option value="completed" style={{ background: "var(--dark-gray)", color: "#5dcaa5" }}>Completed</option>
                           <option value="failed" style={{ background: "var(--dark-gray)", color: "#ef4444" }}>Failed</option>
                         </select>
@@ -220,12 +220,12 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
 
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                       <h3 onClick={() => fetchGoalDetail(mg.id)}
-                        style={{ fontSize: "18px", fontWeight: "750", color: "var(--white)", margin: 0, letterSpacing: "-0.015em", fontFamily: "'Clash Display', sans-serif", cursor: "pointer", display: "flex", alignItems: "center", gap: "8px" }}>
+                        style={{ fontSize: "18px", fontWeight: "750", color: "var(--japandi-text)", margin: 0, letterSpacing: "-0.015em", fontFamily: "'Clash Display', sans-serif", cursor: "pointer", display: "flex", alignItems: "center", gap: "8px" }}>
                         {mg.title}
-                        <ExternalLink size={12} color="var(--graphite)" style={{ opacity: 0.4 }} />
+                        <ExternalLink size={12} color="var(--japandi-muted)" style={{ opacity: 0.4 }} />
                       </h3>
                       {mg.due_date && (
-                        <span style={{ fontSize: "10px", color: "var(--light-gray)", fontWeight: "600", whiteSpace: "nowrap" }}>
+                        <span style={{ fontSize: "10px", color: "var(--japandi-muted)", fontWeight: "600", whiteSpace: "nowrap" }}>
                           Due {new Date(mg.due_date).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
                         </span>
                       )}
@@ -233,8 +233,8 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
 
                     <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "4px" }}>
                       {assignee && (
-                        <span style={{ fontSize: "10px", color: "var(--light-gray)" }}>
-                          Owner: <span style={{ color: "var(--brand-orange)", fontWeight: "600" }}>{assignee.user_name || assignee.name || assignee.email}</span>
+                        <span style={{ fontSize: "10px", color: "var(--japandi-muted)" }}>
+                          Owner: <span style={{ color: "var(--japandi-accent)", fontWeight: "600" }}>{assignee.user_name || assignee.name || assignee.email}</span>
                         </span>
                       )}
                       {renderSourceBadge(mg)}
@@ -270,7 +270,7 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
 
                             return (
                               <div key={wk.id} style={{
-                                borderLeft: `2.5px solid ${wk.status === "in_progress" ? "var(--brand-orange)" : "rgba(255,255,255,0.03)"}`,
+                                borderLeft: `2.5px solid ${wk.status === "in_progress" ? "var(--japandi-accent)" : "rgba(255,255,255,0.03)"}`,
                                 paddingLeft: "14px"
                               }}>
                                 {/* Weekly header */}
@@ -280,25 +280,25 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
                                       const next = new Set(expandedWeekly);
                                       wkExpanded ? next.delete(wk.id) : next.add(wk.id);
                                       setExpandedWeekly(next);
-                                    }} style={{ fontSize: "9px", color: "var(--light-gray)", cursor: "pointer", width: "14px", textAlign: "center", userSelect: "none", flexShrink: 0 }}>
+                                    }} style={{ fontSize: "9px", color: "var(--japandi-muted)", cursor: "pointer", width: "14px", textAlign: "center", userSelect: "none", flexShrink: 0 }}>
                                       {wkExpanded ? "▼" : "▶"}
                                     </span>
                                     <span style={{ fontSize: "11px", color: "#53a1f5", fontWeight: "800", textTransform: "uppercase", letterSpacing: "0.5px", backgroundColor: "rgba(83,161,245,0.08)", padding: "1px 6px", borderRadius: "4px", flexShrink: 0 }}>
                                       Weekly
                                     </span>
-                                    <h4 style={{ fontSize: "14px", fontWeight: "650", color: "var(--white)", margin: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{wk.title}</h4>
+                                    <h4 style={{ fontSize: "14px", fontWeight: "650", color: "var(--japandi-text)", margin: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{wk.title}</h4>
                                     {wk.tasks?.length > 0 && (
-                                      <span style={{ fontSize: "10px", color: "var(--light-gray)", whiteSpace: "nowrap", flexShrink: 0 }}>
+                                      <span style={{ fontSize: "10px", color: "var(--japandi-muted)", whiteSpace: "nowrap", flexShrink: 0 }}>
                                         {doneTasks}/{wk.tasks?.length}
                                       </span>
                                     )}
                                     {wkHealth && <span style={{ fontSize: "9px", fontWeight: "700", color: wkHealth.color, whiteSpace: "nowrap", flexShrink: 0 }}>{wkHealth.label}</span>}
                                   </div>
                                   <div style={{ display: "flex", gap: "6px", alignItems: "center", flexShrink: 0 }}>
-                                    {wkAssignee && <span style={{ fontSize: "9px", color: "var(--brand-orange)", fontWeight: "600", whiteSpace: "nowrap" }}>{wkAssignee.user_name || wkAssignee.name}</span>}
-                                    {wk.due_date && <span style={{ fontSize: "9px", color: "var(--light-gray)", whiteSpace: "nowrap" }}>{new Date(wk.due_date).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span>}
+                                    {wkAssignee && <span style={{ fontSize: "9px", color: "var(--japandi-accent)", fontWeight: "600", whiteSpace: "nowrap" }}>{wkAssignee.user_name || wkAssignee.name}</span>}
+                                    {wk.due_date && <span style={{ fontSize: "9px", color: "var(--japandi-muted)", whiteSpace: "nowrap" }}>{new Date(wk.due_date).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span>}
                                     <select value={wk.status} onChange={(e) => handleStatusChange(wk.id, e.target.value)}
-                                      className="neu-control select-custom" style={{ cursor: "pointer", fontSize: "11px", padding: "6px 12px", border: "none", color: "var(--sand)", outline: "none" }}>
+                                      className="neu-control select-custom" style={{ cursor: "pointer", fontSize: "11px", padding: "6px 12px", border: "none", color: "var(--japandi-text)", outline: "none" }}>
                                       <option value="pending" style={{ background: "var(--dark-gray)" }}>Pending</option>
                                       <option value="in_progress" style={{ background: "var(--dark-gray)" }}>In Progress</option>
                                       <option value="completed" style={{ background: "var(--dark-gray)" }}>Completed</option>
@@ -328,15 +328,15 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
                                               <span style={{ fontSize: "9px", color: "#3acaa5", fontWeight: "800", textTransform: "uppercase", letterSpacing: "0.5px", backgroundColor: "rgba(58,202,165,0.08)", padding: "1px 5px", borderRadius: "3px", flexShrink: 0 }}>
                                                 Daily
                                               </span>
-                                              <span style={{ fontSize: "12px", fontWeight: "600", color: "var(--white)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{dg.title}</span>
+                                              <span style={{ fontSize: "12px", fontWeight: "600", color: "var(--japandi-text)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{dg.title}</span>
                                               {(dg.tasks || []).length > 0 && (
-                                                <span style={{ fontSize: "9px", color: "var(--light-gray)", whiteSpace: "nowrap", flexShrink: 0 }}>({dgDone}/{dg.tasks?.length})</span>
+                                                <span style={{ fontSize: "9px", color: "var(--japandi-muted)", whiteSpace: "nowrap", flexShrink: 0 }}>({dgDone}/{dg.tasks?.length})</span>
                                               )}
                                               {dgHealth && <span style={{ fontSize: "8px", fontWeight: "700", color: dgHealth.color, whiteSpace: "nowrap", flexShrink: 0 }}>{dgHealth.label}</span>}
                                             </div>
                                             <div style={{ display: "flex", gap: "6px", alignItems: "center", flexShrink: 0 }}>
-                                              {dgAssignee && <span style={{ fontSize: "9px", color: "var(--brand-orange)", whiteSpace: "nowrap" }}>@{dgAssignee.user_name || dgAssignee.name}</span>}
-                                              {dg.due_date && <span style={{ fontSize: "8px", color: "var(--light-gray)", whiteSpace: "nowrap" }}>{new Date(dg.due_date).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span>}
+                                              {dgAssignee && <span style={{ fontSize: "9px", color: "var(--japandi-accent)", whiteSpace: "nowrap" }}>@{dgAssignee.user_name || dgAssignee.name}</span>}
+                                              {dg.due_date && <span style={{ fontSize: "8px", color: "var(--japandi-muted)", whiteSpace: "nowrap" }}>{new Date(dg.due_date).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span>}
                                               <select value={dg.status} onChange={(e) => handleStatusChange(dg.id, e.target.value)}
                                                 style={{ fontSize: "9px", padding: "2px 6px", borderRadius: "4px", border: "none" }}>
                                                 <option value="pending" style={{ background: "var(--dark-gray)" }}>Pending</option>
@@ -359,15 +359,15 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
                                                   backgroundColor: "rgba(255,255,255,0.005)"
                                                 }}>
                                                   <span onClick={() => handleToggleTask(t)} style={{ cursor: "pointer", display: "flex", alignItems: "center", marginRight: "6px" }}>
-                                                    <Icon name={isDone ? "square-check" : "square"} size={11} stroke={isDone ? 2 : 1.5} color={isDone ? "#3ac69b" : "var(--light-gray)"} />
+                                                    <Icon name={isDone ? "square-check" : "square"} size={11} stroke={isDone ? 2 : 1.5} color={isDone ? "#3ac69b" : "var(--japandi-muted)"} />
                                                   </span>
-                                                  <span onClick={() => navigateToTask(t.id)} style={{ fontSize: "11.5px", color: isDone ? "var(--gray)" : "var(--white)", textDecoration: isDone ? "line-through" : "none", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", flex: 1, minWidth: 0 }}>
+                                                  <span onClick={() => navigateToTask(t.id)} style={{ fontSize: "11.5px", color: isDone ? "var(--japandi-muted)" : "var(--japandi-text)", textDecoration: isDone ? "line-through" : "none", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", flex: 1, minWidth: 0 }}>
                                                     <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.title}</span>
-                                                    <ExternalLink size={9} color="var(--graphite)" style={{ opacity: 0.3, flexShrink: 0 }} />
+                                                    <ExternalLink size={9} color="var(--japandi-muted)" style={{ opacity: 0.3, flexShrink: 0 }} />
                                                   </span>
                                                   <div style={{ display: "flex", gap: "6px", alignItems: "center", flexShrink: 0 }}>
                                                     {t.priority && <span style={{ fontSize: "8px", fontWeight: "800", padding: "1px 5px", borderRadius: "3px", background: pc.bg, color: pc.text }}>{t.priority}</span>}
-                                                    <span style={{ fontSize: "9px", color: isDone ? "#3ac69b" : "var(--light-gray)", fontWeight: "600", whiteSpace: "nowrap" }}>{isDone ? "Done" : t.status === "In Progress" ? "Active" : "Todo"}</span>
+                                                    <span style={{ fontSize: "9px", color: isDone ? "#3ac69b" : "var(--japandi-muted)", fontWeight: "600", whiteSpace: "nowrap" }}>{isDone ? "Done" : t.status === "In Progress" ? "Active" : "Todo"}</span>
                                                   </div>
                                                 </div>
                                               );
@@ -386,7 +386,7 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
                                           <span onClick={() => {
                                             setGoalForm({ title: "", description: "", goal_type: "daily", parent_id: wk.id.toString(), due_date: "", assignee_id: "" });
                                             setShowGoalForm(true);
-                                          }} style={{ fontSize: "9px", color: "var(--brand-orange)", cursor: "pointer", fontWeight: "700", marginTop: "2px", display: "inline-block" }}>
+                                          }} style={{ fontSize: "9px", color: "var(--japandi-accent)", cursor: "pointer", fontWeight: "700", marginTop: "2px", display: "inline-block" }}>
                                             + Add Daily Step
                                           </span>
                                         </div>
@@ -405,15 +405,15 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
                                             backgroundColor: "rgba(255,255,255,0.005)"
                                           }}>
                                             <span onClick={() => handleToggleTask(t)} style={{ cursor: "pointer", display: "flex", alignItems: "center", marginRight: "6px" }}>
-                                              <Icon name={isDone ? "square-check" : "square"} size={11} stroke={isDone ? 2 : 1.5} color={isDone ? "#3ac69b" : "var(--light-gray)"} />
+                                              <Icon name={isDone ? "square-check" : "square"} size={11} stroke={isDone ? 2 : 1.5} color={isDone ? "#3ac69b" : "var(--japandi-muted)"} />
                                             </span>
-                                            <span onClick={() => navigateToTask(t.id)} style={{ fontSize: "11.5px", color: isDone ? "var(--gray)" : "var(--white)", textDecoration: isDone ? "line-through" : "none", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", flex: 1, minWidth: 0 }}>
+                                            <span onClick={() => navigateToTask(t.id)} style={{ fontSize: "11.5px", color: isDone ? "var(--japandi-muted)" : "var(--japandi-text)", textDecoration: isDone ? "line-through" : "none", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", flex: 1, minWidth: 0 }}>
                                               <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.title}</span>
-                                              <ExternalLink size={9} color="var(--graphite)" style={{ opacity: 0.3, flexShrink: 0 }} />
+                                              <ExternalLink size={9} color="var(--japandi-muted)" style={{ opacity: 0.3, flexShrink: 0 }} />
                                             </span>
                                             <div style={{ display: "flex", gap: "6px", alignItems: "center", flexShrink: 0 }}>
                                               {t.priority && <span style={{ fontSize: "8px", fontWeight: "800", padding: "1px 5px", borderRadius: "3px", background: pc.bg, color: pc.text }}>{t.priority}</span>}
-                                              <span style={{ fontSize: "9px", color: isDone ? "#3ac69b" : "var(--light-gray)", fontWeight: "600", whiteSpace: "nowrap" }}>{isDone ? "Done" : t.status === "In Progress" ? "Active" : "Todo"}</span>
+                                              <span style={{ fontSize: "9px", color: isDone ? "#3ac69b" : "var(--japandi-muted)", fontWeight: "600", whiteSpace: "nowrap" }}>{isDone ? "Done" : t.status === "In Progress" ? "Active" : "Todo"}</span>
                                             </div>
                                           </div>
                                         );
@@ -432,14 +432,14 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
                                     <span onClick={() => {
                                       setGoalForm({ title: "", description: "", goal_type: "daily", parent_id: wk.id.toString(), due_date: "", assignee_id: "" });
                                       setShowGoalForm(true);
-                                    }} style={{ fontSize: "9px", color: "var(--brand-orange)", cursor: "pointer", fontWeight: "700", display: "inline-block", marginTop: "2px" }}>
+                                    }} style={{ fontSize: "9px", color: "var(--japandi-accent)", cursor: "pointer", fontWeight: "700", display: "inline-block", marginTop: "2px" }}>
                                       + Add Daily Step
                                     </span>
                                   </div>
                                 )}
 
                                 {!wkExpanded && (wk.tasks?.length > 0 || wkDailyGoals.length > 0) && (
-                                  <div style={{ fontSize: "9px", color: "var(--light-gray)", paddingLeft: "20px", marginTop: "2px" }}>
+                                  <div style={{ fontSize: "9px", color: "var(--japandi-muted)", paddingLeft: "20px", marginTop: "2px" }}>
                                     {wk.tasks?.length} task{wk.tasks?.length !== 1 ? "s" : ""}
                                     {wkDailyGoals.length > 0 && ` · ${wkDailyGoals.length} daily step${wkDailyGoals.length !== 1 ? "s" : ""}`}
                                   </div>
@@ -451,12 +451,12 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
                           {/* Add weekly goal link */}
                           {kids.length === 0 ? (
                             <div style={{ borderLeft: "none", paddingLeft: "18px" }}>
-                              <p style={{ fontSize: "12px", color: "var(--light-gray)", margin: 0 }}>
+                              <p style={{ fontSize: "12px", color: "var(--japandi-muted)", margin: 0 }}>
                                 No weekly sub-goals mapped to this milestone.{" "}
                                 <span onClick={() => {
                                   setGoalForm(f => ({ ...f, goal_type: "weekly", parent_id: mg.id.toString() }));
                                   setShowGoalForm(true);
-                                }} style={{ color: "var(--brand-orange)", cursor: "pointer", fontWeight: "700", fontSize: "11px" }}>
+                                }} style={{ color: "var(--japandi-accent)", cursor: "pointer", fontWeight: "700", fontSize: "11px" }}>
                                   Add one
                                 </span>
                               </p>
@@ -465,7 +465,7 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
                             <span onClick={() => {
                               setGoalForm(f => ({ ...f, goal_type: "weekly", parent_id: mg.id.toString() }));
                               setShowGoalForm(true);
-                            }} style={{ fontSize: "10px", color: "var(--brand-orange)", cursor: "pointer", fontWeight: "700", marginTop: "4px", display: "inline-block" }}>
+                            }} style={{ fontSize: "10px", color: "var(--japandi-accent)", cursor: "pointer", fontWeight: "700", marginTop: "4px", display: "inline-block" }}>
                               + Add Weekly Action Step
                             </span>
                           )}
@@ -496,17 +496,17 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
                             const next = new Set(expandedWeekly);
                             wkExpanded ? next.delete(wk.id) : next.add(wk.id);
                             setExpandedWeekly(next);
-                          }} style={{ fontSize: "9px", color: "var(--light-gray)", cursor: "pointer", width: "14px", textAlign: "center", userSelect: "none", flexShrink: 0 }}>
+                          }} style={{ fontSize: "9px", color: "var(--japandi-muted)", cursor: "pointer", width: "14px", textAlign: "center", userSelect: "none", flexShrink: 0 }}>
                             {wkExpanded ? "▼" : "▶"}
                           </span>
-                          <span style={{ fontSize: "13.5px", color: "var(--white)", fontWeight: "600", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{wk.title}</span>
+                          <span style={{ fontSize: "13.5px", color: "var(--japandi-text)", fontWeight: "600", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{wk.title}</span>
                           {wkHealth && <span style={{ fontSize: "9px", fontWeight: "700", color: wkHealth.color, whiteSpace: "nowrap", flexShrink: 0 }}>{wkHealth.label}</span>}
                         </div>
                         <div style={{ display: "flex", gap: "8px", alignItems: "center", flexShrink: 0 }}>
-                          {wkAssignee && <span style={{ fontSize: "9px", color: "var(--brand-orange)", fontWeight: "600", whiteSpace: "nowrap" }}>{wkAssignee.user_name || wkAssignee.name}</span>}
-                          {wk.due_date && <span style={{ fontSize: "9.5px", color: "var(--light-gray)", whiteSpace: "nowrap" }}>{new Date(wk.due_date).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span>}
+                          {wkAssignee && <span style={{ fontSize: "9px", color: "var(--japandi-accent)", fontWeight: "600", whiteSpace: "nowrap" }}>{wkAssignee.user_name || wkAssignee.name}</span>}
+                          {wk.due_date && <span style={{ fontSize: "9.5px", color: "var(--japandi-muted)", whiteSpace: "nowrap" }}>{new Date(wk.due_date).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span>}
                           <select value={wk.status} onChange={(e) => handleStatusChange(wk.id, e.target.value)}
-                            className="neu-control select-custom" style={{ cursor: "pointer", fontSize: "11px", padding: "6px 12px", border: "none", color: "var(--sand)", outline: "none" }}>
+                            className="neu-control select-custom" style={{ cursor: "pointer", fontSize: "11px", padding: "6px 12px", border: "none", color: "var(--japandi-text)", outline: "none" }}>
                             <option value="pending" style={{ background: "var(--dark-gray)" }}>Pending</option>
                             <option value="in_progress" style={{ background: "var(--dark-gray)" }}>In Progress</option>
                             <option value="completed" style={{ background: "var(--dark-gray)" }}>Completed</option>
@@ -525,12 +525,12 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
                                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                                   <div style={{ display: "flex", alignItems: "center", gap: "6px", flex: 1, minWidth: 0 }}>
                                     <span style={{ fontSize: "9px", color: "#3acaa5", fontWeight: "800", backgroundColor: "rgba(58,202,165,0.08)", padding: "1px 5px", borderRadius: "3px", flexShrink: 0 }}>DAILY</span>
-                                    <span style={{ fontSize: "11.5px", fontWeight: "600", color: "var(--white)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{dg.title}</span>
+                                    <span style={{ fontSize: "11.5px", fontWeight: "600", color: "var(--japandi-text)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{dg.title}</span>
                                     {dgHealth && <span style={{ fontSize: "8px", fontWeight: "700", color: dgHealth.color, whiteSpace: "nowrap", flexShrink: 0 }}>{dgHealth.label}</span>}
                                   </div>
                                   <div style={{ display: "flex", gap: "6px", alignItems: "center", flexShrink: 0 }}>
-                                    {dgAssignee && <span style={{ fontSize: "9px", color: "var(--brand-orange)", whiteSpace: "nowrap" }}>@{dgAssignee.user_name || dgAssignee.name}</span>}
-                                    {dg.due_date && <span style={{ fontSize: "8px", color: "var(--light-gray)", whiteSpace: "nowrap" }}>{new Date(dg.due_date).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span>}
+                                    {dgAssignee && <span style={{ fontSize: "9px", color: "var(--japandi-accent)", whiteSpace: "nowrap" }}>@{dgAssignee.user_name || dgAssignee.name}</span>}
+                                    {dg.due_date && <span style={{ fontSize: "8px", color: "var(--japandi-muted)", whiteSpace: "nowrap" }}>{new Date(dg.due_date).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span>}
                                     <select value={dg.status} onChange={(e) => handleStatusChange(dg.id, e.target.value)}
                                       style={{ fontSize: "9px", padding: "2px 6px", borderRadius: "4px", border: "none" }}>
                                       <option value="pending" style={{ background: "var(--dark-gray)" }}>Pending</option>
@@ -549,11 +549,11 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
                             return (
                               <div key={t.id} style={{ display: "flex", alignItems: "center", gap: "6px", padding: "2px 8px", fontSize: "11px" }}>
                                 <span onClick={() => handleToggleTask(t)} style={{ cursor: "pointer", display: "flex", alignItems: "center" }}>
-                                  <Icon name={isDone ? "square-check" : "square"} size={10} stroke={isDone ? 2 : 1.5} color={isDone ? "#3ac69b" : "var(--light-gray)"} />
+                                  <Icon name={isDone ? "square-check" : "square"} size={10} stroke={isDone ? 2 : 1.5} color={isDone ? "#3ac69b" : "var(--japandi-muted)"} />
                                 </span>
-                                <span onClick={() => navigateToTask(t.id)} style={{ color: isDone ? "var(--gray)" : "var(--white)", textDecoration: isDone ? "line-through" : "none", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", cursor: "pointer", display: "flex", alignItems: "center", gap: "4px" }}>
+                                <span onClick={() => navigateToTask(t.id)} style={{ color: isDone ? "var(--japandi-muted)" : "var(--japandi-text)", textDecoration: isDone ? "line-through" : "none", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", cursor: "pointer", display: "flex", alignItems: "center", gap: "4px" }}>
                                   <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.title}</span>
-                                  <ExternalLink size={8} color="var(--graphite)" style={{ opacity: 0.3, flexShrink: 0 }} />
+                                  <ExternalLink size={8} color="var(--japandi-muted)" style={{ opacity: 0.3, flexShrink: 0 }} />
                                 </span>
                                 {t.priority && <span style={{ fontSize: "8px", fontWeight: "800", padding: "1px 5px", borderRadius: "3px", background: pc.bg, color: pc.text, flexShrink: 0 }}>{t.priority}</span>}
                               </div>
@@ -562,7 +562,7 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
                           <span onClick={() => {
                             setGoalForm({ title: "", description: "", goal_type: "daily", parent_id: wk.id.toString(), due_date: "", assignee_id: "" });
                             setShowGoalForm(true);
-                          }} style={{ fontSize: "9px", color: "var(--brand-orange)", cursor: "pointer", fontWeight: "700", display: "inline-block", marginTop: "4px" }}>
+                          }} style={{ fontSize: "9px", color: "var(--japandi-accent)", cursor: "pointer", fontWeight: "700", display: "inline-block", marginTop: "4px" }}>
                             + Add Daily Step
                           </span>
                         </div>
@@ -576,12 +576,12 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
             {/* Unlinked tasks alert */}
             {unlinkedTasks.length > 0 && (
               <div className="card-glass" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                <Icon name="link" size={14} stroke={2} style={{ color: "var(--ember-light)" }} />
-                <p style={{ fontSize: "12.5px", color: "var(--graphite)", margin: 0 }}>
+                <Icon name="link" size={14} stroke={2} style={{ color: "var(--japandi-accent)" }} />
+                <p style={{ fontSize: "12.5px", color: "var(--japandi-muted)", margin: 0 }}>
                   {unlinkedTasks.length} task{unlinkedTasks.length === 1 ? " is" : "s are"} not connected to any milestone.{" "}
                   <span
                     onClick={() => navigate("/execute")}
-                    style={{ color: "var(--ember-light)", cursor: "pointer", fontWeight: "700", textDecoration: "underline" }}
+                    style={{ color: "var(--japandi-accent)", cursor: "pointer", fontWeight: "700", textDecoration: "underline" }}
                     className="hover-underline"
                   >
                     Review on execution board →
@@ -601,7 +601,7 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
           display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1000,
         }}>
           <div className="card-glass" style={{ width: "90%", maxWidth: "480px" }}>
-            <h3 style={{ fontSize: "18px", fontWeight: "750", color: "var(--white)", margin: "0 0 20px", letterSpacing: "-0.015em", fontFamily: "'Clash Display', sans-serif" }}>Add Roadmap Item</h3>
+            <h3 style={{ fontSize: "18px", fontWeight: "750", color: "var(--japandi-text)", margin: "0 0 20px", letterSpacing: "-0.015em", fontFamily: "'Clash Display', sans-serif" }}>Add Roadmap Item</h3>
             <form onSubmit={handleCreateGoal}>
               <div style={{ marginBottom: "16px", display: "flex", flexDirection: "column", gap: "6px" }}>
                 <label className="card-label">Item Type</label>
@@ -693,7 +693,7 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
                 <button
                   type="button"
                   onClick={() => setShowGoalForm(false)}
-                  style={{ padding: "10px 18px", borderRadius: "10px", border: "none", background: "transparent", color: "var(--graphite)", cursor: "pointer", fontWeight: "600" }}>
+                  style={{ padding: "10px 18px", borderRadius: "10px", border: "none", background: "transparent", color: "var(--japandi-muted)", cursor: "pointer", fontWeight: "600" }}>
                   Cancel
                 </button>
                 <button type="submit" style={orangePill} className="orange-btn-hover">
@@ -711,18 +711,18 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "20px" }}>
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "4px" }}>
-                <span style={{ fontSize: "9px", fontWeight: "800", textTransform: "uppercase", letterSpacing: "1px", padding: "2px 6px", borderRadius: "4px", background: "rgba(232,80,2,0.1)", color: "var(--brand-orange)" }}>{goalDetail.goal.goal_type}</span>
+                <span style={{ fontSize: "9px", fontWeight: "800", textTransform: "uppercase", letterSpacing: "1px", padding: "2px 6px", borderRadius: "4px", background: "rgba(232,80,2,0.1)", color: "var(--japandi-accent)" }}>{goalDetail.goal.goal_type}</span>
                 {goalDetail.goal.source_info && renderSourceBadge(goalDetail.goal)}
               </div>
-              <h2 style={{ fontSize: "20px", fontWeight: "750", color: "var(--white)", margin: 0, fontFamily: "'Clash Display', sans-serif" }}>{goalDetail.goal.title}</h2>
+              <h2 style={{ fontSize: "20px", fontWeight: "750", color: "var(--japandi-text)", margin: 0, fontFamily: "'Clash Display', sans-serif" }}>{goalDetail.goal.title}</h2>
             </div>
-            <button onClick={closeGoalDetail} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--graphite)", padding: "4px" }}>
+            <button onClick={closeGoalDetail} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--japandi-muted)", padding: "4px" }}>
               <Icon name="x" size={18} />
             </button>
           </div>
 
           {goalDetail.goal.description && (
-            <div style={{ padding: "10px 12px", borderRadius: "8px", background: "rgba(255,255,255,0.02)", fontSize: "12px", color: "var(--sand)", marginBottom: "16px" }}>{goalDetail.goal.description}</div>
+            <div style={{ padding: "10px 12px", borderRadius: "8px", background: "rgba(255,255,255,0.02)", fontSize: "12px", color: "var(--japandi-text)", marginBottom: "16px" }}>{goalDetail.goal.description}</div>
           )}
 
           {goalDetail.goal.at_risk && goalDetail.goal.risk_reason && (
@@ -734,7 +734,7 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
           {renderProgressBar(goalDetail.goal, { showTasks: true })}
 
           <div style={{ marginTop: "20px" }}>
-            <h3 style={{ fontSize: "13px", fontWeight: "700", color: "var(--white)", marginBottom: "8px" }}>Status</h3>
+            <h3 style={{ fontSize: "13px", fontWeight: "700", color: "var(--japandi-text)", marginBottom: "8px" }}>Status</h3>
             <select value={goalDetail.goal.status} onChange={(e) => { handleStatusChange(goalDetail.goal.id, e.target.value); setGoalDetail(null); }}
               style={{ fontSize: "12px", padding: "6px 12px", borderRadius: "6px", border: "none", width: "100%" }}>
               <option value="pending">Pending</option>
@@ -747,8 +747,8 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
 
           {goalDetail.source_meeting && (
             <div style={{ marginTop: "16px" }}>
-              <h3 style={{ fontSize: "13px", fontWeight: "700", color: "var(--white)", marginBottom: "8px" }}>Source Meeting</h3>
-              <div className="card-glass" style={{ padding: "10px 12px", fontSize: "12px", color: "var(--sand)" }}>
+              <h3 style={{ fontSize: "13px", fontWeight: "700", color: "var(--japandi-text)", marginBottom: "8px" }}>Source Meeting</h3>
+              <div className="card-glass" style={{ padding: "10px 12px", fontSize: "12px", color: "var(--japandi-text)" }}>
                 {goalDetail.source_meeting.title} &mdash; {goalDetail.source_meeting.date}
               </div>
             </div>
@@ -756,18 +756,18 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
 
           {goalDetail.tasks.length > 0 && (
             <div style={{ marginTop: "16px" }}>
-              <h3 style={{ fontSize: "13px", fontWeight: "700", color: "var(--white)", marginBottom: "8px" }}>
+              <h3 style={{ fontSize: "13px", fontWeight: "700", color: "var(--japandi-text)", marginBottom: "8px" }}>
                 Linked Tasks ({goalDetail.tasks.filter(t => t.status !== "Done").length} active / {goalDetail.tasks.length} total)
               </h3>
               <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
                 {goalDetail.tasks.map(t => (
-                  <div key={t.id} onClick={() => navigateToTask(t.id)} style={{ display: "flex", alignItems: "center", gap: "6px", padding: "6px 8px", borderRadius: "6px", background: "rgba(255,255,255,0.02)", cursor: "pointer", fontSize: "11px", color: "var(--sand)" }}>
+                  <div key={t.id} onClick={() => navigateToTask(t.id)} style={{ display: "flex", alignItems: "center", gap: "6px", padding: "6px 8px", borderRadius: "6px", background: "rgba(255,255,255,0.02)", cursor: "pointer", fontSize: "11px", color: "var(--japandi-text)" }}>
                     <span onClick={(e) => { e.stopPropagation(); handleToggleTask(t); }} style={{ cursor: "pointer", display: "flex" }}>
-                      <Icon name={t.status === "Done" ? "square-check" : "square"} size={10} color={t.status === "Done" ? "#3ac69b" : "var(--light-gray)"} />
+                      <Icon name={t.status === "Done" ? "square-check" : "square"} size={10} color={t.status === "Done" ? "#3ac69b" : "var(--japandi-muted)"} />
                     </span>
                     <span style={{ flex: 1, textDecoration: t.status === "Done" ? "line-through" : "none", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.title}</span>
-                    <span style={{ fontSize: "9px", padding: "1px 5px", borderRadius: "3px", background: PRIORITY_COLORS[t.priority]?.bg || "transparent", color: PRIORITY_COLORS[t.priority]?.text || "var(--graphite)" }}>{t.priority}</span>
-                    <ExternalLink size={9} color="var(--graphite)" style={{ opacity: 0.3 }} />
+                    <span style={{ fontSize: "9px", padding: "1px 5px", borderRadius: "3px", background: PRIORITY_COLORS[t.priority]?.bg || "transparent", color: PRIORITY_COLORS[t.priority]?.text || "var(--japandi-muted)" }}>{t.priority}</span>
+                    <ExternalLink size={9} color="var(--japandi-muted)" style={{ opacity: 0.3 }} />
                   </div>
                 ))}
               </div>
@@ -776,13 +776,13 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
 
           {goalDetail.decisions.length > 0 && (
             <div style={{ marginTop: "16px" }}>
-              <h3 style={{ fontSize: "13px", fontWeight: "700", color: "var(--white)", marginBottom: "8px" }}>Linked Decisions ({goalDetail.decisions.length})</h3>
+              <h3 style={{ fontSize: "13px", fontWeight: "700", color: "var(--japandi-text)", marginBottom: "8px" }}>Linked Decisions ({goalDetail.decisions.length})</h3>
               <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
                 {goalDetail.decisions.map(d => (
-                  <div key={d.id} style={{ display: "flex", alignItems: "center", gap: "6px", padding: "6px 8px", borderRadius: "6px", background: "rgba(255,255,255,0.02)", fontSize: "11px", color: "var(--sand)" }}>
+                  <div key={d.id} style={{ display: "flex", alignItems: "center", gap: "6px", padding: "6px 8px", borderRadius: "6px", background: "rgba(255,255,255,0.02)", fontSize: "11px", color: "var(--japandi-text)" }}>
                     <span style={{ fontSize: "12px" }}>💡</span>
                     <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{d.decision?.substring(0, 100) || d.title || "Decision"}</span>
-                    {d.confidence_score && <span style={{ fontSize: "9px", color: d.confidence_score >= 80 ? "var(--positive)" : "var(--graphite)" }}>{Math.round(d.confidence_score)}%</span>}
+                    {d.confidence_score && <span style={{ fontSize: "9px", color: d.confidence_score >= 80 ? "var(--japandi-green)" : "var(--japandi-muted)" }}>{Math.round(d.confidence_score)}%</span>}
                   </div>
                 ))}
               </div>
@@ -791,13 +791,13 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
 
           {goalDetail.sub_goals.length > 0 && (
             <div style={{ marginTop: "16px" }}>
-              <h3 style={{ fontSize: "13px", fontWeight: "700", color: "var(--white)", marginBottom: "8px" }}>Sub-Goals ({goalDetail.sub_goals.length})</h3>
+              <h3 style={{ fontSize: "13px", fontWeight: "700", color: "var(--japandi-text)", marginBottom: "8px" }}>Sub-Goals ({goalDetail.sub_goals.length})</h3>
               <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
                 {goalDetail.sub_goals.map(sg => (
-                  <div key={sg.id} onClick={() => fetchGoalDetail(sg.id)} style={{ display: "flex", alignItems: "center", gap: "6px", padding: "6px 8px", borderRadius: "6px", background: "rgba(255,255,255,0.02)", cursor: "pointer", fontSize: "11px", color: "var(--sand)" }}>
+                  <div key={sg.id} onClick={() => fetchGoalDetail(sg.id)} style={{ display: "flex", alignItems: "center", gap: "6px", padding: "6px 8px", borderRadius: "6px", background: "rgba(255,255,255,0.02)", cursor: "pointer", fontSize: "11px", color: "var(--japandi-text)" }}>
                     <span style={{ fontSize: "9px", fontWeight: "800", textTransform: "uppercase", padding: "1px 4px", borderRadius: "3px", background: "rgba(83,161,245,0.1)", color: "#53a1f5", flexShrink: 0 }}>{sg.goal_type}</span>
                     <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{sg.title}</span>
-                    <span style={{ fontSize: "9px", color: "var(--graphite)" }}>{sg.progress}%</span>
+                    <span style={{ fontSize: "9px", color: "var(--japandi-muted)" }}>{sg.progress}%</span>
                   </div>
                 ))}
               </div>
@@ -806,13 +806,13 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
 
           {goalDetail.recent_activity.length > 0 && (
             <div style={{ marginTop: "16px" }}>
-              <h3 style={{ fontSize: "13px", fontWeight: "700", color: "var(--white)", marginBottom: "8px" }}>Recent Activity</h3>
+              <h3 style={{ fontSize: "13px", fontWeight: "700", color: "var(--japandi-text)", marginBottom: "8px" }}>Recent Activity</h3>
               <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
                 {goalDetail.recent_activity.slice(0, 10).map(a => (
-                  <div key={`${a.type}-${a.id}`} style={{ display: "flex", alignItems: "center", gap: "6px", padding: "4px 8px", fontSize: "10px", color: "var(--graphite)" }}>
+                  <div key={`${a.type}-${a.id}`} style={{ display: "flex", alignItems: "center", gap: "6px", padding: "4px 8px", fontSize: "10px", color: "var(--japandi-muted)" }}>
                     <span>{a.type === "task" ? "📋" : "💡"}</span>
                     <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{a.title}</span>
-                    <span style={{ color: a.status === "Done" ? "var(--positive)" : "var(--graphite)" }}>{a.status}</span>
+                    <span style={{ color: a.status === "Done" ? "var(--japandi-green)" : "var(--japandi-muted)" }}>{a.status}</span>
                   </div>
                 ))}
               </div>

@@ -61,7 +61,7 @@ export default function ConnectedAppsTab({ integrations, onIntegrationsChange, p
       <div style={{ position: "relative", marginBottom: "16px", maxWidth: "320px" }}>
         <input type="text" placeholder="Search integrations..." value={searchIntegration} onChange={e => setSearchIntegration(e.target.value)}
           className="plan-input" style={{ width: "100%", paddingLeft: "32px", fontSize: "12.5px" }} />
-        <Search size={14} style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "var(--graphite)", pointerEvents: "none" }} />
+        <Search size={14} style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "var(--japandi-muted)", pointerEvents: "none" }} />
       </div>
       {filtered.map(category => (
         <div key={category.key} style={{ marginBottom: "24px" }}>
@@ -75,7 +75,7 @@ export default function ConnectedAppsTab({ integrations, onIntegrationsChange, p
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                       <div style={{ width: "34px", height: "34px", borderRadius: "8px", backgroundColor: "rgba(107,107,111,0.1)", flexShrink: 0 }} />
-                      <div><div style={{ fontSize: "13px", fontWeight: 600, color: "var(--graphite)" }}>{svc.name}</div><div style={{ fontSize: "10px", color: "var(--graphite)" }}>Coming soon</div></div>
+                      <div><div style={{ fontSize: "13px", fontWeight: 600, color: "var(--japandi-muted)" }}>{svc.name}</div><div style={{ fontSize: "10px", color: "var(--japandi-muted)" }}>Coming soon</div></div>
                     </div>
                   </div>
                 </div>
@@ -85,7 +85,7 @@ export default function ConnectedAppsTab({ integrations, onIntegrationsChange, p
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                       <div style={{ width: "34px", height: "34px", borderRadius: "8px", backgroundColor: connected ? "rgba(255,90,0,0.15)" : "rgba(107,107,111,0.1)", border: connected ? "1px solid rgba(255,90,0,0.2)" : "1px solid rgba(107,107,111,0.12)", flexShrink: 0 }} />
-                      <div><div style={{ fontSize: "13px", fontWeight: 600, color: "var(--sand)" }}>{svc.name}</div><div style={{ fontSize: "10px", color: "var(--graphite)" }}>{connected ? `Connected as ${integ.email || integ.provider}` : "Not connected"}</div></div>
+                      <div><div style={{ fontSize: "13px", fontWeight: 600, color: "var(--japandi-text)" }}>{svc.name}</div><div style={{ fontSize: "10px", color: "var(--japandi-muted)" }}>{connected ? `Connected as ${integ.email || integ.provider}` : "Not connected"}</div></div>
                     </div>
                     {connected ? <span className="badge badge-positive">CONNECTED</span> : <span className="badge badge-neutral">UNLINKED</span>}
                   </div>
@@ -101,9 +101,9 @@ export default function ConnectedAppsTab({ integrations, onIntegrationsChange, p
       ))}
       {apiKeyModal.open && (
         <div style={s.overlay} onClick={() => setApiKeyModal({ open: false, provider: "", name: "" })}>
-          <div className="card-glass" style={{ border: "1px solid var(--border-glass)", background: "rgba(20,20,23,0.95)", backdropFilter: "blur(22px)", padding: "28px", maxWidth: "480px", width: "100%" }} onClick={e => e.stopPropagation()}>
+          <div className="card-glass" style={{ border: "1px solid var(--japandi-border)", background: "rgba(20,20,23,0.95)", backdropFilter: "blur(22px)", padding: "28px", maxWidth: "480px", width: "100%" }} onClick={e => e.stopPropagation()}>
             <h3 style={s.modalTitle}>Connect {apiKeyModal.name}</h3>
-            <p style={{ fontSize: "13px", color: "var(--graphite)", margin: "0 0 16px" }}>Enter your API key or token for {apiKeyModal.name}.</p>
+            <p style={{ fontSize: "13px", color: "var(--japandi-muted)", margin: "0 0 16px" }}>Enter your API key or token for {apiKeyModal.name}.</p>
             <input type="text" placeholder="Paste your API key here" value={apiKeyInput} onChange={e => setApiKeyInput(e.target.value)} className="plan-input" style={{ width: "100%", boxSizing: "border-box" }} autoFocus />
             <div style={{ display: "flex", gap: "8px", marginTop: "20px" }}>
               <button onClick={handleSaveApiToken} className="btn-ember"><Check size={14} /> Connect</button>

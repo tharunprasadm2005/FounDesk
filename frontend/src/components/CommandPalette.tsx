@@ -258,7 +258,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ onClose }) => {
         aria-label="Command palette"
       >
         <div className="cmdpalette-input-row">
-          <Search size={18} style={{ color: "var(--graphite)" }} />
+          <Search size={18} style={{ color: "var(--japandi-muted)" }} />
           <input
             ref={inputRef}
             type="text"
@@ -271,7 +271,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ onClose }) => {
 
         <div className="cmdpalette-list card-list-scroll">
           {loading ? (
-            <div style={{ padding: "20px", textAlign: "center", color: "var(--graphite)", fontSize: "13.5px" }}>
+            <div style={{ padding: "20px", textAlign: "center", color: "var(--japandi-muted)", fontSize: "13.5px" }}>
               Searching Ledger Memory...
             </div>
           ) : query.trim() ? (
@@ -295,7 +295,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ onClose }) => {
                       <span style={{ 
                         fontFamily: "'JetBrains Mono', monospace", 
                         fontSize: "10.5px", 
-                        color: isActive ? "var(--ember-light)" : "var(--graphite-dim)"
+                        color: isActive ? "var(--japandi-accent)" : "var(--graphite-dim)"
                       }}>
                         {label}
                       </span>
@@ -308,7 +308,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ onClose }) => {
                 );
               })
             ) : (
-              <div style={{ padding: "20px", textAlign: "center", color: "var(--graphite)", fontSize: "13.5px" }}>
+              <div style={{ padding: "20px", textAlign: "center", color: "var(--japandi-muted)", fontSize: "13.5px" }}>
                 No records found. Try another query.
               </div>
             )

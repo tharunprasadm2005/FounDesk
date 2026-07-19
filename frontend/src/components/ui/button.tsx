@@ -1,74 +1,40 @@
 import React from "react";
 
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: "primary" | "secondary" | "ghost" | "destructive";
+  size?: "sm" | "md" | "lg";
   children?: React.ReactNode;
   ariaLabel?: string;
 }
 
-export default function Button({
+export function Button({
   variant = "secondary",
+  size = "md",
   children,
   ariaLabel,
-  style,
   className = "",
   ...props
 }: ButtonProps) {
-  const baseStyle: React.CSSProperties = {
-    fontFamily: "'Satoshi', sans-serif",
-    fontSize: "12.5px",
-    fontWeight: 700,
-    borderRadius: "8px",
-    cursor: props.disabled ? "not-allowed" : "pointer",
-    outline: "none",
-    transition: "all 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
-    display: "inline-flex",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: "8px",
-    minHeight: "44px", // Mobile 44px touch targets
-    padding: "8px 16px",
-    opacity: props.disabled ? 0.4 : 1,
-    boxSizing: "border-box",
+  const baseClasses = "inline-flex items-center justify-center rounded-sm font-sans font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 disabled:pointer-events-none";
+  
+  const sizeClasses = {
+    sm: "h-8 px-3 text-sm",
+    md: "h-10 px-4 py-2 text-base",
+    lg: "h-12 px-6 py-3 text-lg"
   };
 
-  let variantStyle: React.CSSProperties = {};
+  const variantClasses = {
+    primary: "bg-primary text-washi-white hover:bg-[#2D3A4D]",
+    secondary: "bg-transparent border border-border text-foreground hover:bg-linen-100",
+    ghost: "bg-transparent text-stone-400 hover:text-foreground hover:bg-linen-100",
+    destructive: "bg-transparent border border-clay-500 text-clay-500 hover:bg-clay-500 hover:text-washi-white"
+  };
 
-  if (variant === "primary") {
-    // Neumorphic button rethemed for v4
-    variantStyle = {
-      background: "var(--dark-gray)",
-      color: "var(--white)",
-      border: "none",
-      boxShadow: "6px 6px 14px rgba(0,0,0,0.8), -6px -6px 14px rgba(100,100,100,0.12)",
-    };
-  } else if (variant === "secondary") {
-    variantStyle = {
-      background: "var(--dark-gray)",
-      border: "1.5px solid var(--edge)",
-      color: "var(--white)",
-      boxShadow: "var(--shadow-ambient)",
-    };
-  } else if (variant === "ghost") {
-    variantStyle = {
-      background: "transparent",
-      border: "none",
-      color: "var(--light-gray)",
-    };
-  } else if (variant === "destructive") {
-    variantStyle = {
-      background: "transparent",
-      border: "1.5px solid var(--error)",
-      color: "var(--error)",
-    };
-  }
-
-  const btnClass = `custom-btn-${variant} ${className}`;
+  const classes = `${baseClasses} ${sizeClasses[size]} ${variantClasses[variant]} ${className}`;
 
   return (
     <button
-      style={{ ...baseStyle, ...variantStyle, ...style }}
-      className={btnClass}
+      className={classes}
       aria-label={ariaLabel}
       {...props}
     >
@@ -76,4 +42,5 @@ export default function Button({
     </button>
   );
 }
-export { Button };
+
+export default Button;

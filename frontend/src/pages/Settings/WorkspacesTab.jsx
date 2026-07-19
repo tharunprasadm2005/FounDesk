@@ -171,8 +171,8 @@ export default function WorkspacesTab({ workspaces, currentWorkspace, onWorkspac
           { label: "Health", value: ws?.active_health || "Good", icon: Activity },
         ].map(stat => (
           <div key={stat.label} className="card-glass" style={{ padding: "16px", textAlign: "center" }}>
-            <stat.icon size={16} style={{ color: "var(--graphite)", marginBottom: "6px" }} />
-            <div className="card-hero-value" style={{ color: "var(--sand)", marginTop: 0, fontSize: "20px" }}>{stat.value}</div>
+            <stat.icon size={16} style={{ color: "var(--japandi-muted)", marginBottom: "6px" }} />
+            <div className="card-hero-value" style={{ color: "var(--japandi-text)", marginTop: 0, fontSize: "20px" }}>{stat.value}</div>
             <div className="card-hero-support" style={{ textTransform: "uppercase", fontSize: "9px", letterSpacing: "1.5px" }}>{stat.label}</div>
           </div>
         ))}
@@ -195,18 +195,18 @@ export default function WorkspacesTab({ workspaces, currentWorkspace, onWorkspac
             {selectMode && (
               <input type="checkbox" checked={selectedWorkspaceIds.has(ws.id)}
                 onChange={e => { const s = new Set(selectedWorkspaceIds); if (e.target.checked) s.add(ws.id); else s.delete(ws.id); setSelectedWorkspaceIds(s); }}
-                style={{ accentColor: "var(--brand-orange)", width: "16px", height: "16px" }} onClick={e => e.stopPropagation()} />
+                style={{ accentColor: "var(--japandi-accent)", width: "16px", height: "16px" }} onClick={e => e.stopPropagation()} />
             )}
             <div style={{ width: "40px", height: "40px", borderRadius: "10px", backgroundColor: ws.color || "#ff751f", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 700, fontSize: "16px", flexShrink: 0 }}>
               {(ws.name || "W")[0].toUpperCase()}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <span style={{ fontSize: "14px", fontWeight: 700, color: "var(--sand)" }}>{ws.name}</span>
+                <span style={{ fontSize: "14px", fontWeight: 700, color: "var(--japandi-text)" }}>{ws.name}</span>
                 <span className="tag tag-ember" style={{ fontSize: "9px" }}>{ws.role || "member"}</span>
                 {ws.is_archived && <span className="badge badge-neutral">ARCHIVED</span>}
               </div>
-              <div style={{ fontSize: "11px", color: "var(--graphite)", marginTop: "2px", display: "flex", gap: "12px", flexWrap: "wrap" }}>
+              <div style={{ fontSize: "11px", color: "var(--japandi-muted)", marginTop: "2px", display: "flex", gap: "12px", flexWrap: "wrap" }}>
                 <span>{ws.stage} stage</span>
                 <span>{ws.members?.filter(m => m.status === "active")?.length || 0} members</span>
                 {ws.active_phase && <span>Phase: {ws.active_phase}</span>}
@@ -238,7 +238,7 @@ export default function WorkspacesTab({ workspaces, currentWorkspace, onWorkspac
 
       {selectMode && selectedWorkspaceIds.size > 0 && (
         <div style={{ position: "fixed", bottom: "24px", left: "50%", transform: "translateX(-50%)", zIndex: 999, padding: "12px 20px", borderRadius: "12px", backgroundColor: "rgba(20,20,23,0.95)", backdropFilter: "blur(22px)", border: "1px solid rgba(107,107,111,0.12)", display: "flex", alignItems: "center", gap: "12px", boxShadow: "0 4px 24px rgba(0,0,0,0.3)" }}>
-          <span style={{ fontSize: "12px", color: "var(--sand)", fontWeight: 600 }}>{selectedWorkspaceIds.size} selected</span>
+          <span style={{ fontSize: "12px", color: "var(--japandi-text)", fontWeight: 600 }}>{selectedWorkspaceIds.size} selected</span>
           <button onClick={handleBulkArchive} className="btn-destructive-outline-sm"><Archive size={14} /> Archive Selected ({selectedWorkspaceIds.size})</button>
           <button onClick={() => setSelectedWorkspaceIds(new Set())} className="btn-action-secondary">Clear</button>
         </div>
@@ -246,9 +246,9 @@ export default function WorkspacesTab({ workspaces, currentWorkspace, onWorkspac
 
       {showTransferModal && transferWs && (
         <div style={s.overlay} onClick={() => { setShowTransferModal(false); setTransferWs(null); }}>
-          <div className="card-glass" style={{ border: "1px solid var(--border-glass)", background: "rgba(20,20,23,0.95)", backdropFilter: "blur(22px)", padding: "28px", maxWidth: "460px", width: "100%" }} onClick={e => e.stopPropagation()}>
+          <div className="card-glass" style={{ border: "1px solid var(--japandi-border)", background: "rgba(20,20,23,0.95)", backdropFilter: "blur(22px)", padding: "28px", maxWidth: "460px", width: "100%" }} onClick={e => e.stopPropagation()}>
             <h3 style={s.modalTitle}>Transfer Workspace</h3>
-            <p style={{ fontSize: "13px", color: "var(--graphite)", margin: "0 0 16px" }}>Transfer ownership of <strong>{transferWs.name}</strong> to another member.</p>
+            <p style={{ fontSize: "13px", color: "var(--japandi-muted)", margin: "0 0 16px" }}>Transfer ownership of <strong>{transferWs.name}</strong> to another member.</p>
             <select value={transferNewOwner} onChange={e => setTransferNewOwner(e.target.value)} className="plan-select" style={{ width: "100%", height: "40px" }}>
               <option value="">Select new owner...</option>
               {(teamMembers || []).map(m => (
@@ -268,9 +268,9 @@ export default function WorkspacesTab({ workspaces, currentWorkspace, onWorkspac
           <div className="card-label" style={{ marginBottom: "12px" }}>Recent Activity</div>
           <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
             {wsActivity.map((ev, i) => (
-              <div key={ev.id || i} style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "12px", color: "var(--graphite)" }}>
-                <div style={{ width: "6px", height: "6px", borderRadius: "50%", backgroundColor: "var(--brand-orange)", flexShrink: 0 }} />
-                <span style={{ flex: 1, color: "var(--sand)" }}>{ev.title || ev.event_type || "Event"}</span>
+              <div key={ev.id || i} style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "12px", color: "var(--japandi-muted)" }}>
+                <div style={{ width: "6px", height: "6px", borderRadius: "50%", backgroundColor: "var(--japandi-accent)", flexShrink: 0 }} />
+                <span style={{ flex: 1, color: "var(--japandi-text)" }}>{ev.title || ev.event_type || "Event"}</span>
                 <span style={{ fontSize: "10px", whiteSpace: "nowrap" }}>{ev.created_at ? new Date(ev.created_at).toLocaleDateString() : ""}</span>
               </div>
             ))}
@@ -280,7 +280,7 @@ export default function WorkspacesTab({ workspaces, currentWorkspace, onWorkspac
 
       {showCreateWS && (
         <div style={s.overlay} onClick={() => setShowCreateWS(false)}>
-          <div className="card-glass" style={{ border: "1px solid var(--border-glass)", background: "rgba(20,20,23,0.95)", backdropFilter: "blur(22px)", padding: "28px", maxWidth: "520px", width: "100%" }} onClick={e => e.stopPropagation()}>
+          <div className="card-glass" style={{ border: "1px solid var(--japandi-border)", background: "rgba(20,20,23,0.95)", backdropFilter: "blur(22px)", padding: "28px", maxWidth: "520px", width: "100%" }} onClick={e => e.stopPropagation()}>
             <h3 style={s.modalTitle}>Create Workspace</h3>
             <form onSubmit={handleCreateWorkspace}>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
@@ -340,8 +340,8 @@ export default function WorkspacesTab({ workspaces, currentWorkspace, onWorkspac
               {(wsDrawer.name || "W")[0].toUpperCase()}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: "15px", fontWeight: 700, color: "var(--sand)" }}>{wsDrawer.name}</div>
-              <div style={{ fontSize: "11px", color: "var(--graphite)" }}>{wsDrawer.stage} stage · {wsDrawer.members?.filter(m => m.status === "active")?.length || 0} members</div>
+              <div style={{ fontSize: "15px", fontWeight: 700, color: "var(--japandi-text)" }}>{wsDrawer.name}</div>
+              <div style={{ fontSize: "11px", color: "var(--japandi-muted)" }}>{wsDrawer.stage} stage · {wsDrawer.members?.filter(m => m.status === "active")?.length || 0} members</div>
             </div>
             <button onClick={() => { setWsDrawer(null); setWsDrawerForm({ name: "", description: "", stage: "Build", color: "#ff751f", logo_url: "", website: "", industry: "", size: "" }); }}
               className="btn-action-secondary" style={{ padding: "6px" }}><X size={14} /></button>
@@ -398,7 +398,7 @@ export default function WorkspacesTab({ workspaces, currentWorkspace, onWorkspac
                 {(wsTags[wsDrawer.id] || []).map((tag, i) => (
                   <span key={i} className="tag" style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "11px" }}>
                     {tag}
-                    <button onClick={() => handleRemoveTag(wsDrawer.id, i)} style={{ background: "none", border: "none", color: "var(--graphite)", cursor: "pointer", padding: 0, fontSize: "12px", lineHeight: 1 }}><X size={10} /></button>
+                    <button onClick={() => handleRemoveTag(wsDrawer.id, i)} style={{ background: "none", border: "none", color: "var(--japandi-muted)", cursor: "pointer", padding: 0, fontSize: "12px", lineHeight: 1 }}><X size={10} /></button>
                   </span>
                 ))}
               </div>
@@ -411,7 +411,7 @@ export default function WorkspacesTab({ workspaces, currentWorkspace, onWorkspac
 
             <div style={{ marginBottom: "20px" }}>
               <div className="card-label" style={{ marginBottom: "8px" }}>Integrations</div>
-              <div style={{ fontSize: "12px", color: "var(--graphite)", marginBottom: "8px" }}>
+              <div style={{ fontSize: "12px", color: "var(--japandi-muted)", marginBottom: "8px" }}>
                 {(integrations || []).filter(i => i.connected).length > 0
                   ? `${(integrations || []).filter(i => i.connected).length} integration(s) connected to your account. Scope them to this workspace in Connected Apps.`
                   : "No integrations connected yet."}
@@ -424,7 +424,7 @@ export default function WorkspacesTab({ workspaces, currentWorkspace, onWorkspac
                 ))}
               </div>
               {(integrations || []).filter(i => i.connected).length === 0 && (
-                <div style={{ fontSize: "11px", color: "var(--graphite)", fontStyle: "italic" }}>
+                <div style={{ fontSize: "11px", color: "var(--japandi-muted)", fontStyle: "italic" }}>
                   Go to <strong>Connected Apps</strong> tab to add integrations.
                 </div>
               )}
@@ -442,8 +442,8 @@ export default function WorkspacesTab({ workspaces, currentWorkspace, onWorkspac
                   const NotifIcon = NOTIF_ICONS[n.category === "alerts" ? "alert" : n.category === "reports" ? "clock" : n.category === "team" ? "users" : n.category === "tasks" ? "check-square" : n.category === "ai" ? "cpu" : n.category === "social" ? "message-circle" : n.category === "security" ? "shield" : n.category === "billing" ? "credit-card" : n.category === "system" ? "alert" : "calendar"] || Bell;
                   return (
                     <div key={n.key} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 0", borderBottom: "1px solid rgba(107,107,111,0.06)" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: "var(--sand)" }}>
-                        <NotifIcon size={12} style={{ color: "var(--graphite)" }} />
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: "var(--japandi-text)" }}>
+                        <NotifIcon size={12} style={{ color: "var(--japandi-muted)" }} />
                         {n.label}
                       </div>
                       <button onClick={() => handleWsNotifToggle(n.key, !enabled)}

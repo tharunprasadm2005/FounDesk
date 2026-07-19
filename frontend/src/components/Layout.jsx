@@ -45,7 +45,7 @@ function Layout({ children }) {
       display: "flex",
       minHeight: "100vh",
       backgroundColor: "transparent",
-      color: "var(--white)",
+      color: "var(--japandi-text)",
       overflow: "hidden",
     },
     container: {

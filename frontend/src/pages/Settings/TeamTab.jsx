@@ -127,12 +127,12 @@ export default function TeamTab({ teamMembers, currentWorkspace, onTeamChange })
         <button onClick={() => { setSelectedMember(null); setMemberActivity([]); }} className="btn-action-secondary" style={{ marginBottom: "16px" }}><ChevronRight size={14} style={{ transform: "rotate(180deg)" }} /> Back to Team</button>
         <div className="card-glass" style={{ padding: "20px", marginBottom: "12px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "14px", marginBottom: "16px" }}>
-            <div style={{ width: "48px", height: "48px", borderRadius: "12px", backgroundColor: "rgba(255,90,0,0.15)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--brand-orange)", fontWeight: 700, fontSize: "18px" }}>
+            <div style={{ width: "48px", height: "48px", borderRadius: "12px", backgroundColor: "rgba(255,90,0,0.15)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--japandi-accent)", fontWeight: 700, fontSize: "18px" }}>
               {(selectedMember.user_name || selectedMember.email || "?")[0].toUpperCase()}
             </div>
             <div>
-              <div style={{ fontSize: "15px", fontWeight: 700, color: "var(--sand)" }}>{selectedMember.user_name || selectedMember.email || "Unnamed"}</div>
-              <div style={{ fontSize: "12px", color: "var(--graphite)" }}>{selectedMember.email} · {selectedMember.title || "No title"}</div>
+              <div style={{ fontSize: "15px", fontWeight: 700, color: "var(--japandi-text)" }}>{selectedMember.user_name || selectedMember.email || "Unnamed"}</div>
+              <div style={{ fontSize: "12px", color: "var(--japandi-muted)" }}>{selectedMember.email} · {selectedMember.title || "No title"}</div>
             </div>
             <span className="tag tag-ember" style={{ marginLeft: "auto", backgroundColor: (ROLE_BADGE_COLORS[selectedMember.role] || "#6b6b6f") + "22", color: ROLE_BADGE_COLORS[selectedMember.role] || "#6b6b6f", borderColor: (ROLE_BADGE_COLORS[selectedMember.role] || "#6b6b6f") + "33" }}>
               {selectedMember.role || "member"}
@@ -153,9 +153,9 @@ export default function TeamTab({ teamMembers, currentWorkspace, onTeamChange })
           <div className="card-glass" style={{ padding: "16px" }}>
             <div className="card-label" style={{ marginBottom: "12px" }}>Recent Activity</div>
             {memberActivity.map((ev, i) => (
-              <div key={ev.id || i} style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "12px", color: "var(--graphite)", padding: "6px 0", borderBottom: i < memberActivity.length - 1 ? "1px solid rgba(107,107,111,0.06)" : "none" }}>
-                <div style={{ width: "6px", height: "6px", borderRadius: "50%", backgroundColor: "var(--brand-orange)", flexShrink: 0 }} />
-                <span style={{ flex: 1, color: "var(--sand)" }}>{ev.title || ev.event_type || "Activity"}</span>
+              <div key={ev.id || i} style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "12px", color: "var(--japandi-muted)", padding: "6px 0", borderBottom: i < memberActivity.length - 1 ? "1px solid rgba(107,107,111,0.06)" : "none" }}>
+                <div style={{ width: "6px", height: "6px", borderRadius: "50%", backgroundColor: "var(--japandi-accent)", flexShrink: 0 }} />
+                <span style={{ flex: 1, color: "var(--japandi-text)" }}>{ev.title || ev.event_type || "Activity"}</span>
                 <span style={{ fontSize: "10px" }}>{ev.created_at ? new Date(ev.created_at).toLocaleDateString() : ""}</span>
               </div>
             ))}
@@ -169,12 +169,12 @@ export default function TeamTab({ teamMembers, currentWorkspace, onTeamChange })
     <div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: "12px", marginBottom: "20px" }}>
         <div className="card-glass" style={{ padding: "16px", textAlign: "center" }}>
-          <div className="card-hero-value" style={{ color: "var(--sand)", marginTop: 0, fontSize: "20px" }}>{teamMembers.length}</div>
+          <div className="card-hero-value" style={{ color: "var(--japandi-text)", marginTop: 0, fontSize: "20px" }}>{teamMembers.length}</div>
           <div className="card-hero-support" style={{ textTransform: "uppercase", fontSize: "9px", letterSpacing: "1.5px" }}>Members</div>
         </div>
         {Object.entries(roles).map(([role, count]) => (
           <div key={role} className="card-glass" style={{ padding: "16px", textAlign: "center" }}>
-            <div className="card-hero-value" style={{ color: ROLE_BADGE_COLORS[role] || "var(--sand)", marginTop: 0, fontSize: "20px" }}>{count}</div>
+            <div className="card-hero-value" style={{ color: ROLE_BADGE_COLORS[role] || "var(--japandi-text)", marginTop: 0, fontSize: "20px" }}>{count}</div>
             <div className="card-hero-support" style={{ textTransform: "capitalize", fontSize: "9px", letterSpacing: "1.5px" }}>{role}</div>
           </div>
         ))}
@@ -199,7 +199,7 @@ export default function TeamTab({ teamMembers, currentWorkspace, onTeamChange })
           <option value="pending">Pending</option>
         </select>
         <div style={{ position: "relative", flex: 1, minWidth: "180px" }}>
-          <Search size={12} style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", color: "var(--graphite)" }} />
+          <Search size={12} style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", color: "var(--japandi-muted)" }} />
           <input type="text" placeholder="Search by name or email..." value={searchFilter} onChange={e => setSearchFilter(e.target.value)}
             className="plan-input" style={{ width: "100%", paddingLeft: "28px", fontSize: "11px" }} />
         </div>
@@ -210,13 +210,13 @@ export default function TeamTab({ teamMembers, currentWorkspace, onTeamChange })
           <thead>
             <tr style={{ borderBottom: "1px solid rgba(107,107,111,0.08)" }}>
               {["Member", "Role", "Status", "Email", "Actions"].map(h => (
-                <th key={h} style={{ textAlign: "left", padding: "10px 14px", color: "var(--graphite)", fontWeight: 600, textTransform: "uppercase", fontSize: "9px", letterSpacing: "1px" }}>{h}</th>
+                <th key={h} style={{ textAlign: "left", padding: "10px 14px", color: "var(--japandi-muted)", fontWeight: 600, textTransform: "uppercase", fontSize: "9px", letterSpacing: "1px" }}>{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {filteredMembers.length === 0 ? (
-              <tr><td colSpan={5} style={{ padding: "24px", textAlign: "center", color: "var(--graphite)" }}>No matching team members found.</td></tr>
+              <tr><td colSpan={5} style={{ padding: "24px", textAlign: "center", color: "var(--japandi-muted)" }}>No matching team members found.</td></tr>
             ) : filteredMembers.map(m => (
               <tr key={m.id} style={{ borderBottom: "1px solid rgba(107,107,111,0.06)", cursor: "pointer", transition: "background 0.1s" }}
                 onClick={() => { setSelectedMember(m); fetchMemberActivity(wsId, m.user_id); }}
@@ -224,10 +224,10 @@ export default function TeamTab({ teamMembers, currentWorkspace, onTeamChange })
                 onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
                 <td style={{ padding: "10px 14px" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                    <div style={{ width: "32px", height: "32px", borderRadius: "8px", backgroundColor: "rgba(255,90,0,0.12)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--brand-orange)", fontWeight: 700, fontSize: "12px" }}>
+                    <div style={{ width: "32px", height: "32px", borderRadius: "8px", backgroundColor: "rgba(255,90,0,0.12)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--japandi-accent)", fontWeight: 700, fontSize: "12px" }}>
                       {(m.user_name || m.email || "?")[0].toUpperCase()}
                     </div>
-                    <span style={{ fontWeight: 600, color: "var(--sand)" }}>{m.user_name || m.email || "Unnamed"}</span>
+                    <span style={{ fontWeight: 600, color: "var(--japandi-text)" }}>{m.user_name || m.email || "Unnamed"}</span>
                   </div>
                 </td>
                 <td style={{ padding: "10px 14px" }}>
@@ -236,11 +236,11 @@ export default function TeamTab({ teamMembers, currentWorkspace, onTeamChange })
                   </span>
                 </td>
                 <td style={{ padding: "10px 14px" }}>
-                  <span style={{ color: m.status === "active" ? "#4ade80" : "var(--graphite)", fontSize: "11px" }}>
+                  <span style={{ color: m.status === "active" ? "#4ade80" : "var(--japandi-muted)", fontSize: "11px" }}>
                     {m.status === "active" ? "Active" : m.status || "pending"}
                   </span>
                 </td>
-                <td style={{ padding: "10px 14px", color: "var(--graphite)" }}>{m.email}</td>
+                <td style={{ padding: "10px 14px", color: "var(--japandi-muted)" }}>{m.email}</td>
                 <td style={{ padding: "10px 14px" }}>
                   <button onClick={e => { e.stopPropagation(); handleRemoveMember(wsId, m.id); }} className="btn-destructive-outline-sm" disabled={m.role === "founder"}><UserX size={12} /></button>
                 </td>
@@ -252,9 +252,9 @@ export default function TeamTab({ teamMembers, currentWorkspace, onTeamChange })
 
       {showInviteMember && (
         <div style={s.overlay} onClick={() => setShowInviteMember(false)}>
-          <div className="card-glass" style={{ border: "1px solid var(--border-glass)", background: "rgba(20,20,23,0.95)", backdropFilter: "blur(22px)", padding: "28px", maxWidth: "480px", width: "100%" }} onClick={e => e.stopPropagation()}>
+          <div className="card-glass" style={{ border: "1px solid var(--japandi-border)", background: "rgba(20,20,23,0.95)", backdropFilter: "blur(22px)", padding: "28px", maxWidth: "480px", width: "100%" }} onClick={e => e.stopPropagation()}>
             <h3 style={s.modalTitle}>Invite Member</h3>
-            <p style={{ fontSize: "13px", color: "var(--graphite)", margin: "0 0 16px" }}>Send an invitation email to join <strong>{currentWorkspace?.name || "this workspace"}</strong>.</p>
+            <p style={{ fontSize: "13px", color: "var(--japandi-muted)", margin: "0 0 16px" }}>Send an invitation email to join <strong>{currentWorkspace?.name || "this workspace"}</strong>.</p>
             <input type="email" placeholder="colleague@company.com" value={inviteEmail} onChange={e => setInviteEmail(e.target.value)} className="plan-input" style={{ width: "100%", boxSizing: "border-box" }} autoFocus />
             <div style={{ display: "flex", gap: "8px", marginTop: "20px" }}>
               <button onClick={handleInviteMember} className="btn-ember"><Send size={14} /> Send Invite</button>
@@ -266,9 +266,9 @@ export default function TeamTab({ teamMembers, currentWorkspace, onTeamChange })
 
       {showBulkInvite && (
         <div style={s.overlay} onClick={() => setShowBulkInvite(false)}>
-          <div className="card-glass" style={{ border: "1px solid var(--border-glass)", background: "rgba(20,20,23,0.95)", backdropFilter: "blur(22px)", padding: "28px", maxWidth: "520px", width: "100%" }} onClick={e => e.stopPropagation()}>
+          <div className="card-glass" style={{ border: "1px solid var(--japandi-border)", background: "rgba(20,20,23,0.95)", backdropFilter: "blur(22px)", padding: "28px", maxWidth: "520px", width: "100%" }} onClick={e => e.stopPropagation()}>
             <h3 style={s.modalTitle}>Bulk Invite</h3>
-            <p style={{ fontSize: "13px", color: "var(--graphite)", margin: "0 0 12px" }}>Enter email addresses separated by commas or new lines.</p>
+            <p style={{ fontSize: "13px", color: "var(--japandi-muted)", margin: "0 0 12px" }}>Enter email addresses separated by commas or new lines.</p>
             <textarea placeholder="alice@company.com, bob@company.com" value={bulkEmails} onChange={e => setBulkEmails(e.target.value)} className="plan-input" style={{ width: "100%", boxSizing: "border-box", minHeight: "80px", resize: "vertical" }} />
             <div style={{ marginTop: "10px" }}>
               <label style={s.label}>Role</label>
@@ -291,26 +291,26 @@ export default function TeamTab({ teamMembers, currentWorkspace, onTeamChange })
             <button onClick={() => setShowCreateTeam(true)} className="btn-ember" style={{ fontSize: "11px", padding: "6px 12px" }}><Plus size={12} /> Create Team</button>
           </div>
           {subTeams.length === 0 ? (
-            <div style={{ fontSize: "12px", color: "var(--graphite)" }}>No sub-teams yet.</div>
+            <div style={{ fontSize: "12px", color: "var(--japandi-muted)" }}>No sub-teams yet.</div>
           ) : selectedTeam ? (
             <div>
               <button onClick={() => setSelectedTeam(null)} className="btn-action-secondary" style={{ marginBottom: "12px", fontSize: "10px", padding: "4px 10px" }}><ChevronRight size={12} style={{ transform: "rotate(180deg)" }} /> Back to Teams</button>
-              <h4 style={{ fontSize: "13px", fontWeight: 700, color: "var(--sand)", margin: "0 0 8px" }}>{selectedTeam.name}</h4>
-              <p style={{ fontSize: "11px", color: "var(--graphite)", marginBottom: "12px" }}>{selectedTeam.description || "No description"}</p>
+              <h4 style={{ fontSize: "13px", fontWeight: 700, color: "var(--japandi-text)", margin: "0 0 8px" }}>{selectedTeam.name}</h4>
+              <p style={{ fontSize: "11px", color: "var(--japandi-muted)", marginBottom: "12px" }}>{selectedTeam.description || "No description"}</p>
               <div style={{ display: "flex", gap: "6px", marginBottom: "12px" }}>
                 <button onClick={() => setShowAddMember(true)} className="btn-action-secondary" style={{ fontSize: "10px", padding: "4px 10px" }}><UserPlus size={10} /> Add Member</button>
               </div>
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "11px" }}>
                 <thead>
                   <tr style={{ borderBottom: "1px solid rgba(107,107,111,0.08)" }}>
-                    {["Name", "Email", "Actions"].map(h => <th key={h} style={{ textAlign: "left", padding: "6px 10px", color: "var(--graphite)", fontWeight: 600, textTransform: "uppercase", fontSize: "9px", letterSpacing: "1px" }}>{h}</th>)}
+                    {["Name", "Email", "Actions"].map(h => <th key={h} style={{ textAlign: "left", padding: "6px 10px", color: "var(--japandi-muted)", fontWeight: 600, textTransform: "uppercase", fontSize: "9px", letterSpacing: "1px" }}>{h}</th>)}
                   </tr>
                 </thead>
                 <tbody>
                   {teamMembersList.map(tm => (
                     <tr key={tm.id || tm.user_id} style={{ borderBottom: "1px solid rgba(107,107,111,0.06)" }}>
-                      <td style={{ padding: "6px 10px", color: "var(--sand)" }}>{tm.user_name || tm.name || tm.email}</td>
-                      <td style={{ padding: "6px 10px", color: "var(--graphite)" }}>{tm.email}</td>
+                      <td style={{ padding: "6px 10px", color: "var(--japandi-text)" }}>{tm.user_name || tm.name || tm.email}</td>
+                      <td style={{ padding: "6px 10px", color: "var(--japandi-muted)" }}>{tm.email}</td>
                       <td style={{ padding: "6px 10px" }}>
                         <button onClick={() => handleRemoveTeamMember(wsId, selectedTeam.id, tm.id || tm.user_id)} className="btn-destructive-outline-sm"><UserX size={10} /></button>
                       </td>
@@ -337,12 +337,12 @@ export default function TeamTab({ teamMembers, currentWorkspace, onTeamChange })
                   onMouseEnter={e => e.currentTarget.style.borderColor = "rgba(255,90,0,0.2)"}
                   onMouseLeave={e => e.currentTarget.style.borderColor = "transparent"}>
                   <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                    <Folder size={16} style={{ color: "var(--graphite)" }} />
+                    <Folder size={16} style={{ color: "var(--japandi-muted)" }} />
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: "13px", fontWeight: 600, color: "var(--sand)" }}>{team.name}</div>
-                      <div style={{ fontSize: "11px", color: "var(--graphite)" }}>{team.description || "No description"} · {team.member_count || team.members_count || 0} members</div>
+                      <div style={{ fontSize: "13px", fontWeight: 600, color: "var(--japandi-text)" }}>{team.name}</div>
+                      <div style={{ fontSize: "11px", color: "var(--japandi-muted)" }}>{team.description || "No description"} · {team.member_count || team.members_count || 0} members</div>
                     </div>
-                    <ChevronRight size={14} style={{ color: "var(--graphite)" }} />
+                    <ChevronRight size={14} style={{ color: "var(--japandi-muted)" }} />
                   </div>
                 </div>
               ))}
@@ -351,7 +351,7 @@ export default function TeamTab({ teamMembers, currentWorkspace, onTeamChange })
 
           {showCreateTeam && (
             <div style={s.overlay} onClick={() => setShowCreateTeam(false)}>
-              <div className="card-glass" style={{ border: "1px solid var(--border-glass)", background: "rgba(20,20,23,0.95)", backdropFilter: "blur(22px)", padding: "28px", maxWidth: "460px", width: "100%" }} onClick={e => e.stopPropagation()}>
+              <div className="card-glass" style={{ border: "1px solid var(--japandi-border)", background: "rgba(20,20,23,0.95)", backdropFilter: "blur(22px)", padding: "28px", maxWidth: "460px", width: "100%" }} onClick={e => e.stopPropagation()}>
                 <h3 style={s.modalTitle}>Create Team</h3>
                 <div style={s.field}><label style={s.label}>Name</label><input type="text" value={teamForm.name} onChange={e => setTeamForm(p => ({ ...p, name: e.target.value }))} className="plan-input" style={{ width: "100%", boxSizing: "border-box" }} /></div>
                 <div style={s.field}><label style={s.label}>Description</label><textarea value={teamForm.description} onChange={e => setTeamForm(p => ({ ...p, description: e.target.value }))} className="plan-input" style={{ width: "100%", boxSizing: "border-box", minHeight: "60px", resize: "vertical" }} /></div>
@@ -367,7 +367,7 @@ export default function TeamTab({ teamMembers, currentWorkspace, onTeamChange })
 
       {showOrgChart && orgChartData && (
         <div style={s.overlay} onClick={() => { setShowOrgChart(false); setOrgChartData(null); }}>
-          <div className="card-glass" style={{ border: "1px solid var(--border-glass)", background: "rgba(20,20,23,0.95)", backdropFilter: "blur(22px)", padding: "28px", maxWidth: "640px", width: "100%", maxHeight: "80vh", overflowY: "auto" }} onClick={e => e.stopPropagation()}>
+          <div className="card-glass" style={{ border: "1px solid var(--japandi-border)", background: "rgba(20,20,23,0.95)", backdropFilter: "blur(22px)", padding: "28px", maxWidth: "640px", width: "100%", maxHeight: "80vh", overflowY: "auto" }} onClick={e => e.stopPropagation()}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
               <h3 style={{ ...s.modalTitle, margin: 0 }}>Org Chart</h3>
               <button onClick={() => { setShowOrgChart(false); setOrgChartData(null); }} className="btn-action-secondary" style={{ padding: "4px" }}><X size={14} /></button>
@@ -387,18 +387,18 @@ export default function TeamTab({ teamMembers, currentWorkspace, onTeamChange })
                       {a.name || a.email || a}
                     </span>
                   ))}
-                  {(!orgChartData.admins || orgChartData.admins.length === 0) && <span style={{ fontSize: "11px", color: "var(--graphite)" }}>None</span>}
+                  {(!orgChartData.admins || orgChartData.admins.length === 0) && <span style={{ fontSize: "11px", color: "var(--japandi-muted)" }}>None</span>}
                 </div>
               </div>
               <div style={{ marginBottom: "16px" }}>
                 <div className="card-label" style={{ marginBottom: "8px" }}>Members</div>
                 <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", justifyContent: "center" }}>
                   {(orgChartData.members || []).map((m, i) => (
-                    <span key={i} className="tag" style={{ backgroundColor: "#6b6b6f22", color: "var(--sand)", border: "1px solid #6b6b6f33" }}>
+                    <span key={i} className="tag" style={{ backgroundColor: "#6b6b6f22", color: "var(--japandi-text)", border: "1px solid #6b6b6f33" }}>
                       {m.name || m.email || m}
                     </span>
                   ))}
-                  {(!orgChartData.members || orgChartData.members.length === 0) && <span style={{ fontSize: "11px", color: "var(--graphite)" }}>None</span>}
+                  {(!orgChartData.members || orgChartData.members.length === 0) && <span style={{ fontSize: "11px", color: "var(--japandi-muted)" }}>None</span>}
                 </div>
               </div>
               {(orgChartData.teams || []).length > 0 && (
@@ -406,7 +406,7 @@ export default function TeamTab({ teamMembers, currentWorkspace, onTeamChange })
                   <div className="card-label" style={{ marginBottom: "8px" }}>Teams</div>
                   {orgChartData.teams.map((team, i) => (
                     <div key={i} style={{ marginBottom: "8px" }}>
-                      <div style={{ fontSize: "12px", fontWeight: 600, color: "var(--sand)", marginBottom: "4px" }}>{team.name}</div>
+                      <div style={{ fontSize: "12px", fontWeight: 600, color: "var(--japandi-text)", marginBottom: "4px" }}>{team.name}</div>
                       <div style={{ display: "flex", gap: "4px", flexWrap: "wrap", justifyContent: "center" }}>
                         {(team.members || []).map((m, j) => (
                           <span key={j} className="tag" style={{ fontSize: "10px", backgroundColor: "rgba(107,107,111,0.1)" }}>{m.name || m.email || m}</span>
@@ -423,7 +423,7 @@ export default function TeamTab({ teamMembers, currentWorkspace, onTeamChange })
 
       {showWorkload && (
         <div style={s.overlay} onClick={() => { setShowWorkload(false); setWorkloadData([]); }}>
-          <div className="card-glass" style={{ border: "1px solid var(--border-glass)", background: "rgba(20,20,23,0.95)", backdropFilter: "blur(22px)", padding: "28px", maxWidth: "800px", width: "100%", maxHeight: "80vh", overflowY: "auto" }} onClick={e => e.stopPropagation()}>
+          <div className="card-glass" style={{ border: "1px solid var(--japandi-border)", background: "rgba(20,20,23,0.95)", backdropFilter: "blur(22px)", padding: "28px", maxWidth: "800px", width: "100%", maxHeight: "80vh", overflowY: "auto" }} onClick={e => e.stopPropagation()}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
               <h3 style={{ ...s.modalTitle, margin: 0 }}>Workload</h3>
               <button onClick={() => { setShowWorkload(false); setWorkloadData([]); }} className="btn-action-secondary" style={{ padding: "4px" }}><X size={14} /></button>
@@ -432,25 +432,25 @@ export default function TeamTab({ teamMembers, currentWorkspace, onTeamChange })
               <thead>
                 <tr style={{ borderBottom: "1px solid rgba(107,107,111,0.08)" }}>
                   {["Name", "Role", "Total Tasks", "Open Tasks", "Completed", "Goals", "Open Blockers", "Load Score"].map(h => (
-                    <th key={h} style={{ textAlign: "left", padding: "8px 10px", color: "var(--graphite)", fontWeight: 600, textTransform: "uppercase", fontSize: "9px", letterSpacing: "1px" }}>{h}</th>
+                    <th key={h} style={{ textAlign: "left", padding: "8px 10px", color: "var(--japandi-muted)", fontWeight: 600, textTransform: "uppercase", fontSize: "9px", letterSpacing: "1px" }}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {workloadData.length === 0 ? (
-                  <tr><td colSpan={8} style={{ padding: "24px", textAlign: "center", color: "var(--graphite)" }}>No workload data available.</td></tr>
+                  <tr><td colSpan={8} style={{ padding: "24px", textAlign: "center", color: "var(--japandi-muted)" }}>No workload data available.</td></tr>
                 ) : workloadData.map((wl, i) => {
                   const loadScore = wl.load_score ?? wl.total_tasks ?? 0;
                   const loadColor = loadScore > 15 ? "#ef4444" : loadScore > 5 ? "#f59e0b" : "#4ade80";
                   return (
                     <tr key={wl.user_id || i} style={{ borderBottom: "1px solid rgba(107,107,111,0.06)" }}>
-                      <td style={{ padding: "8px 10px", color: "var(--sand)", fontWeight: 600 }}>{wl.name || wl.user_name || wl.email || "—"}</td>
-                      <td style={{ padding: "8px 10px", color: "var(--graphite)" }}>{wl.role || "—"}</td>
-                      <td style={{ padding: "8px 10px", color: "var(--sand)" }}>{wl.total_tasks ?? "—"}</td>
-                      <td style={{ padding: "8px 10px", color: "var(--sand)" }}>{wl.open_tasks ?? "—"}</td>
-                      <td style={{ padding: "8px 10px", color: "var(--sand)" }}>{wl.completed_tasks ?? "—"}</td>
-                      <td style={{ padding: "8px 10px", color: "var(--sand)" }}>{wl.goals ?? "—"}</td>
-                      <td style={{ padding: "8px 10px", color: "var(--sand)" }}>{wl.open_blockers ?? "—"}</td>
+                      <td style={{ padding: "8px 10px", color: "var(--japandi-text)", fontWeight: 600 }}>{wl.name || wl.user_name || wl.email || "—"}</td>
+                      <td style={{ padding: "8px 10px", color: "var(--japandi-muted)" }}>{wl.role || "—"}</td>
+                      <td style={{ padding: "8px 10px", color: "var(--japandi-text)" }}>{wl.total_tasks ?? "—"}</td>
+                      <td style={{ padding: "8px 10px", color: "var(--japandi-text)" }}>{wl.open_tasks ?? "—"}</td>
+                      <td style={{ padding: "8px 10px", color: "var(--japandi-text)" }}>{wl.completed_tasks ?? "—"}</td>
+                      <td style={{ padding: "8px 10px", color: "var(--japandi-text)" }}>{wl.goals ?? "—"}</td>
+                      <td style={{ padding: "8px 10px", color: "var(--japandi-text)" }}>{wl.open_blockers ?? "—"}</td>
                       <td style={{ padding: "8px 10px" }}>
                         <span className="badge" style={{ backgroundColor: loadColor + "22", color: loadColor, border: "1px solid " + loadColor + "33" }}>
                           {loadScore}
