@@ -28,8 +28,8 @@ export default function Goals() {
         api.get("/api/tasks?flat=true"),
         api.get("/api/workspaces"),
       ]);
-      setGoals(goalsRes.data);
-      const allTasks = tasksRes.data || [];
+      setGoals(goalsRes.data?.items || goalsRes.data || []);
+      const allTasks = tasksRes.data?.items || tasksRes.data || [];
       const unlinked = allTasks.filter(t => !t.goal_id && t.status !== "Done" && t.status !== "Cancelled");
       setUnlinkedTasks(unlinked);
       const wsId = localStorage.getItem("workspaceId");

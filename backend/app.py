@@ -57,10 +57,17 @@ if sentry_dsn:
 app = Flask(__name__)
 FRONTEND_URL = os.getenv("FRONTEND_URL", "https://foundesk.onrender.com")
 app_env = os.getenv("APP_ENV", "development")
-if app_env == "production":
-    CORS(app, origins=[FRONTEND_URL], supports_credentials=True)
-else:
-    CORS(app, origins=[FRONTEND_URL, "http://localhost:5173", "http://127.0.0.1:5173"], supports_credentials=True)
+CORS_ORIGINS = [FRONTEND_URL, "http://localhost:5173", "http://127.0.0.1:5173"]
+
+@app.after_request
+def add_cors_headers(response):
+    origin = request.headers.get("Origin")
+    if origin and origin in CORS_ORIGINS:
+        response.headers["Access-Control-Allow-Origin"] = origin
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+        response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-CSRFToken"
+        response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+    return response
 
 app.config['SECRET_KEY'] = os.getenv("SECRET_KEY")
 if not app.config['SECRET_KEY']:

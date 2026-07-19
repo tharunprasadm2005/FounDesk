@@ -116,8 +116,8 @@ function Execute() {
         api.get("/api/goals"),
         api.get("/api/workspaces"),
       ]);
-      setTasks(tasksRes.data || []);
-      setGoals(goalsRes.data || []);
+      setTasks(tasksRes.data?.items || tasksRes.data || []);
+      setGoals(goalsRes.data?.items || goalsRes.data || []);
       const wsId = localStorage.getItem("workspaceId");
       const ws = wsRes.data.find(w => w.id.toString() === wsId) || wsRes.data[0];
       setTeamMembers(ws?.members?.filter(m => m.status === "active") || []);
