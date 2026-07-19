@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
-  Target, ListChecks, Calendar, CheckSquare, 
-  ArrowRight, Shield, Bell, Settings, LogOut, Check, Menu
+  Target, ListChecks, Calendar
 } from "lucide-react";
 import api from "../utils/api";
 import Logo from "../components/Logo";
@@ -10,7 +9,7 @@ import Button from "../components/ui/button";
 
 function Icon({ name, size = 18 }) {
   const ICON_MAP = { target: Target, "list-check": ListChecks, calendar: Calendar };
-  const Comp = ICON_MAP[name] || Shield;
+  const Comp = ICON_MAP[name] || Target;
   return <Comp size={size} className="text-stone-400" />;
 }
 
@@ -48,132 +47,85 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-washi-white text-sumi-900 font-sans flex flex-col md:flex-row">
+    <div className="max-w-4xl mx-auto space-y-12 py-6">
       
-      {/* Sidebar - Desktop */}
-      <aside className="hidden md:flex flex-col w-64 border-r border-stone-200 p-6 h-screen sticky top-0 bg-washi-white">
-        <Logo className="mb-12" />
-        <nav className="flex-1 space-y-2">
-          <a href="#" className="flex items-center gap-3 px-3 py-2 text-sumi-900 bg-linen-100 rounded-sm font-medium">
-            <Target size={18} className="text-indigo-ink"/> Overview
-          </a>
-          <a href="#" className="flex items-center gap-3 px-3 py-2 text-stone-400 hover:text-sumi-900 hover:bg-linen-100/50 rounded-sm font-medium transition-colors">
-            <ListChecks size={18} /> Execution
-          </a>
-          <a href="#" className="flex items-center gap-3 px-3 py-2 text-stone-400 hover:text-sumi-900 hover:bg-linen-100/50 rounded-sm font-medium transition-colors">
-            <Calendar size={18} /> Schedule
-          </a>
-          <a href="#" className="flex items-center gap-3 px-3 py-2 text-stone-400 hover:text-sumi-900 hover:bg-linen-100/50 rounded-sm font-medium transition-colors">
-            <Shield size={18} /> Decisions
-          </a>
-        </nav>
-        
-        <div className="mt-auto pt-6 border-t border-stone-200">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-8 h-8 rounded-sm bg-stone-200 flex items-center justify-center font-heading text-sm text-sumi-900">
-              {user?.name?.[0] || 'U'}
-            </div>
-            <div className="text-sm font-medium truncate">{user?.name || 'Founder'}</div>
-          </div>
-          <button 
-            onClick={() => { localStorage.removeItem("token"); navigate("/login"); }}
-            className="flex items-center gap-2 text-sm text-stone-400 hover:text-clay-500 transition-colors w-full"
-          >
-            <LogOut size={16} /> Sign out
-          </button>
+      {/* Header */}
+      <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 reveal visible">
+        <div>
+          <p className="text-sm font-mono text-stone-400 uppercase tracking-widest mb-2">
+            {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+          </p>
+          <h1 className="text-4xl font-heading text-sumi-900">Good morning, {user?.name?.split(' ')[0] || 'Founder'}.</h1>
         </div>
-      </aside>
+        <div className="flex gap-3">
+          <Button variant="secondary" size="sm">Review Yesterday</Button>
+          <Button variant="primary" size="sm">Start Execution</Button>
+        </div>
+      </header>
 
-      {/* Main Content */}
-      <main className="flex-1 min-h-screen">
+      <div className="h-px bg-stone-200"></div>
+
+      {/* Grid Layout (2-col desktop, 1-col mobile) */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 reveal visible animate-fade-in">
         
-        {/* Mobile Header */}
-        <header className="md:hidden flex items-center justify-between p-4 border-b border-stone-200 bg-washi-white sticky top-0 z-10">
-          <Logo size={24} />
-          <button className="text-stone-400"><Menu size={24} /></button>
-        </header>
-
-        <div className="max-w-4xl mx-auto p-6 md:p-12 space-y-12">
-          
-          {/* Header */}
-          <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 reveal visible">
-            <div>
-              <p className="text-sm font-mono text-stone-400 uppercase tracking-widest mb-2">
-                {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
-              </p>
-              <h1 className="text-4xl font-heading text-sumi-900">Good morning, {user?.name?.split(' ')[0] || 'Founder'}.</h1>
+        {/* Primary Focus */}
+        <section className="space-y-4">
+          <h2 className="text-xs font-mono text-stone-400 uppercase tracking-widest flex items-center gap-2">
+            <Target size={14} className="text-indigo-ink"/> Active Goal
+          </h2>
+          <div className="card-japandi p-6 space-y-4">
+            <h3 className="text-xl font-heading">{data?.command_strip?.active_goal?.title || "Ship Q3 Product Update"}</h3>
+            <div className="w-full bg-stone-200 h-1 rounded-full overflow-hidden">
+              <div className="bg-indigo-ink h-full" style={{ width: '45%' }}></div>
             </div>
-            <div className="flex gap-3">
-              <Button variant="secondary" size="sm">Review Yesterday</Button>
-              <Button variant="primary" size="sm">Start Execution</Button>
+            <div className="flex justify-between text-sm font-mono text-stone-400">
+              <span>Progress</span>
+              <span>45%</span>
             </div>
-          </header>
+          </div>
+        </section>
 
-          <div className="divider"></div>
-
-          {/* Grid Layout (2-col desktop, 1-col mobile) */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 reveal visible" style={{ transitionDelay: '100ms' }}>
-            
-            {/* Primary Focus */}
-            <section className="space-y-4">
-              <h2 className="text-xs font-mono text-stone-400 uppercase tracking-widest flex items-center gap-2">
-                <Target size={14} className="text-indigo-ink"/> Active Goal
-              </h2>
-              <div className="card-japandi p-6 space-y-4">
-                <h3 className="text-xl font-heading">{data?.command_strip?.active_goal?.title || "Ship Q3 Product Update"}</h3>
-                <div className="w-full bg-stone-200 h-1 rounded-full overflow-hidden">
-                  <div className="bg-indigo-ink h-full" style={{ width: '45%' }}></div>
+        {/* Schedule */}
+        <section className="space-y-4">
+          <h2 className="text-xs font-mono text-stone-400 uppercase tracking-widest flex items-center gap-2">
+            <Calendar size={14} className="text-moss-600"/> Next Up
+          </h2>
+          <div className="card-japandi p-6 space-y-4">
+            {[1, 2].map((i) => (
+              <div key={i} className="flex gap-4 items-start border-b border-stone-200 pb-4 last:border-0 last:pb-0">
+                <div className="text-sm font-mono text-stone-400 w-16 pt-1">
+                  {i === 1 ? '10:00' : '13:00'}
                 </div>
-                <div className="flex justify-between text-sm font-mono text-stone-400">
-                  <span>Progress</span>
-                  <span>45%</span>
+                <div>
+                  <div className="font-medium text-sumi-900">{i === 1 ? 'Product Sync' : 'Deep Work Block'}</div>
+                  <div className="text-sm text-stone-400">Zoom • 45m</div>
                 </div>
               </div>
-            </section>
-
-            {/* Schedule */}
-            <section className="space-y-4">
-              <h2 className="text-xs font-mono text-stone-400 uppercase tracking-widest flex items-center gap-2">
-                <Calendar size={14} className="text-moss-600"/> Next Up
-              </h2>
-              <div className="card-japandi p-6 space-y-4">
-                {[1, 2].map((i) => (
-                  <div key={i} className="flex gap-4 items-start border-b border-stone-200 pb-4 last:border-0 last:pb-0">
-                    <div className="text-sm font-mono text-stone-400 w-16 pt-1">
-                      {i === 1 ? '10:00' : '13:00'}
-                    </div>
-                    <div>
-                      <div className="font-medium text-sumi-900">{i === 1 ? 'Product Sync' : 'Deep Work Block'}</div>
-                      <div className="text-sm text-stone-400">Zoom • 45m</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            {/* Execution Checklist */}
-            <section className="space-y-4 lg:col-span-2">
-              <h2 className="text-xs font-mono text-stone-400 uppercase tracking-widest flex items-center gap-2">
-                <ListChecks size={14} /> Execution Checklist
-              </h2>
-              <div className="card-japandi p-0 overflow-hidden">
-                {[
-                  "Review Q3 metrics and update dashboard",
-                  "Approve new landing page copy",
-                  "Finalize API schema for v2 release"
-                ].map((task, i) => (
-                  <div key={i} className="flex items-center gap-4 p-4 border-b border-stone-200 last:border-0 hover:bg-linen-100/50 transition-colors cursor-pointer group">
-                    <div className="w-5 h-5 rounded-sm border border-stone-400 group-hover:border-indigo-ink flex items-center justify-center transition-colors">
-                    </div>
-                    <span className="text-sumi-900 font-medium group-hover:text-indigo-ink transition-colors">{task}</span>
-                  </div>
-                ))}
-              </div>
-            </section>
-
+            ))}
           </div>
-        </div>
-      </main>
+        </section>
+
+        {/* Execution Checklist */}
+        <section className="space-y-4 lg:col-span-2">
+          <h2 className="text-xs font-mono text-stone-400 uppercase tracking-widest flex items-center gap-2">
+            <ListChecks size={14} /> Execution Checklist
+          </h2>
+          <div className="card-japandi p-0 overflow-hidden">
+            {[
+              "Review Q3 metrics and update dashboard",
+              "Approve new landing page copy",
+              "Finalize API schema for v2 release"
+            ].map((task, i) => (
+              <div key={i} className="flex items-center gap-4 p-4 border-b border-stone-200 last:border-0 hover:bg-linen-100/50 transition-colors cursor-pointer group">
+                <div className="w-5 h-5 rounded-sm border border-stone-400 group-hover:border-indigo-ink flex items-center justify-center transition-colors">
+                </div>
+                <span className="text-sumi-900 font-medium group-hover:text-indigo-ink transition-colors">{task}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+
+      </div>
     </div>
   );
 }

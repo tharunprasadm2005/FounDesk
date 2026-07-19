@@ -58,7 +58,7 @@ function App() {
       localStorage.setItem("token", res.data.token);
 
       const dashboardRes = await axios.get(
-        `${API_BASE_URL}/dashboard`,
+        `${API_BASE_URL}/api/me`,
         {
           headers: {
             Authorization: `Bearer ${res.data.token}`,

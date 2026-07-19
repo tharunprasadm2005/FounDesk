@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { LogIn, ArrowRight, Shield } from "lucide-react";
+import { LogIn, ArrowRight, Shield, Eye, EyeOff } from "lucide-react";
 import { GoogleLogin, GoogleOAuthProvider } from "@react-oauth/google";
 import api from "../utils/api";
 import Logo from "../components/Logo";
@@ -14,6 +14,7 @@ function LoginContent({ handleSuccess, authError, onClearError }) {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
   const [localError, setLocalError] = useState("");
@@ -113,7 +114,23 @@ function LoginContent({ handleSuccess, authError, onClearError }) {
                   <label className="text-sm font-medium text-sumi-900 block">Password</label>
                   {isLogin && <a href="#" className="text-xs text-stone-400 hover:text-sumi-900">Forgot password?</a>}
                 </div>
-                <Input type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required />
+                <div className="relative">
+                  <Input 
+                    type={showPassword ? "text" : "password"} 
+                    placeholder="••••••••" 
+                    value={password} 
+                    onChange={(e) => setPassword(e.target.value)} 
+                    required 
+                    className="pr-10"
+                  />
+                  <button 
+                    type="button" 
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-sumi-900 focus:outline-none"
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
               </div>
 
               <Button type="submit" variant="primary" className="w-full mt-2" disabled={loading}>
