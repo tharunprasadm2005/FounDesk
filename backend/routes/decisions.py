@@ -7,46 +7,57 @@ from utils.workspace_auth import get_current_workspace_id
 from sqlalchemy.orm import selectinload
 from sqlalchemy import case
 from datetime import datetime
+import traceback
 
 decisions_bp = Blueprint('decisions', __name__)
+
+def _safe_to_dict(obj):
+    try:
+        return obj.to_dict() if hasattr(obj, 'to_dict') else {"id": obj.id, "error": "serialization failed"}
+    except Exception:
+        return {"id": getattr(obj, 'id', None), "error": "serialization failed"}
 
 @decisions_bp.route('/decisions', methods=['GET'])
 @token_required
 def get_decisions(current_user_id):
-    workspace_id = get_current_workspace_id(current_user_id)
-    if not workspace_id:
-        return jsonify({"error": "No active workspace context"}), 400
+    try:
+        workspace_id = get_current_workspace_id(current_user_id)
+        if not workspace_id:
+            return jsonify({"error": "No active workspace context"}), 400
 
-    search = request.args.get('search', '').strip()
-    stage = request.args.get('stage', '').strip()
-    status_filter = request.args.get('status', '').strip()
-    decision_type_filter = request.args.get('decision_type', '').strip()
-    query = DecisionLog.query.options(selectinload(DecisionLog.linked_tasks)).filter_by(workspace_id=workspace_id)
-    if search:
-        query = query.filter(
-            (DecisionLog.decision.ilike(f"%{search}%")) |
-            (DecisionLog.context.ilike(f"%{search}%")) |
-            (DecisionLog.alternatives.ilike(f"%{search}%"))
+        search = request.args.get('search', '').strip()
+        stage = request.args.get('stage', '').strip()
+        status_filter = request.args.get('status', '').strip()
+        decision_type_filter = request.args.get('decision_type', '').strip()
+        query = DecisionLog.query.options(selectinload(DecisionLog.linked_tasks)).filter_by(workspace_id=workspace_id)
+        if search:
+            query = query.filter(
+                (DecisionLog.decision.ilike(f"%{search}%")) |
+                (DecisionLog.context.ilike(f"%{search}%")) |
+                (DecisionLog.alternatives.ilike(f"%{search}%"))
+            )
+        if stage:
+            query = query.filter(DecisionLog.startup_stage == stage)
+        if status_filter:
+            query = query.filter(DecisionLog.ai_status == status_filter)
+        if decision_type_filter:
+            query = query.filter(DecisionLog.decision_type == decision_type_filter)
+
+        priority_order = case(
+            (DecisionLog.ai_status == 'pending_confirmation', 0),
+            (DecisionLog.ai_status == 'confirmed', 1),
+            (DecisionLog.ai_status == 'dismissed', 2),
+            else_=3
         )
-    if stage:
-        query = query.filter(DecisionLog.startup_stage == stage)
-    if status_filter:
-        query = query.filter(DecisionLog.ai_status == status_filter)
-    if decision_type_filter:
-        query = query.filter(DecisionLog.decision_type == decision_type_filter)
-
-    priority_order = case(
-        (DecisionLog.ai_status == 'pending_confirmation', 0),
-        (DecisionLog.ai_status == 'confirmed', 1),
-        (DecisionLog.ai_status == 'dismissed', 2),
-        else_=3
-    )
-    decisions = query.order_by(
-        priority_order,
-        DecisionLog.confidence_score.desc().nullslast(),
-        DecisionLog.created_at.desc()
-    ).all()
-    return jsonify([d.to_dict() for d in decisions])
+        decisions = query.order_by(
+            priority_order,
+            DecisionLog.confidence_score.desc().nullslast(),
+            DecisionLog.created_at.desc()
+        ).all()
+        return jsonify([_safe_to_dict(d) for d in decisions])
+    except Exception as e:
+        print(f"GET /decisions error: {e}\n{traceback.format_exc()}")
+        return jsonify({"error": "Failed to fetch decisions", "message": str(e)}), 500
 
 @decisions_bp.route('/decisions', methods=['POST'])
 @token_required

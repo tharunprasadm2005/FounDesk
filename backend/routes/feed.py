@@ -48,13 +48,13 @@ def get_legacy_feed(current_user_id):
     feed_data = []
     for ev in events.items:
         feed_data.append({
-            "type": ev.activity_type,
-            "source": ev.provider,
-            "title": ev.title,
-            "content": ev.details,
+            "type": ev.activity_type or "",
+            "source": ev.provider or "",
+            "title": ev.title or "",
+            "content": ev.details or "",
             "user": ev.actor or "Unknown",
             "timestamp": ev.external_timestamp.isoformat() if ev.external_timestamp else None,
-            "priority": ev.priority
+            "priority": ev.priority or "normal"
         })
 
     return jsonify({
@@ -128,6 +128,8 @@ def get_normalized_feed_data(workspace_id):
     normalized_feed = []
     
     for ev in events:
+        if not ev.provider or not ev.activity_type:
+            continue
         source = ev.provider.lower()
         if source == 'google_calendar' or source == 'outlook_calendar' or source == 'calendly' or source == 'zoom' or source == 'google_meet':
             mapped_source = 'calendar'
@@ -165,8 +167,9 @@ def get_normalized_feed_data(workspace_id):
         else:
             final_title = title_mapped
 
+        final_title = final_title or ""
         title_lower = final_title.lower()
-        details_lower = ev.details.lower() if ev.details else ""
+        details_lower = (ev.details or "").lower()
         status_lower = ev.status.lower() if ev.status else ""
         
         priority = "low"
@@ -261,7 +264,12 @@ def get_normalized_feed_data(workspace_id):
     for item in normalized_feed:
         title = item["title"] or ""
         ts_str = item["timestamp"]
-        ts = datetime.fromisoformat(ts_str) if ts_str else None
+        ts = None
+        if ts_str:
+            try:
+                ts = datetime.fromisoformat(ts_str)
+            except (ValueError, TypeError):
+                ts = None
         
         cleaned_title = re.sub(r'[^a-zA-Z0-9]', '', title).lower()
         

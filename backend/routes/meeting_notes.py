@@ -37,38 +37,50 @@ notes_bp = Blueprint('meeting_notes', __name__)
 @notes_bp.route('/notes', methods=['GET'])
 @token_required
 def get_notes(current_user_id):
-    workspace_id = get_current_workspace_id(current_user_id)
-    if not workspace_id:
-        return jsonify({"error": "No active workspace context"}), 400
+    import traceback
+    try:
+        workspace_id = get_current_workspace_id(current_user_id)
+        if not workspace_id:
+            return jsonify({"error": "No active workspace context"}), 400
 
-    search = request.args.get('search', '').strip()
-    meeting_type = request.args.get('meeting_type', '').strip()
-    status_filter = request.args.get('status', '').strip()
-    query = MeetingNotes.query.options(
-        selectinload(MeetingNotes.linked_tasks),
-        selectinload(MeetingNotes.linked_decisions)
-    ).filter_by(workspace_id=workspace_id)
-    
-    if search:
-        query = query.filter(
-            (MeetingNotes.title.ilike(f"%{search}%")) |
-            (MeetingNotes.summary.ilike(f"%{search}%")) |
-            (MeetingNotes.attendees.ilike(f"%{search}%")) |
-            (MeetingNotes.agenda.ilike(f"%{search}%")) |
-            (MeetingNotes.tags.ilike(f"%{search}%"))
+        search = request.args.get('search', '').strip()
+        meeting_type = request.args.get('meeting_type', '').strip()
+        status_filter = request.args.get('status', '').strip()
+        query = MeetingNotes.query.options(
+            selectinload(MeetingNotes.linked_tasks),
+            selectinload(MeetingNotes.linked_decisions)
+        ).filter_by(workspace_id=workspace_id)
+        
+        if search:
+            query = query.filter(
+                (MeetingNotes.title.ilike(f"%{search}%")) |
+                (MeetingNotes.summary.ilike(f"%{search}%")) |
+                (MeetingNotes.attendees.ilike(f"%{search}%")) |
+                (MeetingNotes.agenda.ilike(f"%{search}%")) |
+                (MeetingNotes.tags.ilike(f"%{search}%"))
+            )
+        if meeting_type:
+            query = query.filter(MeetingNotes.meeting_type == meeting_type)
+        if status_filter:
+            query = query.filter(MeetingNotes.status == status_filter)
+
+        status_order = case(
+            (MeetingNotes.status == 'Draft', 0),
+            (MeetingNotes.status == 'Processed', 1),
+            else_=2
         )
-    if meeting_type:
-        query = query.filter(MeetingNotes.meeting_type == meeting_type)
-    if status_filter:
-        query = query.filter(MeetingNotes.status == status_filter)
+        notes = query.order_by(status_order, MeetingNotes.date.desc()).all()
 
-    status_order = case(
-        (MeetingNotes.status == 'Draft', 0),
-        (MeetingNotes.status == 'Processed', 1),
-        else_=2
-    )
-    notes = query.order_by(status_order, MeetingNotes.date.desc()).all()
-    return jsonify([n.to_dict() for n in notes])
+        safe_notes = []
+        for n in notes:
+            try:
+                safe_notes.append(n.to_dict())
+            except Exception:
+                safe_notes.append({"id": n.id, "title": n.title or "Error loading note"})
+        return jsonify(safe_notes)
+    except Exception as e:
+        print(f"GET /notes error: {e}\n{traceback.format_exc()}")
+        return jsonify({"error": "Failed to fetch notes", "message": str(e)}), 500
 
 @notes_bp.route('/notes', methods=['POST'])
 @token_required

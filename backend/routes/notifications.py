@@ -104,48 +104,61 @@ def save_preferences(current_user_id):
 @notifications_bp.route('/notifications', methods=['GET'])
 @token_required
 def get_notifications(current_user_id):
-    workspace_id = _get_ws_id(current_user_id)
-    if not workspace_id:
-        return jsonify({"error": "No active workspace"}), 400
+    import traceback
+    try:
+        workspace_id = _get_ws_id(current_user_id)
+        if not workspace_id:
+            return jsonify({"error": "No active workspace"}), 400
 
-    page = request.args.get("page", 1, type=int)
-    per_page = request.args.get("per_page", 20, type=int)
-    unread_only = request.args.get("unread_only", "false").lower() == "true"
-    search = request.args.get("search", "").strip()
-    ntype = request.args.get("type", "").strip()
-    from_date = request.args.get("from", "").strip()
-    to_date = request.args.get("to", "").strip()
+        page = request.args.get("page", 1, type=int)
+        per_page = request.args.get("per_page", 20, type=int)
+        unread_only = request.args.get("unread_only", "false").lower() == "true"
+        search = request.args.get("search", "").strip()
+        ntype = request.args.get("type", "").strip()
+        from_date = request.args.get("from", "").strip()
+        to_date = request.args.get("to", "").strip()
 
-    query = InAppNotification.query.filter_by(user_id=current_user_id, workspace_id=workspace_id)
+        query = InAppNotification.query.filter_by(user_id=current_user_id, workspace_id=workspace_id)
 
-    if unread_only:
-        query = query.filter_by(is_read=False)
-    if search:
-        query = query.filter(
-            InAppNotification.title.ilike(f"%{search}%") |
-            InAppNotification.message.ilike(f"%{search}%")
-        )
-    if ntype:
-        query = query.filter_by(notification_type=ntype)
-    if from_date:
+        if unread_only:
+            query = query.filter_by(is_read=False)
+        if search:
+            query = query.filter(
+                InAppNotification.title.ilike(f"%{search}%") |
+                InAppNotification.message.ilike(f"%{search}%")
+            )
+        if ntype:
+            query = query.filter_by(notification_type=ntype)
+        if from_date:
+            try:
+                fd = datetime.fromisoformat(from_date)
+                query = query.filter(InAppNotification.created_at >= fd)
+            except ValueError:
+                pass
+        if to_date:
+            try:
+                td = datetime.fromisoformat(to_date)
+                query = query.filter(InAppNotification.created_at <= td)
+            except ValueError:
+                pass
+
+        total = query.count()
+        notifications = query.order_by(InAppNotification.created_at.desc()).offset((page - 1) * per_page).limit(per_page).all()
+
+        unread_count = 0
         try:
-            fd = datetime.fromisoformat(from_date)
-            query = query.filter(InAppNotification.created_at >= fd)
-        except: pass
-    if to_date:
-        try:
-            td = datetime.fromisoformat(to_date)
-            query = query.filter(InAppNotification.created_at <= td)
-        except: pass
+            unread_count = InAppNotification.query.filter_by(user_id=current_user_id, workspace_id=workspace_id, is_read=False).count()
+        except Exception:
+            pass
 
-    total = query.count()
-    notifications = query.order_by(InAppNotification.created_at.desc()).offset((page - 1) * per_page).limit(per_page).all()
-
-    return jsonify({
-        "notifications": [n.to_dict() for n in notifications],
-        "total": total, "page": page, "per_page": per_page,
-        "unread_count": InAppNotification.query.filter_by(user_id=current_user_id, workspace_id=workspace_id, is_read=False).count()
-    })
+        return jsonify({
+            "notifications": [n.to_dict() for n in notifications],
+            "total": total, "page": page, "per_page": per_page,
+            "unread_count": unread_count
+        })
+    except Exception as e:
+        print(f"GET /notifications error: {e}\n{traceback.format_exc()}")
+        return jsonify({"error": "Failed to fetch notifications", "message": str(e)}), 500
 
 
 @notifications_bp.route('/notifications/<int:notification_id>/read', methods=['POST'])

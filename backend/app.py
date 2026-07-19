@@ -113,7 +113,25 @@ def too_many_requests(e):
 
 @app.errorhandler(500)
 def internal_error(e):
+    print(f"HTTP 500: {e}")
     return jsonify({"error": "Internal server error", "message": "An unexpected error occurred"}), 500
+
+
+@app.errorhandler(Exception)
+def handle_all_exceptions(e):
+    import traceback
+    print(f"Unhandled exception: {e}\n{traceback.format_exc()}")
+    return jsonify({"error": "Internal server error", "message": str(e)}), 500
+
+
+@app.errorhandler(502)
+def bad_gateway(e):
+    return jsonify({"error": "Bad gateway", "message": "Upstream service unavailable"}), 502
+
+
+@app.errorhandler(503)
+def service_unavailable(e):
+    return jsonify({"error": "Service unavailable", "message": "Temporarily unavailable, please retry"}), 503
 
 
 app.config['SECRET_KEY'] = os.getenv("SECRET_KEY")

@@ -165,40 +165,86 @@ def get_pending_records(current_user_id):
 @pattern_engine_bp.route("/pipeline/status", methods=["GET"])
 @token_required
 def pipeline_status(current_user_id):
-    workspace_id = get_current_workspace_id(current_user_id)
-    if not workspace_id:
-        return jsonify({"error": "No active workspace"}), 400
-    from models.activity_event import ActivityEvent
-    from pattern_engine.models import RawEvent, LLMUsageLog
-    all_integrations = UserIntegration.query.filter_by(user_id=current_user_id).all()
-    integrations = len(all_integrations)
-    providers = list(set(i.provider for i in all_integrations))
-    decision_providers = [p for p in providers if p in ("gmail", "google", "slack", "google_calendar", "google_meet")]
-    activity_events = ActivityEvent.query.filter_by(workspace_id=workspace_id).count()
-    decision_count = DecisionLog.query.filter_by(workspace_id=workspace_id).count()
-    task_count = Task.query.filter_by(workspace_id=workspace_id).count()
-    ai_task_count = Task.query.filter_by(workspace_id=workspace_id, source="ai_pattern_engine").count()
-    unprocessed_raw = RawEvent.query.filter_by(processed_at=None).count()
-    records_found = sum(
-        cls.query.filter_by(workspace_id=workspace_id).count()
-        for cls in [Task, Goal, DecisionLog, Blocker]
-    )
-    last_llm = LLMUsageLog.query.order_by(LLMUsageLog.created_at.desc()).first()
-    meeting_notes_count = MeetingNotes.query.filter_by(workspace_id=workspace_id).count()
-    knowledge_items_count = KnowledgeItem.query.filter_by(workspace_id=workspace_id).count()
-    return jsonify({
-        "integrations_connected": integrations,
-        "activity_events_fetched": activity_events,
-        "unprocessed_events": unprocessed_raw,
-        "records_extracted": records_found,
-        "task_count": task_count,
-        "ai_task_count": ai_task_count,
-        "decision_count": decision_count,
-        "meeting_notes_count": meeting_notes_count,
-        "knowledge_items_count": knowledge_items_count,
-        "has_decision_providers": len(decision_providers) > 0,
-        "last_llm_call": last_llm.created_at.isoformat() if last_llm else None,
-    })
+    import traceback
+    try:
+        workspace_id = get_current_workspace_id(current_user_id)
+        if not workspace_id:
+            return jsonify({"error": "No active workspace"}), 400
+        from models.activity_event import ActivityEvent
+        from pattern_engine.models import RawEvent, LLMUsageLog
+
+        all_integrations = UserIntegration.query.filter_by(user_id=current_user_id).all()
+        integrations = len(all_integrations)
+        providers = list(set(i.provider for i in all_integrations))
+        decision_providers = [p for p in providers if p in ("gmail", "google", "slack", "google_calendar", "google_meet")]
+
+        activity_events = 0
+        decision_count = 0
+        task_count = 0
+        ai_task_count = 0
+        unprocessed_raw = 0
+        records_found = 0
+        meeting_notes_count = 0
+        knowledge_items_count = 0
+
+        try:
+            activity_events = ActivityEvent.query.filter_by(workspace_id=workspace_id).count()
+        except Exception:
+            pass
+        try:
+            decision_count = DecisionLog.query.filter_by(workspace_id=workspace_id).count()
+        except Exception:
+            pass
+        try:
+            task_count = Task.query.filter_by(workspace_id=workspace_id).count()
+        except Exception:
+            pass
+        try:
+            ai_task_count = Task.query.filter_by(workspace_id=workspace_id, source="ai_pattern_engine").count()
+        except Exception:
+            pass
+        try:
+            unprocessed_raw = RawEvent.query.filter_by(processed_at=None).count()
+        except Exception:
+            pass
+        try:
+            records_found = sum(
+                cls.query.filter_by(workspace_id=workspace_id).count()
+                for cls in [Task, Goal, DecisionLog, Blocker]
+            )
+        except Exception:
+            pass
+        try:
+            meeting_notes_count = MeetingNotes.query.filter_by(workspace_id=workspace_id).count()
+        except Exception:
+            pass
+        try:
+            knowledge_items_count = KnowledgeItem.query.filter_by(workspace_id=workspace_id).count()
+        except Exception:
+            pass
+
+        last_llm = None
+        try:
+            last_llm = LLMUsageLog.query.order_by(LLMUsageLog.created_at.desc()).first()
+        except Exception:
+            pass
+
+        return jsonify({
+            "integrations_connected": integrations,
+            "activity_events_fetched": activity_events,
+            "unprocessed_events": unprocessed_raw,
+            "records_extracted": records_found,
+            "task_count": task_count,
+            "ai_task_count": ai_task_count,
+            "decision_count": decision_count,
+            "meeting_notes_count": meeting_notes_count,
+            "knowledge_items_count": knowledge_items_count,
+            "has_decision_providers": len(decision_providers) > 0,
+            "last_llm_call": last_llm.created_at.isoformat() if last_llm else None,
+        })
+    except Exception as e:
+        print(f"GET /pipeline/status error: {e}\n{traceback.format_exc()}")
+        return jsonify({"error": "Pipeline status unavailable", "message": str(e)}), 500
 
 
 @pattern_engine_bp.route("/pattern-engine/notifications", methods=["POST"])
