@@ -14,7 +14,7 @@ gunicorn==23.0.0
 gevent==24.11.1
 psycopg2-binary==2.9.10
 APScheduler==3.11.0
-razorpay==1.5.1
+razorpay==1.4.2
 openai==1.65.0
 google-auth==2.38.0
 sentry-sdk==2.22.0
