@@ -24,7 +24,7 @@ def save_google_analytics_config(current_user_id):
         integration = UserIntegration(
             user_id=current_user_id,
             provider='google_analytics',
-            access_token='ga_config_placeholder',
+            access_token='pending_oauth',
             property_id=property_id
         )
         db.session.add(integration)

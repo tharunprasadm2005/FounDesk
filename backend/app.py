@@ -1,5 +1,4 @@
 from flask import Flask, request, jsonify
-from flask_cors import CORS
 from flask_wtf.csrf import CSRFProtect
 from google.oauth2 import id_token
 from google.auth.transport import requests as grequests
@@ -68,6 +67,42 @@ def add_cors_headers(response):
         response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-CSRFToken"
         response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, PATCH, DELETE, OPTIONS"
     return response
+
+
+@app.errorhandler(400)
+def bad_request(e):
+    return jsonify({"error": "Bad request", "message": str(e)}), 400
+
+
+@app.errorhandler(401)
+def unauthorized(e):
+    return jsonify({"error": "Unauthorized", "message": "Authentication required"}), 401
+
+
+@app.errorhandler(403)
+def forbidden(e):
+    return jsonify({"error": "Forbidden", "message": "You don't have permission to access this resource"}), 403
+
+
+@app.errorhandler(404)
+def not_found(e):
+    return jsonify({"error": "Not found", "message": "The requested resource was not found"}), 404
+
+
+@app.errorhandler(405)
+def method_not_allowed(e):
+    return jsonify({"error": "Method not allowed", "message": str(e)}), 405
+
+
+@app.errorhandler(429)
+def too_many_requests(e):
+    return jsonify({"error": "Rate limit exceeded", "message": "Too many requests. Please try again later."}), 429
+
+
+@app.errorhandler(500)
+def internal_error(e):
+    return jsonify({"error": "Internal server error", "message": "An unexpected error occurred"}), 500
+
 
 app.config['SECRET_KEY'] = os.getenv("SECRET_KEY")
 if not app.config['SECRET_KEY']:

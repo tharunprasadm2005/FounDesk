@@ -10,12 +10,29 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build and push Docker images
-        run: |
-          docker compose build
-          echo "Images built successfully"
+      - name: Build Docker images
+        run: docker compose build
 
-      - name: Deploy to production
+      - name: Verify images exist
         run: |
-          echo "Deploying to production..."
-          echo "Deployment complete"
+          if docker compose images -q 2>/dev/null; then
+            echo "All images built successfully"
+          else
+            echo "No images found - build may have failed"
+            exit 1
+          fi
+
+      # - name: Notify Slack
+      #   uses: slackapi/slack-github-action@v2
+      #   with:
+      #     webhook: ${{ secrets.SLACK_DEPLOY_WEBHOOK }}
+      #     webhook-type: incoming-webhook
+      #     payload: |
+      #       text: "Deploy to production complete on ${{ github.ref_name }}"
+
+      # - name: Notify deploy email
+      #   uses: dawidd6/action-send-mail@v3
+      #   with:
+      #     to: team@example.com
+      #     subject: Deploy to ${{ github.ref_name }} complete
+      #     body: Deploy triggered by ${{ github.actor }} on ${{ github.sha }}

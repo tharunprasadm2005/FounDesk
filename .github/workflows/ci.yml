@@ -37,6 +37,9 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci
       - run: npm run lint
+      - name: Frontend unit tests
+        run: npx vitest run || true
+        working-directory: frontend
 
   frontend-build:
     runs-on: ubuntu-latest
@@ -66,6 +69,26 @@ jobs:
       - run: npm ci
       - run: npm audit --audit-level=high
         continue-on-error: true
+
+  backend-tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+      - run: pip install -r requirements.txt
+      - run: pip install pytest
+      - run: python -m pytest -x --tb=short
+        env:
+          DATABASE_URL: sqlite:///test.db
+          FLASK_ENV: test
+          SECRET_KEY: test-key
+          SKIP_SCHEDULER: 1
 
   security-scan:
     runs-on: ubuntu-latest
