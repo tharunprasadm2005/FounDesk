@@ -149,7 +149,10 @@ app.register_blueprint(knowledge_bp, url_prefix='/api')
 
 @app.route('/auth/google', methods=['POST'])
 def google_auth():
+    import traceback
     data = request.get_json()
+    if not data or not data.get('token'):
+        return jsonify({"error": "Missing token"}), 400
     token = data.get('token')
 
     try:
@@ -161,8 +164,8 @@ def google_auth():
         )
 
         google_id = idinfo['sub']
-        email = idinfo['email']
-        name = idinfo['name']
+        email = idinfo.get('email', '')
+        name = idinfo.get('name', 'User')
 
         # Check if user exists by google_id or email
         user = User.query.filter_by(google_id=google_id).first()
@@ -187,16 +190,16 @@ def google_auth():
         else:
             print("USER ALREADY EXISTS")
 
-        # ✅ CREATE JWT TOKEN (BEFORE RETURN)
-        jwt_token = jwt.encode({
+        raw_token = jwt.encode({
             "user_id": user.id,
             "email": user.email,
             "exp": datetime.datetime.utcnow() + datetime.timedelta(days=1)
         }, app.config['SECRET_KEY'], algorithm="HS256")
+        jwt_token = raw_token.decode("utf-8") if isinstance(raw_token, bytes) else raw_token
 
         return jsonify({
             "message": "Login successful",
-            "token": jwt_token,   # ✅ send token
+            "token": jwt_token,
             "user": {
                 "id": user.id,
                 "email": user.email,
@@ -205,8 +208,12 @@ def google_auth():
         })
 
     except ValueError as e:
-        print("ERROR:", e)
+        print("Google auth ValueError:", e)
         return jsonify({"error": "Invalid token"}), 400
+    except Exception as e:
+        traceback.print_exc()
+        print("Google auth error:", str(e))
+        return jsonify({"error": "Authentication failed", "detail": str(e)}), 500
 
 @app.route('/auth/slack', methods=['GET'])
 def slack_auth():
