@@ -59,24 +59,27 @@ csrf.exempt("/api/billing/webhook")
 csrf.exempt("/api/health")
 limiter.init_app(app)
 
-# Auto-migrate: add missing columns if they don't exist
+# Auto-migrate: add missing model columns to existing tables
 with app.app_context():
     try:
-        from sqlalchemy import inspect, text as sa_text
-        inspector = inspect(db.engine)
-        existing = {c["name"] for c in inspector.get_columns("users")}
-        needed = {
-            "email_verified": "BOOLEAN NOT NULL DEFAULT FALSE",
-            "email_verify_token": "VARCHAR(200)",
-            "week_start_day": "VARCHAR(10) NOT NULL DEFAULT 'monday'",
+        from sqlalchemy import text as sa_text
+        _COLUMNS = {
+            "users": [
+                ("email_verified", "BOOLEAN NOT NULL DEFAULT FALSE"),
+                ("email_verify_token", "VARCHAR(200)"),
+                ("token_version", "INTEGER NOT NULL DEFAULT 0"),
+                ("week_start_day", "VARCHAR(10) NOT NULL DEFAULT 'monday'"),
+            ],
         }
-        for col, col_type in needed.items():
-            if col not in existing:
-                db.session.execute(sa_text(f"ALTER TABLE users ADD COLUMN {col} {col_type}"))
-                print(f"Added column users.{col}")
-        db.session.commit()
+        for table, cols in _COLUMNS.items():
+            for col_name, col_type in cols:
+                try:
+                    db.session.execute(sa_text(f"ALTER TABLE {table} ADD COLUMN IF NOT EXISTS {col_name} {col_type}"))
+                    db.session.commit()
+                except Exception:
+                    db.session.rollback()
     except Exception as e:
-        print(f"Auto-migration note: {e}")
+        print(f"Auto-migration init: {e}")
 
 from utils.auth import token_required
 from routes.goals import goals_bp
