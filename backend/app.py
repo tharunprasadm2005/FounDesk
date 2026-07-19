@@ -299,7 +299,7 @@ app.register_blueprint(knowledge_bp, url_prefix='/api')
 app.register_blueprint(health_bp)
 
 
-@app.route('/auth/google', methods=['POST'])
+@app.route('/api/auth/google', methods=['POST'])
 @limiter.limit("10 per minute")
 def google_auth():
     import traceback
@@ -455,13 +455,12 @@ def slack_auth_callback():
     frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
     return redirect(f"{frontend_url}/settings?status=slack_connected")
 
-@app.route('/dashboard', methods=['GET'])
+@app.route('/api/me', methods=['GET'])
 @token_required
-def dashboard(current_user_id):
+def get_current_user_info(current_user_id):
     user = User.query.get(current_user_id)
-
     return jsonify({
-        "message": "Welcome to dashboard",
+        "message": "Welcome",
         "user": {
             "id": user.id,
             "email": user.email,

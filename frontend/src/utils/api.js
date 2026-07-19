@@ -8,7 +8,7 @@ if (ENV_URL && !ENV_URL.startsWith("http://") && !ENV_URL.startsWith("https://")
   ENV_URL = "https://" + ENV_URL;
 }
 
-export const API_BASE_URL = ENV_URL && ENV_URL !== FALLBACK_URL ? ENV_URL : SAME_ORIGIN;
+export const API_BASE_URL = ENV_URL || (import.meta.env.DEV ? FALLBACK_URL : SAME_ORIGIN);
 
 const api = axios.create({
   baseURL: API_BASE_URL,

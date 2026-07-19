@@ -11,19 +11,20 @@ export default function GoogleCallback() {
     if (calledRef.current) return;
     calledRef.current = true;
 
-    const params = new URLSearchParams(window.location.hash.replace("#", "?"));
-    const idToken = params.get("id_token");
-    const error = params.get("error");
+    const hashParams = new URLSearchParams(window.location.hash.replace("#", "?"));
+    const searchParams = new URLSearchParams(window.location.search);
+    const idToken = hashParams.get("id_token") || searchParams.get("id_token");
+    const error = hashParams.get("error") || searchParams.get("error");
 
     if (error || !idToken) {
       navigate("/?error=Google sign-in failed", { replace: true });
       return;
     }
 
-    api.post("/auth/google", { token: idToken })
+    api.post("/api/auth/google", { token: idToken })
       .then((res) => {
         localStorage.setItem("token", res.data.token);
-        return api.get("/dashboard");
+        return api.get("/api/me");
       })
       .then((dashboardRes) => {
         const userData = dashboardRes.data.user;

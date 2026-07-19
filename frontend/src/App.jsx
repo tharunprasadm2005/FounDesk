@@ -49,7 +49,7 @@ function App() {
     try {
       setAuthError(null);
       const res = await axios.post(
-        `${API_BASE_URL}/auth/google`,
+        `${API_BASE_URL}/api/auth/google`,
         {
           token: credentialResponse.credential,
         }
