@@ -1,26 +1,5 @@
 {
-  "cookies": [
-    {
-      "name": "_ga",
-      "value": "GA1.1.1634581606.1784370001",
-      "domain": ".foundesk.onrender.com",
-      "path": "/",
-      "expires": 1818930000.642731,
-      "httpOnly": false,
-      "secure": false,
-      "sameSite": "Lax"
-    },
-    {
-      "name": "_ga_47XY2ZKR12",
-      "value": "GS2.1.s1784370000$o1$g0$t1784370000$j60$l0$h0",
-      "domain": ".foundesk.onrender.com",
-      "path": "/",
-      "expires": 1818930000.651334,
-      "httpOnly": false,
-      "secure": false,
-      "sameSite": "Lax"
-    }
-  ],
+  "cookies": [],
   "origins": [
     {
       "origin": "https://foundesk.onrender.com",
@@ -30,16 +9,16 @@
           "value": "e2e-test-mock-token-for-playwright"
         },
         {
-          "name": "sidebar_collapsed",
-          "value": "false"
-        },
-        {
           "name": "user",
           "value": "{\"id\":9999,\"name\":\"E2E Test User\",\"email\":\"e2e-test@foundesk-test.com\",\"picture\":\"https://ui-avatars.com/api/?name=E2E+Test+User\"}"
         },
         {
           "name": "workspaceId",
           "value": "1"
+        },
+        {
+          "name": "sidebar_collapsed",
+          "value": "false"
         }
       ]
     }

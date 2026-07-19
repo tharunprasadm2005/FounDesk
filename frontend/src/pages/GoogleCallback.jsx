@@ -1,7 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
-import { API_BASE_URL } from "../utils/api";
+import api, { API_BASE_URL } from "../utils/api";
 import { initAmplitudeFromBackend, setUserId } from "../config/amplitude";
 import { track } from "../utils/track";
 
@@ -22,19 +21,15 @@ export default function GoogleCallback() {
       return;
     }
 
-    axios.post(`${API_BASE_URL}/auth/google`, { token: idToken })
+    api.post("/auth/google", { token: idToken })
       .then((res) => {
         localStorage.setItem("token", res.data.token);
-        return axios.get(`${API_BASE_URL}/dashboard`, {
-          headers: { Authorization: `Bearer ${res.data.token}` },
-        });
+        return api.get("/dashboard");
       })
       .then((dashboardRes) => {
         const userData = dashboardRes.data.user;
         localStorage.setItem("user", JSON.stringify(userData));
-        return axios.get(`${API_BASE_URL}/api/workspaces`, {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        }).then((wsRes) => {
+        return api.get("/api/workspaces").then((wsRes) => {
           const activeWS = wsRes.data.find((w) => w.member_status === "active");
           if (activeWS) localStorage.setItem("workspaceId", activeWS.id.toString());
         }).then(() => {

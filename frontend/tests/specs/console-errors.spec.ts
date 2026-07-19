@@ -8,6 +8,8 @@ test.describe("Console and Runtime Error Detection", () => {
     for (const route of PUBLIC_ROUTES) {
       test(`${route} should have no console errors`, async ({ page, consoleErrors }) => {
         await page.goto(route, { waitUntil: "domcontentloaded" });
+        await page.evaluate(() => localStorage.clear());
+        await page.goto(route, { waitUntil: "domcontentloaded" });
         await page.locator("body").waitFor({ state: "visible", timeout: 15000 });
         await page.waitForTimeout(1000);
         const errors = consoleErrors.filter(

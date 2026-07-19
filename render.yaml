@@ -50,6 +50,8 @@ services:
           name: foundesk-backend
           type: web
           property: host
+      - key: FRONTEND_URL
+        value: https://foundesk.onrender.com
     buildFilter:
       paths:
         - frontend/**

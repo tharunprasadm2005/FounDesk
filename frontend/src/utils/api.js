@@ -1,8 +1,12 @@
 import axios from "axios";
 
 const FALLBACK_URL = "http://127.0.0.1:5000";
-const ENV_URL = import.meta.env.VITE_API_URL;
+let ENV_URL = import.meta.env.VITE_API_URL || "";
 const SAME_ORIGIN = "";
+
+if (ENV_URL && !ENV_URL.startsWith("http://") && !ENV_URL.startsWith("https://")) {
+  ENV_URL = "https://" + ENV_URL;
+}
 
 export const API_BASE_URL = ENV_URL && ENV_URL !== FALLBACK_URL ? ENV_URL : SAME_ORIGIN;
 

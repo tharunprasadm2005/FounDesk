@@ -52,6 +52,13 @@ const IGNORED_PATTERNS = [
   "intercom",
   "sendgrid",
   "twilio",
+  "fontshare",
+  "_fontshare_key",
+  "SameSite",
+  "_ga",
+  "cookie has been rejected",
+  "invalid domain",
+  "gtag",
 ];
 
 export function setupConsoleMonitor(
