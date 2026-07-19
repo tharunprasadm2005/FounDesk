@@ -340,7 +340,7 @@ def admin_db_status():
     conn.close()
     return jsonify({"table_count": len(tables), "rows": result})
 
-@app.route('/api/health', methods=['GET'])
+@app.route('/api/health', methods=['GET', 'POST', 'HEAD'])
 def health():
     return jsonify({"status": "ok"})
 
