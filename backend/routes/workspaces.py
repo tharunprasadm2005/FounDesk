@@ -314,7 +314,7 @@ def accept_invite(current_user_id, member_id):
         user_id=current_user_id,
         user_name=user.name or user.email,
         markdown_content=onboard_md,
-        created_by=member.invited_by or current_user_id,
+        created_by=getattr(member, 'invited_by', None) or current_user_id,
     )
     db.session.add(packet)
     db.session.commit()

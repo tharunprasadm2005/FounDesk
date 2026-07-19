@@ -12,7 +12,6 @@ class WorkspaceMember(db.Model):
     status = db.Column(db.String(50), default='pending', nullable=False)
     title = db.Column(db.String(255), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    invited_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True)
 
     # Relationships
     workspace = db.relationship('Workspace', backref=db.backref('memberships', lazy=True, cascade='all, delete-orphan'))
@@ -29,7 +28,6 @@ class WorkspaceMember(db.Model):
             "title": self.title,
             "created_at": (self.created_at.isoformat() + "Z") if self.created_at else None,
             "user_name": self.user.name if self.user else None,
-            "invited_by": self.invited_by
         }
 
     def __repr__(self):
