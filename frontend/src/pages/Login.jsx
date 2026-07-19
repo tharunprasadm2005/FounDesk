@@ -9,7 +9,7 @@ import Input from "../components/ui/input";
 
 const GOOGLE_CLIENT_ID = "174203078115-lgbiq9ekbd01sr82us4ulb4nsb0boc3q.apps.googleusercontent.com";
 
-function LoginContent({ handleSuccess, authError, onClearError }) {
+function LoginContent({ handleSuccess, authError, onClearError, setUser }) {
   const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
@@ -38,7 +38,10 @@ function LoginContent({ handleSuccess, authError, onClearError }) {
       const { token, refresh_token, user, workspace } = res.data;
       localStorage.setItem("token", token);
       if (refresh_token) localStorage.setItem("refresh_token", refresh_token);
-      if (user) localStorage.setItem("user", JSON.stringify(user));
+      if (user) {
+        localStorage.setItem("user", JSON.stringify(user));
+        if (setUser) setUser(user);
+      }
       if (workspace) localStorage.setItem("workspaceId", workspace.id.toString());
       
       navigate("/dashboard");

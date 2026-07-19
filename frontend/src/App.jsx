@@ -100,7 +100,7 @@ function App() {
       <Route
         path="/login"
         element={
-          user ? <Navigate to="/dashboard" replace /> : <Login handleSuccess={handleSuccess} authError={authError} onClearError={() => setAuthError(null)} />
+          user ? <Navigate to="/dashboard" replace /> : <Login handleSuccess={handleSuccess} authError={authError} onClearError={() => setAuthError(null)} setUser={setUser} />
         }
       />
       <Route
