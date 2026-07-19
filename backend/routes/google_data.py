@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify
 from utils.auth import token_required
 from models.user_integration import UserIntegration
-from services.google_service import get_calendar_events, get_gmail_messages
+from services.google_service import get_normalized_calendar_events, get_gmail_messages
 
 google_bp = Blueprint("google_bp", __name__)
 
@@ -18,7 +18,7 @@ def get_google_data(current_user_id):
 
     access_token = integration.access_token
 
-    calendar = get_calendar_events(access_token)
+    calendar = get_normalized_calendar_events(access_token)
     gmail = get_gmail_messages(access_token)
 
     return jsonify({

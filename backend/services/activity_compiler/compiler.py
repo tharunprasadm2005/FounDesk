@@ -51,11 +51,13 @@ def compile_activity_feed(workspace_id, allow_refresh=False):
 
 
 def _compile_activity_feed_impl(workspace_id):
+    lock_acquired = False
     with _compile_lock:
         if workspace_id not in _compile_locks:
             _compile_locks[workspace_id] = threading.Lock()
-        if not _compile_locks[workspace_id].acquire(blocking=False):
-            return []
+        lock_acquired = _compile_locks[workspace_id].acquire(blocking=False)
+    if not lock_acquired:
+        return []
     try:
         workspace = Workspace.query.get(workspace_id)
         if not workspace:
@@ -139,10 +141,6 @@ def _compile_activity_feed_impl(workspace_id):
         ActivityEvent.query.filter_by(workspace_id=workspace_id, provider='pipedrive', is_mock=True).delete()
         ActivityEvent.query.filter_by(workspace_id=workspace_id, provider='zoho_crm', is_mock=True).delete()
 
-        for provider, integration in connected_providers.items():
-            if provider not in ('gmail', 'google_calendar', 'google_meet', 'github', 'slack', 'notion', 'monday', 'google_docs', 'trello', 'asana', 'calendly', 'linear', 'hubspot', 'pipedrive', 'zoho_crm', 'google'):
-                continue
-
         compiled_events = []
         for data in events_to_upsert:
             existing = ActivityEvent.query.filter_by(
@@ -188,4 +186,5 @@ def _compile_activity_feed_impl(workspace_id):
         db.session.commit()
         return compiled_events
     finally:
-        _compile_locks[workspace_id].release()
+        if lock_acquired:
+            _compile_locks[workspace_id].release()

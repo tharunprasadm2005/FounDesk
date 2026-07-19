@@ -12,12 +12,8 @@ def validate_zoho_token(access_token, api_domain=None):
         url = f"{base}/crm/v2/org"
         headers = {"Authorization": f"Zoho-oauthtoken {access_token}"}
         response = requests.get(url, headers=headers, timeout=10)
-        print(f"Zoho validate: GET {url} → {response.status_code}")
-        if response.status_code != 200:
-            print(f"Zoho validate body: {response.text[:500]}")
         return response.status_code == 200
-    except Exception as e:
-        print(f"Zoho validate exception: {e}")
+    except Exception:
         return False
 
 

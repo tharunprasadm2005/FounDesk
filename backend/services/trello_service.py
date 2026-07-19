@@ -65,37 +65,27 @@ def get_trello_summary(key, token):
     # 1. Fetch boards
     boards = get_trello_boards(key, token)
     active_boards = [b for b in boards if not b.get("closed", False)]
-    print(f"[TRELLO DEBUG] Boards fetched: {len(boards)}, Active: {len(active_boards)}")
     
     total_boards = len(active_boards)
     total_cards = 0
     completed_cards = 0
     due_today_cards = 0
     
-    # Use local system date (not UTC)
-    today_date = datetime.datetime.now().date()
-    print(f"[TRELLO DEBUG] Local system today date: {today_date}")
+    today_date = datetime.datetime.utcnow().date()
     
-    # Limit boards processed to avoid hitting Trello rate limits
     for board in active_boards[:2]:
         board_id = board["id"]
         board_name = board["name"]
         
-        # 2. Fetch lists for mapping
         try:
             lists = get_trello_lists(key, token, board_id)
             list_map = {l["id"]: (l["name"] or "").lower() for l in lists}
-            print(f"[TRELLO DEBUG] Board '{board_name}' lists: {[l['name'] for l in lists]}")
-        except Exception as list_err:
-            print(f"[TRELLO DEBUG] Failed to fetch lists for board {board_name}: {list_err}")
+        except Exception:
             list_map = {}
             
-        # 3. Fetch cards
         try:
             cards = get_trello_cards(key, token, board_id)
-            print(f"[TRELLO DEBUG] Board '{board_name}' raw cards fetched: {len(cards)}")
-        except Exception as cards_err:
-            print(f"[TRELLO DEBUG] Failed to fetch cards for board {board_name}: {cards_err}")
+        except Exception:
             cards = []
             
         for card in cards:
@@ -105,28 +95,24 @@ def get_trello_summary(key, token):
             total_cards += 1
             card_name = card.get("name")
             
-            # Detect completed cards via list name
             list_id = card.get("idList")
             list_name = list_map.get(list_id, "")
             is_done = "done" in list_name
             if is_done:
                 completed_cards += 1
                 
-            # Detect due today cards using local system date
             due_str = card.get("due")
             is_due_today = False
             if due_str:
                 try:
                     clean_ts = due_str.replace("Z", "+00:00")
-                    due_dt = datetime.datetime.fromisoformat(clean_ts)
-                    due_date = due_dt.date()
-                    if due_date == today_date:
+                    parsed = datetime.datetime.fromisoformat(clean_ts)
+                    due_dt = parsed.astimezone(datetime.timezone.utc).date() if parsed.tzinfo else parsed.date()
+                    if due_dt == today_date:
                         due_today_cards += 1
                         is_due_today = True
-                except Exception as date_err:
-                    print(f"[TRELLO DEBUG] Date parsing error for card '{card_name}': {date_err}")
-                    
-            print(f"[TRELLO DEBUG] Card: '{card_name}', List: '{list_name}', Due: '{due_str}' (DueToday: {is_due_today}, Done: {is_done})")
+                except Exception:
+                    pass
             
     return {
         "totalBoards": total_boards,

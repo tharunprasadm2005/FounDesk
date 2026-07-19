@@ -21,6 +21,30 @@ import models.workspace_member
 import models.user_integration
 import models.refresh_token
 import models.activity_event
+import models.task
+import models.goal
+import models.follow_up
+import models.blocker
+import models.standup
+import models.meeting_notes
+import models.decision_log
+import models.chronicle_event
+import models.knowledge_item
+import models.invoice
+import models.handoff_packet
+import models.ai_feedback
+import models.api_key
+import models.api_key_audit
+import models.recurring_workflow
+import models.pinned_item
+import models.phase_template
+import models.notification_preference
+import models.workspace_notification
+import models.dismissed_calendar_alert
+import models.email_notification
+import models.error_log
+import models.waitlist
+import models.team_models
 
 target_metadata = db.metadata
 

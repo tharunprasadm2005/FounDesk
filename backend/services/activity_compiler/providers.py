@@ -204,7 +204,8 @@ def getGithubData(integration):
             author = integration.connected_email
             if not author:
                 return []
-            github_url = f"https://api.github.com/search/issues?q=author:{author}+is:open+updated:>2026-01-01"
+            thirty_days_ago = (datetime.utcnow() - timedelta(days=30)).strftime("%Y-%m-%d")
+            github_url = f"https://api.github.com/search/issues?q=author:{author}+is:open+updated:>{thirty_days_ago}"
             res = requests.get(github_url, headers=headers, timeout=10)
 
             if res.status_code == 200:
@@ -663,8 +664,10 @@ def getCalendlyData(integration):
                 evt_time = now
                 if evt_time_str:
                     try:
-                        clean = evt_time_str.replace("Z", "+00:00").split("+")[0]
-                        evt_time = datetime.fromisoformat(clean)
+                        parsed = datetime.fromisoformat(evt_time_str.replace("Z", "+00:00"))
+                        if parsed.tzinfo is not None:
+                            parsed = parsed.astimezone(timezone.utc).replace(tzinfo=None)
+                        evt_time = parsed
                     except Exception:
                         pass
 

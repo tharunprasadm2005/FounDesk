@@ -1,6 +1,6 @@
 import hashlib
 import re
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 NOTIFICATION_SENDERS = [
     "no-reply@", "team@mail.", "info@e.", "learn@go.",
@@ -104,13 +104,9 @@ def extract_alerts(feed):
         # 1. Meeting Alert Check (starts within 1 hour)
         if item.get("type") == "meeting" and ts_str:
             try:
-                # ISO format timestamp parsing
-                # Strip timezone if present to make comparison timezone-naive (matching datetime.utcnow())
                 clean_ts = ts_str.replace("Z", "+00:00")
-                if "+" in clean_ts:
-                    ts = datetime.fromisoformat(clean_ts).replace(tzinfo=None)
-                else:
-                    ts = datetime.fromisoformat(clean_ts)
+                parsed = datetime.fromisoformat(clean_ts)
+                ts = parsed.astimezone(datetime.timezone.utc).replace(tzinfo=None) if parsed.tzinfo else parsed
                     
                 time_diff = ts - now
                 if timedelta(seconds=0) <= time_diff <= timedelta(hours=1):

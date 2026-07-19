@@ -23,14 +23,6 @@ def detect_priority(event):
         return "high"
     return "normal"
 
-def get_calendar_events(access_token):
-    # Keep original function for compatibility with other endpoints/tests
-    url = "https://www.googleapis.com/calendar/v3/calendars/primary/events"
-    headers = {"Authorization": f"Bearer {access_token}"}
-    res = requests.get(url, headers=headers, timeout=10)
-    return res.json()
-
-
 def get_normalized_calendar_events(access_token, time_min=None, time_max=None):
     params = {
         "conferenceDataVersion": 1,
