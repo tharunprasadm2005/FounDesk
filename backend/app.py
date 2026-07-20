@@ -298,7 +298,7 @@ app.register_blueprint(team_space_bp, url_prefix='/api')
 app.register_blueprint(knowledge_bp, url_prefix='/api')
 app.register_blueprint(health_bp)
 
-
+@app.route('/auth/google', methods=['POST'])
 @app.route('/api/auth/google', methods=['POST'])
 @limiter.limit("10 per minute")
 def google_auth():
