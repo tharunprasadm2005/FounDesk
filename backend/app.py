@@ -312,11 +312,24 @@ def google_auth():
 
     try:
         google_client_id = os.getenv("GOOGLE_INTEGRATION_CLIENT_ID", "174203078115-lgbiq9ekbd01sr82us4ulb4nsb0boc3q.apps.googleusercontent.com")
-        idinfo = id_token.verify_oauth2_token(
-            token,
-            grequests.Request(),
-            google_client_id
-        )
+        idinfo = None
+        try:
+            idinfo = id_token.verify_oauth2_token(
+                token,
+                grequests.Request(),
+                google_client_id
+            )
+        except ValueError:
+            pass
+        if idinfo is None:
+            import requests as http_requests
+            resp = http_requests.get(
+                "https://www.googleapis.com/oauth2/v3/userinfo",
+                headers={"Authorization": f"Bearer {token}"}
+            )
+            if resp.status_code != 200:
+                return jsonify({"error": "Invalid token"}), 400
+            idinfo = resp.json()
 
         google_id = idinfo['sub']
         email = idinfo.get('email', '')
