@@ -2,15 +2,14 @@ import React from "react";
 
 export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode;
-  hoverEffect?: boolean;
+  padding?: string;
+  tone?: "raised" | "muted";
 }
 
-export function Card({ children, hoverEffect = true, className = "", ...props }: CardProps) {
+export function Card({ children, padding = "p-3", tone = "raised", className = "", ...props }: CardProps) {
+  const toneClass = tone === "muted" ? "fd-panel-muted" : "fd-panel";
   return (
-    <div
-      className={`card-japandi p-6 ${className}`}
-      {...props}
-    >
+    <div className={`${toneClass} ${padding} ${className}`} {...props}>
       {children}
     </div>
   );

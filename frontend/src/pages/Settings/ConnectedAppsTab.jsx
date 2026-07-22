@@ -1,8 +1,12 @@
 import { useState, useRef } from "react";
 import api from "../../utils/api";
 import { useToast } from "../../context/ToastContext";
-import { INTEGRATION_CATEGORIES, TOKEN_PROVIDERS, SETTINGS_STYLE as s } from "./SettingsConstants";
+import { INTEGRATION_CATEGORIES, TOKEN_PROVIDERS } from "./SettingsConstants";
 import { Search, Check, X, Plus } from "lucide-react";
+import { Card } from "../../components/ui/card";
+import { Button } from "../../components/ui/button";
+import { Input } from "../../components/ui/input";
+import { Inline, Stack } from "../../components/layout";
 
 export default function ConnectedAppsTab({ integrations, onIntegrationsChange, pollTimerRef }) {
   const toast = useToast();
@@ -57,59 +61,101 @@ export default function ConnectedAppsTab({ integrations, onIntegrationsChange, p
   })).filter(cat => cat.services.length > 0);
 
   return (
-    <div>
-      <div style={{ position: "relative", marginBottom: "16px", maxWidth: "320px" }}>
-        <input type="text" placeholder="Search integrations..." value={searchIntegration} onChange={e => setSearchIntegration(e.target.value)}
-          className="plan-input" style={{ width: "100%", paddingLeft: "32px", fontSize: "12.5px" }} />
-        <Search size={14} style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "var(--japandi-muted)", pointerEvents: "none" }} />
+    <div className="animate-in fade-in">
+      <div className="mb-[32px] max-w-[320px]">
+        <Input 
+          type="text" 
+          placeholder="Search integrations..." 
+          value={searchIntegration} 
+          onChange={e => setSearchIntegration(e.target.value)}
+          icon={<Search size={14} />}
+        />
       </div>
-      {filtered.map(category => (
-        <div key={category.key} style={{ marginBottom: "24px" }}>
-          <div className="card-label" style={{ margin: "24px 0 12px 4px" }}>{category.name}</div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "12px" }}>
-            {category.services.map(svc => {
-              const integ = integrations.find(i => i.provider?.toLowerCase() === svc.key);
-              const connected = integ?.connected === true;
-              if (!svc.supported) return (
-                <div key={svc.key} className="card-glass" style={{ padding: "16px", opacity: 0.45, display: "flex", flexDirection: "column", gap: 10 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                      <div style={{ width: "34px", height: "34px", borderRadius: "8px", backgroundColor: "rgba(107,107,111,0.1)", flexShrink: 0 }} />
-                      <div><div style={{ fontSize: "13px", fontWeight: 600, color: "var(--japandi-muted)" }}>{svc.name}</div><div style={{ fontSize: "10px", color: "var(--japandi-muted)" }}>Coming soon</div></div>
-                    </div>
-                  </div>
-                </div>
-              );
-              return (
-                <div key={svc.key} className="card-glass" style={{ padding: "16px", display: "flex", flexDirection: "column", gap: 10 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                      <div style={{ width: "34px", height: "34px", borderRadius: "8px", backgroundColor: connected ? "rgba(255,90,0,0.15)" : "rgba(107,107,111,0.1)", border: connected ? "1px solid rgba(255,90,0,0.2)" : "1px solid rgba(107,107,111,0.12)", flexShrink: 0 }} />
-                      <div><div style={{ fontSize: "13px", fontWeight: 600, color: "var(--japandi-text)" }}>{svc.name}</div><div style={{ fontSize: "10px", color: "var(--japandi-muted)" }}>{connected ? `Connected as ${integ.email || integ.provider}` : "Not connected"}</div></div>
-                    </div>
-                    {connected ? <span className="badge badge-positive">CONNECTED</span> : <span className="badge badge-neutral">UNLINKED</span>}
-                  </div>
-                  <div style={{ display: "flex", gap: "6px", marginTop: "12px" }}>
-                    <button onClick={() => handleConnect(svc.key)} className={connected ? "btn-outline-ember" : "btn-ember"}>{connected ? "Reconnect" : "Connect"}</button>
-                    {connected && <button onClick={() => handleDisconnect(svc.key)} className="btn-destructive-outline-sm">Disconnect</button>}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      ))}
-      {apiKeyModal.open && (
-        <div style={s.overlay} onClick={() => setApiKeyModal({ open: false, provider: "", name: "" })}>
-          <div className="card-glass" style={{ border: "1px solid var(--japandi-border)", background: "rgba(20,20,23,0.95)", backdropFilter: "blur(22px)", padding: "28px", maxWidth: "480px", width: "100%" }} onClick={e => e.stopPropagation()}>
-            <h3 style={s.modalTitle}>Connect {apiKeyModal.name}</h3>
-            <p style={{ fontSize: "13px", color: "var(--japandi-muted)", margin: "0 0 16px" }}>Enter your API key or token for {apiKeyModal.name}.</p>
-            <input type="text" placeholder="Paste your API key here" value={apiKeyInput} onChange={e => setApiKeyInput(e.target.value)} className="plan-input" style={{ width: "100%", boxSizing: "border-box" }} autoFocus />
-            <div style={{ display: "flex", gap: "8px", marginTop: "20px" }}>
-              <button onClick={handleSaveApiToken} className="btn-ember"><Check size={14} /> Connect</button>
-              <button onClick={() => setApiKeyModal({ open: false, provider: "", name: "" })} className="btn-action-secondary">Cancel</button>
+
+      <Stack gap="gap-[48px]">
+        {filtered.map(category => (
+          <div key={category.key}>
+            <h3 className="text-[12px] font-bold text-stone-400 tracking-widest uppercase mb-[16px] pl-[4px]">
+              {category.name}
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[16px]">
+              {category.services.map(svc => {
+                const integ = integrations.find(i => i.provider?.toLowerCase() === svc.key);
+                const connected = integ?.connected === true;
+
+                if (!svc.supported) return (
+                  <Card key={svc.key} padding="p-[20px]" className="opacity-50 grayscale flex flex-col gap-[16px] bg-washi-white">
+                    <Inline justify="justify-between" items="items-start">
+                      <Inline gap="gap-[12px]" items="items-center">
+                        <div className="w-[32px] h-[32px] rounded-[4px] bg-stone-100 border border-stone-200 shrink-0" />
+                        <div>
+                          <div className="text-[14px] font-medium text-stone-500 leading-none mb-[4px]">{svc.name}</div>
+                          <div className="text-[11px] text-stone-400">Coming soon</div>
+                        </div>
+                      </Inline>
+                    </Inline>
+                  </Card>
+                );
+
+                return (
+                  <Card key={svc.key} padding="p-[20px]" className={`flex flex-col gap-[16px] bg-washi-white transition-colors ${connected ? 'border-moss-600/30 shadow-sm' : 'hover:border-stone-400'}`}>
+                    <Inline justify="justify-between" items="items-start">
+                      <Inline gap="gap-[12px]" items="items-center">
+                        <div className={`w-[32px] h-[32px] rounded-[4px] shrink-0 ${connected ? 'bg-moss-600/10 border border-moss-600/20' : 'bg-stone-100 border border-stone-200'}`} />
+                        <div>
+                          <div className="text-[14px] font-medium text-sumi-900 leading-none mb-[4px]">{svc.name}</div>
+                          <div className="text-[11px] text-stone-400 line-clamp-1">{connected ? `Connected: ${integ.email || integ.provider}` : "Not connected"}</div>
+                        </div>
+                      </Inline>
+                      {connected ? (
+                        <span className="px-[8px] py-[4px] rounded-[2px] bg-moss-600/10 text-moss-600 text-[10px] font-bold tracking-wide uppercase">
+                          Connected
+                        </span>
+                      ) : (
+                        <span className="px-[8px] py-[4px] rounded-[2px] bg-stone-100 text-stone-400 text-[10px] font-bold tracking-wide uppercase">
+                          Unlinked
+                        </span>
+                      )}
+                    </Inline>
+                    <Inline gap="gap-[8px]" className="mt-auto pt-[4px]">
+                      <Button onClick={() => handleConnect(svc.key)} variant={connected ? "secondary" : "primary"} size="sm">
+                        {connected ? "Reconnect" : "Connect"}
+                      </Button>
+                      {connected && (
+                        <Button onClick={() => handleDisconnect(svc.key)} variant="secondary" size="sm" className="text-clay-500 border-clay-500/30 hover:bg-clay-500/10 hover:text-clay-500">
+                          Disconnect
+                        </Button>
+                      )}
+                    </Inline>
+                  </Card>
+                );
+              })}
             </div>
           </div>
+        ))}
+      </Stack>
+
+      {apiKeyModal.open && (
+        <div className="fixed inset-0 bg-[#2B2A27]/20 backdrop-blur-sm flex items-center justify-center z-[1000] p-4" onClick={() => setApiKeyModal({ open: false, provider: "", name: "" })}>
+          <Card padding="p-[32px]" className="w-full max-w-[480px] bg-washi-white shadow-xl" onClick={e => e.stopPropagation()}>
+            <h3 className="text-[20px] font-heading text-sumi-900 mb-[8px] m-0">Connect {apiKeyModal.name}</h3>
+            <p className="text-[13px] text-stone-500 mb-[24px]">Enter your API key or token for {apiKeyModal.name}.</p>
+            <Input 
+              type="text" 
+              placeholder="Paste your API key here" 
+              value={apiKeyInput} 
+              onChange={e => setApiKeyInput(e.target.value)} 
+              autoFocus 
+            />
+            <Inline gap="gap-[12px]" className="mt-[24px]">
+              <Button onClick={handleSaveApiToken} variant="primary">
+                <Check size={14} className="mr-1" /> Connect
+              </Button>
+              <Button onClick={() => setApiKeyModal({ open: false, provider: "", name: "" })} variant="secondary">
+                Cancel
+              </Button>
+            </Inline>
+          </Card>
         </div>
       )}
     </div>

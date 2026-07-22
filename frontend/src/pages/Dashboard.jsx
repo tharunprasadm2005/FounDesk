@@ -4,14 +4,9 @@ import {
   Target, ListChecks, Calendar
 } from "lucide-react";
 import api from "../utils/api";
-import Logo from "../components/Logo";
-import Button from "../components/ui/button";
-
-function Icon({ name, size = 18 }) {
-  const ICON_MAP = { target: Target, "list-check": ListChecks, calendar: Calendar };
-  const Comp = ICON_MAP[name] || Target;
-  return <Comp size={size} className="text-stone-400" />;
-}
+import { Button } from "../components/ui/button";
+import { Card } from "../components/ui/card";
+import { Section, Grid, Stack, Inline } from "../components/layout";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -39,7 +34,7 @@ export default function Dashboard() {
   if (loading) {
     return (
       <div className="min-h-screen bg-washi-white flex items-center justify-center">
-        <div className="text-stone-400 font-mono text-sm uppercase tracking-widest animate-pulse">
+        <div className="text-stone-400 font-mono text-[12px] uppercase tracking-widest animate-pulse">
           Compiling Briefing...
         </div>
       </div>
@@ -47,85 +42,90 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-12 py-6">
+    <Section padding="p-0" className="max-w-7xl mx-auto w-full font-ui">
       
       {/* Header */}
-      <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 reveal visible">
-        <div>
-          <p className="text-sm font-mono text-stone-400 uppercase tracking-widest mb-2">
-            {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
-          </p>
-          <h1 className="text-4xl font-heading text-sumi-900">Good morning, {user?.name?.split(' ')[0] || 'Founder'}.</h1>
-        </div>
-        <div className="flex gap-3">
-          <Button variant="secondary" size="sm">Review Yesterday</Button>
-          <Button variant="primary" size="sm">Start Execution</Button>
-        </div>
+      <header className="reveal visible mb-[96px]">
+        <Inline justify="justify-between" items="items-end" className="flex-col md:flex-row gap-[24px]">
+          <Stack gap="gap-[8px]">
+            <p className="text-[12px] m-0 font-mono text-stone-400 uppercase tracking-widest">
+              {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+            </p>
+            <h1 className="text-[32px] md:text-[40px] m-0 font-heading text-sumi-900 leading-tight">Good morning, {user?.name?.split(' ')[0] || 'Founder'}.</h1>
+          </Stack>
+          <Inline gap="gap-[12px]">
+            <Button variant="secondary" size="md">Review Yesterday</Button>
+            <Button variant="primary" size="md">Start Execution</Button>
+          </Inline>
+        </Inline>
       </header>
 
-      <div className="h-px bg-stone-200"></div>
+      <div className="h-px bg-stone-200 mb-[64px] w-full"></div>
 
-      {/* Grid Layout (2-col desktop, 1-col mobile) */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 reveal visible animate-fade-in">
+      <Grid className="reveal visible animate-fade-in" gap="gap-[32px]">
         
         {/* Primary Focus */}
-        <section className="space-y-4">
-          <h2 className="text-xs font-mono text-stone-400 uppercase tracking-widest flex items-center gap-2">
+        <Stack gap="gap-[16px]" className="col-span-4 md:col-span-8 lg:col-span-6">
+          <h2 className="text-[12px] m-0 font-mono text-stone-400 uppercase tracking-widest flex items-center gap-[8px]">
             <Target size={14} className="text-indigo-ink"/> Active Goal
           </h2>
-          <div className="card-japandi p-6 space-y-4">
-            <h3 className="text-xl font-heading">{data?.command_strip?.active_goal?.title || "Ship Q3 Product Update"}</h3>
-            <div className="w-full bg-stone-200 h-1 rounded-full overflow-hidden">
-              <div className="bg-indigo-ink h-full" style={{ width: '45%' }}></div>
-            </div>
-            <div className="flex justify-between text-sm font-mono text-stone-400">
-              <span>Progress</span>
-              <span>45%</span>
-            </div>
-          </div>
-        </section>
+          <Card padding="p-[24px]" className="h-full">
+            <Stack gap="gap-[16px]">
+              <h3 className="text-[20px] m-0 font-heading text-sumi-900">{data?.command_strip?.active_goal?.title || "Ship Q3 Product Update"}</h3>
+              <div className="w-full bg-stone-200 h-[4px] rounded-[2px] overflow-hidden">
+                <div className="bg-indigo-ink h-full rounded-[2px]" style={{ width: '45%' }}></div>
+              </div>
+              <Inline justify="justify-between" className="text-[13px] font-mono text-stone-400">
+                <span>Progress</span>
+                <span>45%</span>
+              </Inline>
+            </Stack>
+          </Card>
+        </Stack>
 
         {/* Schedule */}
-        <section className="space-y-4">
-          <h2 className="text-xs font-mono text-stone-400 uppercase tracking-widest flex items-center gap-2">
+        <Stack gap="gap-[16px]" className="col-span-4 md:col-span-8 lg:col-span-6">
+          <h2 className="text-[12px] m-0 font-mono text-stone-400 uppercase tracking-widest flex items-center gap-[8px]">
             <Calendar size={14} className="text-moss-600"/> Next Up
           </h2>
-          <div className="card-japandi p-6 space-y-4">
-            {[1, 2].map((i) => (
-              <div key={i} className="flex gap-4 items-start border-b border-stone-200 pb-4 last:border-0 last:pb-0">
-                <div className="text-sm font-mono text-stone-400 w-16 pt-1">
-                  {i === 1 ? '10:00' : '13:00'}
+          <Card padding="p-[24px]" className="h-full">
+            <Stack gap="gap-[16px]">
+              {[1, 2].map((i) => (
+                <div key={i} className="flex gap-[16px] items-start border-b border-stone-200 pb-[16px] last:border-0 last:pb-0">
+                  <div className="text-[13px] font-mono text-stone-400 w-[48px] pt-[2px]">
+                    {i === 1 ? '10:00' : '13:00'}
+                  </div>
+                  <div>
+                    <div className="font-medium text-[14px] text-sumi-900 leading-snug">{i === 1 ? 'Product Sync' : 'Deep Work Block'}</div>
+                    <div className="text-[13px] text-stone-400">Zoom • 45m</div>
+                  </div>
                 </div>
-                <div>
-                  <div className="font-medium text-sumi-900">{i === 1 ? 'Product Sync' : 'Deep Work Block'}</div>
-                  <div className="text-sm text-stone-400">Zoom • 45m</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
+              ))}
+            </Stack>
+          </Card>
+        </Stack>
 
         {/* Execution Checklist */}
-        <section className="space-y-4 lg:col-span-2">
-          <h2 className="text-xs font-mono text-stone-400 uppercase tracking-widest flex items-center gap-2">
-            <ListChecks size={14} /> Execution Checklist
+        <Stack gap="gap-[16px]" className="col-span-4 md:col-span-8 lg:col-span-12 mt-[32px]">
+          <h2 className="text-[12px] m-0 font-mono text-stone-400 uppercase tracking-widest flex items-center gap-[8px]">
+            <ListChecks size={14} className="text-stone-400" /> Execution Checklist
           </h2>
-          <div className="card-japandi p-0 overflow-hidden">
+          <Card padding="p-0" className="overflow-hidden border border-stone-200">
             {[
               "Review Q3 metrics and update dashboard",
               "Approve new landing page copy",
               "Finalize API schema for v2 release"
             ].map((task, i) => (
-              <div key={i} className="flex items-center gap-4 p-4 border-b border-stone-200 last:border-0 hover:bg-linen-100/50 transition-colors cursor-pointer group">
-                <div className="w-5 h-5 rounded-sm border border-stone-400 group-hover:border-indigo-ink flex items-center justify-center transition-colors">
+              <div key={i} className="flex items-center gap-[16px] p-[16px] border-b border-stone-200 last:border-0 hover:bg-linen-100/50 transition-colors cursor-pointer group">
+                <div className="w-[20px] h-[20px] rounded-[2px] border border-stone-400 group-hover:border-indigo-ink flex items-center justify-center transition-colors">
                 </div>
-                <span className="text-sumi-900 font-medium group-hover:text-indigo-ink transition-colors">{task}</span>
+                <span className="text-sumi-900 text-[14px] font-medium group-hover:text-indigo-ink transition-colors">{task}</span>
               </div>
             ))}
-          </div>
-        </section>
+          </Card>
+        </Stack>
 
-      </div>
-    </div>
+      </Grid>
+    </Section>
   );
 }

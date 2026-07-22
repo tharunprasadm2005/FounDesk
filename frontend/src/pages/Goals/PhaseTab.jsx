@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import api from "../../utils/api";
 import { useToast } from "../../context/ToastContext";
 import { PHASE_LABELS, renderProgressBar } from "./GoalsConstants";
+import { Stack, Inline, Card } from "../../components/layout";
 
 export default function PhaseTab({ goals }) {
   const toast = useToast();
@@ -75,11 +76,11 @@ export default function PhaseTab({ goals }) {
   };
 
   return (
-    <div className="fade-in" style={{ display: "flex", flexDirection: "column", gap: "22px" }}>
-      <div className="card-glass">
+    <Stack gap="gap-6" className="fade-in">
+      <Card padding="p-6">
         {workspace ? (
-          <div>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
+          <Stack gap="gap-6">
+            <Inline justify="justify-between" items="items-center">
               <div>
                 <h3 style={{ fontSize: "18px", fontWeight: "800", color: "var(--japandi-text)", margin: 0, fontFamily: "'Clash Display', sans-serif" }}>
                   {PHASE_LABELS[workspace.active_phase] || (workspace.active_phase || "Build").replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}
@@ -93,7 +94,7 @@ export default function PhaseTab({ goals }) {
                   {workspace.active_health.replace(/_/g, " ")}
                 </span>
               )}
-            </div>
+            </Inline>
 
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", position: "relative", margin: "32px 0 40px", padding: "0 10px" }}>
               <div style={{ position: "absolute", top: "50%", left: 0, right: 0, height: "2px", background: "rgba(255,255,255,0.03)", zIndex: 1, transform: "translateY(-50%)" }} />
@@ -130,58 +131,56 @@ export default function PhaseTab({ goals }) {
             </div>
 
             {goals.length > 0 ? (
-              <div style={{ display: "flex", flexDirection: "column", gap: "12px", borderTop: "1px solid var(--japandi-border)", paddingTop: "20px" }}>
-                <p className="card-label">
+              <Stack gap="gap-3" className="border-t border-[var(--stone-200)] pt-5">
+                <span className="text-xs font-mono text-[var(--stone-400)] uppercase tracking-widest block">
                   Phase Goals ({goals.filter(g => g.goal_type === "monthly").length} milestones, {goals.filter(g => g.goal_type === "weekly").length} sub-goals)
-                </p>
+                </span>
                 {goals.filter(g => g.goal_type === "monthly").map(goal => (
-                  <div key={goal.id} style={{
-                    border: "none",
-                    padding: "14px 0", borderBottom: "1px solid var(--japandi-border)"
-                  }}>
-                    <h5 style={{ fontSize: "14px", fontWeight: "750", color: "var(--japandi-accent)", margin: "0 0 8px", fontFamily: "'Clash Display', sans-serif" }}>
+                  <Stack key={goal.id} gap="gap-2" className="py-3 border-b border-[var(--stone-200)] last:border-b-0">
+                    <h5 className="text-sm font-heading font-bold text-[var(--sumi-900)] m-0">
                       📅 {goal.title}
                     </h5>
                     {goal.description && (
-                      <p style={{ fontSize: "12px", color: "var(--japandi-muted)", margin: "0 0 10px", lineHeight: "1.4" }}>
+                      <p className="text-xs text-[var(--stone-400)] m-0 leading-relaxed">
                         {goal.description}
                       </p>
                     )}
-                    <div style={{ fontSize: "11px", color: "var(--japandi-muted)", display: "flex", gap: "10px" }}>
-                      <span>Status: <strong style={{ color: "var(--japandi-text)", textTransform: "capitalize" }}>{goal.status}</strong></span>
+                    <Inline gap="gap-3" className="text-[11px] text-[var(--stone-400)]">
+                      <span>Status: <strong className="text-[var(--sumi-900)] capitalize">{goal.status}</strong></span>
                       {goal.progress !== undefined && goal.progress !== null && (
-                        <span>Progress: <strong style={{ color: "var(--japandi-accent)" }}>{goal.progress}%</strong></span>
+                        <span>Progress: <strong className="text-[var(--japandi-accent)]">{goal.progress}%</strong></span>
                       )}
-                    </div>
+                    </Inline>
                     {(goals.filter(g => g.goal_type === "weekly" && g.parent_id === goal.id)).length > 0 && (
-                      <div style={{ marginTop: "10px", borderLeft: "none", paddingLeft: "14px" }}>
+                      <Stack gap="gap-2" className="mt-2 pl-3">
                         {goals.filter(g => g.goal_type === "weekly" && g.parent_id === goal.id).map(wg => (
-                          <div key={wg.id} style={{ marginBottom: "8px" }}>
-                            <span style={{ fontSize: "12px", fontWeight: "700", color: "var(--japandi-text)" }}>
+                          <Stack key={wg.id} gap="gap-0.5">
+                            <span className="text-xs font-bold text-[var(--sumi-900)]">
                               📋 {wg.title}
                             </span>
-                            <div style={{ fontSize: "10px", color: "var(--japandi-muted)", marginTop: "2px" }}>
-                              Status: <strong style={{ textTransform: "capitalize", color: "var(--japandi-text)" }}>{wg.status}</strong>
-                            </div>
-                          </div>
+                            <span className="text-[10px] text-[var(--stone-400)]">
+                              Status: <strong className="capitalize text-[var(--sumi-900)]">{wg.status}</strong>
+                            </span>
+                          </Stack>
                         ))}
-                      </div>
+                      </Stack>
                     )}
-                  </div>
+                  </Stack>
                 ))}
-              </div>
+              </Stack>
             ) : (
               <p style={{ fontSize: "13px", color: "var(--japandi-muted)", margin: 0, textAlign: "center" }}>
                 No goals defined for the current phase yet. Your active phase is <strong>{PHASE_LABELS[workspace.active_phase] || (workspace.active_phase || "Build").replace(/_/g, " ")}</strong>.
               </p>
             )}
-          </div>
+            )}
+          </Stack>
         ) : (
-          <p style={{ fontSize: "13px", color: "var(--japandi-muted)", margin: 0, textAlign: "center" }}>
+          <p className="text-[13px] text-[var(--stone-400)] m-0 text-center">
             Loading workspace phase data...
           </p>
         )}
-      </div>
-    </div>
+      </Card>
+    </Stack>
   );
 }

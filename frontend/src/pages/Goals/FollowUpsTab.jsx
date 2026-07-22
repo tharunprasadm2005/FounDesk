@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 import api from "../../utils/api";
 import { useToast } from "../../context/ToastContext";
+import { Stack, Inline, Card } from "../../components/layout";
 
 export default function FollowUpsTab() {
   const toast = useToast();
@@ -32,40 +33,36 @@ export default function FollowUpsTab() {
   };
 
   return (
-    <div className="fade-in" style={{ display: "flex", flexDirection: "column", gap: "22px" }}>
-      <div className="card-glass">
+    <Stack gap="gap-6" className="fade-in">
+      <Card padding="p-6">
         {fuLoading ? (
-          <p style={{ fontSize: "13px", color: "var(--japandi-muted)", margin: 0 }}>Syncing follow-up database...</p>
+          <p className="text-[13px] text-[var(--stone-400)] m-0">Syncing follow-up database...</p>
         ) : (
-          <div style={{ display: "flex", flexDirection: "column" }}>
+          <Stack gap="gap-0">
             {followUps.length > 0 ? followUps.slice(0, 3).map((fu, idx) => (
-              <div key={fu.id} style={{
-                display: "flex", alignItems: "center", justifyContent: "space-between",
-                padding: "16px 0",
-                borderBottom: idx === Math.min(followUps.length, 3) - 1 ? "none" : "1px solid var(--japandi-border)",
-              }}>
-                <span style={{ fontSize: "13.5px", color: "var(--japandi-text)", fontWeight: "500" }}>
+              <Inline key={fu.id} justify="justify-between" items="items-center" className={`py-4 ${idx === Math.min(followUps.length, 3) - 1 ? "" : "border-b border-[var(--stone-200)]"}`}>
+                <span className="text-[13.5px] text-[var(--japandi-text)] font-medium">
                   {fu.person_name} — {fu.last_contact_date ? `Last contact ${daysAgo(fu.last_contact_date)}` : "No contact logged"}
                 </span>
-                <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+                <Inline gap="gap-3" items="items-center">
                   <button onClick={() => handleFuStatus(fu.id, "completed")}
-                    style={{ fontSize: "11.5px", color: "var(--japandi-bg)", background: "var(--japandi-accent)", padding: "6px 12px", borderRadius: "8px", cursor: "pointer", fontWeight: "750", border: "none" }}>
+                    style={{ fontSize: "11.5px", color: "var(--washi-white)", background: "var(--japandi-accent)", padding: "6px 12px", borderRadius: "8px", cursor: "pointer", fontWeight: "750", border: "none" }}>
                     Logged Follow-up
                   </button>
                   <button onClick={() => handleFuStatus(fu.id, "dismissed")}
-                    style={{ fontSize: "11.5px", color: "var(--japandi-muted)", background: "transparent", cursor: "pointer", border: "none", fontWeight: "600" }}>
+                    style={{ fontSize: "11.5px", color: "var(--stone-400)", background: "transparent", cursor: "pointer", border: "none", fontWeight: "600" }}>
                     Dismiss
                   </button>
-                </div>
-              </div>
+                </Inline>
+              </Inline>
             )) : (
-              <p style={{ fontSize: "13px", color: "var(--japandi-muted)", margin: 0, padding: "20px 0", textAlign: "center" }}>
+              <p className="text-[13px] text-[var(--stone-400)] m-0 py-5 text-center">
                 All relationship follow-ups are up to date.
               </p>
             )}
-          </div>
+          </Stack>
         )}
-      </div>
-    </div>
+      </Card>
+    </Stack>
   );
 }

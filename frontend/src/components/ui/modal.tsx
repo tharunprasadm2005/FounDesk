@@ -13,17 +13,13 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
   useEffect(() => {
     if (!isOpen) return;
 
-    // Body scroll lock + Lenis scroll prevent
     document.body.style.overflow = "hidden";
-    document.body.setAttribute("data-lenis-prevent", "true");
 
-    // Escape listener
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     };
     window.addEventListener("keydown", handleKeyDown);
 
-    // Focus trap
     const focusableElements = modalRef.current?.querySelectorAll(
       'button, [href], input, select, textarea, [tabindex="0"]'
     );
@@ -33,7 +29,6 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
 
     return () => {
       document.body.style.overflow = "";
-      document.body.removeAttribute("data-lenis-prevent");
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [isOpen, onClose]);
@@ -42,24 +37,29 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
 
   return (
     <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-[var(--surface-overlay)] p-3 fd-enter"
       onClick={onClose}
+      role="presentation"
     >
       <div
         ref={modalRef}
-        className="card-japandi w-full max-w-[480px] flex flex-col gap-4 relative animate-in fade-in zoom-in-95 duration-200"
+        className="fd-panel relative flex max-h-[min(760px,calc(100vh-48px))] w-full max-w-[520px] flex-col overflow-hidden bg-[var(--surface-raised)]"
         onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-title"
       >
-        <div className="flex items-center justify-between pb-4 border-b border-border">
-          <h2 className="text-lg font-heading m-0">{title}</h2>
+        <div className="flex items-center justify-between border-b border-[var(--border-subtle)] p-3">
+          <h2 id="modal-title" className="font-ui text-[16px] font-medium tracking-[0]">{title}</h2>
           <button
             onClick={onClose}
-            className="text-stone-400 hover:text-foreground text-xl leading-none transition-colors"
+            className="fd-button h-[32px] min-h-0 w-[32px] p-0 text-[var(--text-muted)]"
+            aria-label="Close dialog"
           >
             &times;
           </button>
         </div>
-        <div className="flex-1 overflow-y-auto custom-scroll">
+        <div className="flex-1 overflow-y-auto p-3">
           {children}
         </div>
       </div>

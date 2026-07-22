@@ -2,15 +2,18 @@ import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../utils/api";
 import { useToast } from "../../context/ToastContext";
-import { FONT_SANS, SETTINGS_STYLE as s } from "./SettingsConstants";
 import {
   Camera, ShieldCheck, Edit, Lock, Shield, Monitor, Link, Download, Key,
   Trash2, Check, X, Smartphone, LogOut, Save, Copy
 } from "lucide-react";
+import { Card } from "../../components/ui/card";
+import { Button } from "../../components/ui/button";
+import { Input } from "../../components/ui/input";
+import { Inline, Stack } from "../../components/layout";
 
 export default function AccountTab() {
   const navigate = useNavigate();
-  const toast = useToast();
+  const { toast } = useToast();
   let currentUser = {};
   try { currentUser = JSON.parse(localStorage.getItem("user") || "{}"); } catch (err) { console.error("[Settings] Failed to parse user from localStorage:", err); }
 
@@ -131,183 +134,231 @@ export default function AccountTab() {
   const score = Math.round((profileComplete / 4) * 100);
 
   return (
-    <div>
-      <div className="card-glass" style={{ padding: "24px", marginBottom: "12px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "20px" }}>
-          <div style={{ position: "relative" }}>
-            <div style={{ width: "56px", height: "56px", borderRadius: "14px", backgroundColor: "rgba(255,90,0,0.15)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--japandi-accent)", fontWeight: 700, fontSize: "20px", border: "1px solid rgba(255,90,0,0.2)" }}>
-              {(currentUser.name || currentUser.email || "U")[0].toUpperCase()}
-            </div>
-            <input type="file" accept="image/*" ref={avatarFileRef} onChange={handleAvatarUpload} style={{ display: "none" }} />
-            <button onClick={() => avatarFileRef.current?.click()} style={{ position: "absolute", bottom: "-2px", right: "-2px", width: "20px", height: "20px", borderRadius: "50%", backgroundColor: "var(--japandi-accent)", border: "2px solid #18181b", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }} title="Upload photo">
-              <Camera size={10} style={{ color: "#fff" }} />
-            </button>
-          </div>
-          <div style={{ flex: 1 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              <span style={{ fontSize: "17px", fontWeight: 700, color: "var(--japandi-text)", fontFamily: FONT_SANS }}>{currentUser.name || "User"}</span>
-              {currentUser.totp_enabled && <ShieldCheck size={14} style={{ color: "#4ade80" }} />}
-            </div>
-            <div style={{ fontSize: "12px", color: "var(--japandi-muted)" }}>{currentUser.email}</div>
-          </div>
-          <div style={{ textAlign: "right" }}>
-            <div style={{ fontSize: "11px", color: "var(--japandi-muted)", marginBottom: "4px" }}>Profile</div>
-            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-              <div style={{ width: "60px", height: "4px", backgroundColor: "rgba(107,107,111,0.15)", borderRadius: "2px", overflow: "hidden" }}>
-                <div style={{ height: "100%", width: `${score}%`, backgroundColor: score === 100 ? "#4ade80" : "var(--japandi-accent)", borderRadius: "2px", transition: "width 0.3s" }} />
+    <div className="animate-in fade-in">
+      <Card padding="p-[32px]" className="mb-[24px] bg-washi-white">
+        <Inline items="items-center" justify="justify-between" className="mb-[32px] flex-wrap gap-[24px]">
+          <Inline items="items-center" gap="gap-[24px]">
+            <div className="relative">
+              <div className="w-[64px] h-[64px] rounded-[16px] bg-clay-500/10 flex items-center justify-center text-clay-500 font-bold text-[24px] font-heading border border-clay-500/20">
+                {(currentUser.name || currentUser.email || "U")[0].toUpperCase()}
               </div>
-              <span style={{ fontSize: "10px", color: "var(--japandi-muted)", fontWeight: 600 }}>{score}%</span>
+              <input type="file" accept="image/*" ref={avatarFileRef} onChange={handleAvatarUpload} className="hidden" />
+              <button onClick={() => avatarFileRef.current?.click()} className="absolute -bottom-1 -right-1 w-[24px] h-[24px] rounded-full bg-clay-500 border-[2px] border-washi-white flex items-center justify-center cursor-pointer hover:bg-clay-600 transition-colors" title="Upload photo">
+                <Camera size={12} className="text-white" />
+              </button>
             </div>
+            <div>
+              <Inline items="items-center" gap="gap-[8px]">
+                <span className="text-[20px] font-heading text-sumi-900 leading-none">{currentUser.name || "User"}</span>
+                {currentUser.totp_enabled && <ShieldCheck size={16} className="text-moss-600" />}
+              </Inline>
+              <div className="text-[13px] text-stone-500 mt-[4px] font-mono tracking-wide">{currentUser.email}</div>
+            </div>
+          </Inline>
+          
+          <div className="text-right">
+            <div className="text-[10px] font-bold text-stone-400 tracking-widest uppercase mb-[8px]">Profile Completion</div>
+            <Inline items="items-center" gap="gap-[12px]">
+              <div className="w-[80px] h-[4px] bg-stone-200 rounded-full overflow-hidden">
+                <div className={`h-full rounded-full transition-all duration-500 ${score === 100 ? "bg-moss-600" : "bg-clay-500"}`} style={{ width: `${score}%` }} />
+              </div>
+              <span className="text-[11px] font-bold font-mono text-stone-500">{score}%</span>
+            </Inline>
           </div>
-        </div>
+        </Inline>
 
         {editingProfile ? (
-          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-              <div><label style={s.label}>Name</label><input type="text" value={profileForm.name} onChange={e => setProfileForm(p => ({ ...p, name: e.target.value }))} className="plan-input" style={{ width: "100%", boxSizing: "border-box" }} /></div>
-              <div><label style={s.label}>Email</label><input type="email" value={profileForm.email} onChange={e => setProfileForm(p => ({ ...p, email: e.target.value }))} className="plan-input" style={{ width: "100%", boxSizing: "border-box" }} /></div>
+          <Stack gap="gap-[24px]" className="animate-in slide-in-from-top-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-[16px]">
+              <div>
+                <label className="block text-[11px] font-bold text-stone-400 tracking-widest uppercase mb-[8px]">Name</label>
+                <Input type="text" value={profileForm.name} onChange={e => setProfileForm(p => ({ ...p, name: e.target.value }))} />
+              </div>
+              <div>
+                <label className="block text-[11px] font-bold text-stone-400 tracking-widest uppercase mb-[8px]">Email</label>
+                <Input type="email" value={profileForm.email} onChange={e => setProfileForm(p => ({ ...p, email: e.target.value }))} />
+              </div>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-              <div><label style={s.label}>Timezone</label>
-                <select value={profileForm.timezone} onChange={e => setProfileForm(p => ({ ...p, timezone: e.target.value }))} className="plan-select" style={{ width: "100%", height: "40px" }}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-[16px]">
+              <div>
+                <label className="block text-[11px] font-bold text-stone-400 tracking-widest uppercase mb-[8px]">Timezone</label>
+                <select value={profileForm.timezone} onChange={e => setProfileForm(p => ({ ...p, timezone: e.target.value }))} className="w-full h-[40px] px-[12px] rounded-[4px] border border-stone-200 bg-washi-white text-[13px] text-sumi-900 outline-none focus:border-sumi-900 transition-colors">
                   {["UTC", "America/New_York", "America/Chicago", "America/Denver", "America/Los_Angeles", "Europe/London", "Europe/Berlin", "Asia/Kolkata", "Asia/Tokyo", "Asia/Shanghai", "Australia/Sydney"].map(tz => <option key={tz} value={tz}>{tz}</option>)}
                 </select>
               </div>
-              <div><label style={s.label}>Locale</label>
-                <select value={profileForm.locale} onChange={e => setProfileForm(p => ({ ...p, locale: e.target.value }))} className="plan-select" style={{ width: "100%", height: "40px" }}>
+              <div>
+                <label className="block text-[11px] font-bold text-stone-400 tracking-widest uppercase mb-[8px]">Locale</label>
+                <select value={profileForm.locale} onChange={e => setProfileForm(p => ({ ...p, locale: e.target.value }))} className="w-full h-[40px] px-[12px] rounded-[4px] border border-stone-200 bg-washi-white text-[13px] text-sumi-900 outline-none focus:border-sumi-900 transition-colors">
                   {["en-US", "en-GB", "de-DE", "fr-FR", "es-ES", "ja-JP", "zh-CN", "hi-IN"].map(l => <option key={l} value={l}>{l}</option>)}
                 </select>
               </div>
             </div>
-            <div style={{ display: "flex", gap: "8px" }}>
-              <button onClick={handleSaveProfile} className="btn-ember"><Save size={14} /> Save Changes</button>
-              <button onClick={() => { setEditingProfile(false); setProfileForm({ name: "", email: "", timezone: "", locale: "" }); }} className="btn-action-secondary">Cancel</button>
-            </div>
-          </div>
+            <Inline gap="gap-[12px]" className="pt-[8px]">
+              <Button onClick={handleSaveProfile} variant="primary"><Save size={14} className="mr-1" /> Save Changes</Button>
+              <Button onClick={() => { setEditingProfile(false); setProfileForm({ name: "", email: "", timezone: "", locale: "" }); }} variant="secondary">Cancel</Button>
+            </Inline>
+          </Stack>
         ) : (
-          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-            <button onClick={() => { setProfileForm({ name: currentUser.name || "", email: currentUser.email || "", timezone: currentUser.timezone || "UTC", locale: currentUser.locale || "en-US" }); setEditingProfile(true); }} className="btn-outline-ember"><Edit size={14} /> Edit Profile</button>
-            <button onClick={() => { setShowPasswordChange(true); setPasswordForm({ current_password: "", new_password: "", confirm: "" }); }} className="btn-action-secondary"><Lock size={14} /> Password</button>
-            <button onClick={handleSetup2FA} className="btn-action-secondary"><Shield size={14} /> {currentUser.totp_enabled ? "2FA Active" : "Setup 2FA"}</button>
-            <button onClick={() => { fetchSessions(); setShowSessions(!showSessions); }} className="btn-action-secondary"><Monitor size={14} /> Sessions</button>
-            <button onClick={() => { fetchConnectedAccounts(); setShowConnectedAccounts(!showConnectedAccounts); }} className="btn-action-secondary"><Link size={14} /> Connected Accounts</button>
-            <button onClick={handleExportData} className="btn-action-secondary"><Download size={14} /> Export Data</button>
-            {currentUser.totp_enabled && <button onClick={handleFetchRecoveryCodes} className="btn-action-secondary"><Key size={14} /> Recovery Codes</button>}
-            <button onClick={() => setShowDeleteConfirm(true)} className="btn-destructive-outline"><Trash2 size={14} /> Delete Account</button>
-          </div>
+          <Inline gap="gap-[12px]" className="flex-wrap pt-[24px] border-t border-stone-200">
+            <Button onClick={() => { setProfileForm({ name: currentUser.name || "", email: currentUser.email || "", timezone: currentUser.timezone || "UTC", locale: currentUser.locale || "en-US" }); setEditingProfile(true); }} variant="primary">
+              <Edit size={14} className="mr-1" /> Edit Profile
+            </Button>
+            <Button onClick={() => { setShowPasswordChange(true); setPasswordForm({ current_password: "", new_password: "", confirm: "" }); }} variant="secondary">
+              <Lock size={14} className="mr-1" /> Password
+            </Button>
+            <Button onClick={currentUser.totp_enabled ? handleDisable2FA : handleSetup2FA} variant="secondary">
+              <Shield size={14} className="mr-1" /> {currentUser.totp_enabled ? "Disable 2FA" : "Setup 2FA"}
+            </Button>
+            <Button onClick={() => { fetchSessions(); setShowSessions(!showSessions); }} variant={showSessions ? "primary" : "secondary"}>
+              <Monitor size={14} className="mr-1" /> Sessions
+            </Button>
+            <Button onClick={() => { fetchConnectedAccounts(); setShowConnectedAccounts(!showConnectedAccounts); }} variant={showConnectedAccounts ? "primary" : "secondary"}>
+              <Link size={14} className="mr-1" /> Connected Accounts
+            </Button>
+            <Button onClick={handleExportData} variant="secondary">
+              <Download size={14} className="mr-1" /> Export Data
+            </Button>
+            {currentUser.totp_enabled && (
+              <Button onClick={handleFetchRecoveryCodes} variant="secondary">
+                <Key size={14} className="mr-1" /> Recovery Codes
+              </Button>
+            )}
+            <Button onClick={() => setShowDeleteConfirm(true)} variant="secondary" className="text-clay-500 border-clay-500/30 hover:bg-clay-500/10 hover:text-clay-500 ml-auto">
+              <Trash2 size={14} className="mr-1" /> Delete Account
+            </Button>
+          </Inline>
         )}
-      </div>
+      </Card>
 
       {show2FA && totpData && (
-        <div className="card-glass" style={{ padding: "20px", marginBottom: "12px" }}>
-          <h4 style={{ fontSize: "14px", fontWeight: 700, color: "var(--japandi-text)", margin: "0 0 12px" }}>Set Up Two-Factor Authentication</h4>
+        <Card padding="p-[32px]" className="mb-[24px] bg-washi-white animate-in slide-in-from-top-2">
+          <h4 className="text-[16px] font-heading text-sumi-900 mb-[24px] m-0">Set Up Two-Factor Authentication</h4>
           {totpData.otpauth_url && (
-            <div style={{ marginBottom: "12px" }}>
-              <div style={{ fontSize: "12px", color: "var(--japandi-muted)", marginBottom: "8px" }}>Scan this QR code with your authenticator app:</div>
-              <div style={{ padding: "12px", backgroundColor: "rgba(0,0,0,0.3)", borderRadius: "8px", textAlign: "center", fontFamily: "monospace", fontSize: "11px", color: "var(--japandi-text)", wordBreak: "break-all" }}>
+            <div className="mb-[24px]">
+              <div className="text-[13px] text-stone-500 mb-[16px]">Scan this QR code with your authenticator app:</div>
+              <div className="p-[24px] bg-linen-100 border border-stone-200 rounded-[8px] text-center font-mono text-[12px] text-stone-500 break-all leading-relaxed shadow-inner">
                 {totpData.otpauth_url}
               </div>
             </div>
           )}
-          <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-            <input type="text" placeholder="Enter 6-digit code" value={totpCode} onChange={e => setTotpCode(e.target.value)} className="plan-input" style={{ maxWidth: "200px" }} />
-            <button onClick={handleVerify2FA} className="btn-ember"><Check size={14} /> Verify</button>
-            <button onClick={() => { setShow2FA(false); setTotpData(null); setTotpCode(""); }} className="btn-action-secondary">Cancel</button>
-          </div>
-        </div>
+          <Inline gap="gap-[12px]" items="items-center">
+            <Input type="text" placeholder="Enter 6-digit code" value={totpCode} onChange={e => setTotpCode(e.target.value)} />
+            <Button onClick={handleVerify2FA} variant="primary"><Check size={14} className="mr-1" /> Verify</Button>
+            <Button onClick={() => { setShow2FA(false); setTotpData(null); setTotpCode(""); }} variant="secondary">Cancel</Button>
+          </Inline>
+        </Card>
       )}
 
       {showRecoveryCodes && (
-        <div className="card-glass" style={{ padding: "20px", marginBottom: "12px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-            <h4 style={{ fontSize: "14px", fontWeight: 700, color: "var(--japandi-text)", margin: 0 }}>Recovery Codes</h4>
-            <button onClick={() => { setShowRecoveryCodes(false); setRecoveryCodes([]); }} className="btn-action-secondary" style={{ padding: "4px" }}><X size={14} /></button>
-          </div>
-          <p style={{ fontSize: "11px", color: "#ef4444", margin: "0 0 12px", fontWeight: 600 }}>Store these safely — they won't be shown again.</p>
-          <div style={{ fontFamily: "monospace", fontSize: "13px", backgroundColor: "rgba(0,0,0,0.3)", padding: "12px", borderRadius: "8px", lineHeight: 1.8 }}>
+        <Card padding="p-[32px]" className="mb-[24px] bg-washi-white animate-in slide-in-from-top-2">
+          <Inline justify="justify-between" items="items-center" className="mb-[24px]">
+            <h4 className="text-[16px] font-heading text-sumi-900 m-0">Recovery Codes</h4>
+            <button onClick={() => { setShowRecoveryCodes(false); setRecoveryCodes([]); }} className="bg-transparent border-none text-stone-400 hover:text-sumi-900 cursor-pointer p-0 outline-none"><X size={16} /></button>
+          </Inline>
+          <p className="text-[12px] text-clay-500 mb-[24px] font-bold uppercase tracking-wide">Store these safely — they won't be shown again.</p>
+          <div className="font-mono text-[14px] bg-linen-100 border border-stone-200 p-[24px] rounded-[8px] leading-loose text-sumi-900 shadow-inner">
             {recoveryCodes.length === 0 ? (
-              <span style={{ color: "var(--japandi-muted)" }}>No codes available.</span>
+              <span className="text-stone-400 italic">No codes available.</span>
             ) : recoveryCodes.map((code, i) => (
-              <div key={i} style={{ color: "var(--japandi-text)" }}>{code}</div>
+              <div key={i}>{code}</div>
             ))}
           </div>
           {recoveryCodes.length > 0 && (
-            <button onClick={() => { copyToClipboard(recoveryCodes.join("\n")); toast("Copied!", "success"); }} className="btn-action-secondary" style={{ marginTop: "10px", fontSize: "11px", padding: "6px 12px" }}>
-              <Copy size={12} /> Copy All
-            </button>
+            <div className="mt-[24px]">
+              <Button onClick={() => { copyToClipboard(recoveryCodes.join("\n")); toast("Copied!", "success"); }} variant="secondary">
+                <Copy size={14} className="mr-1" /> Copy All
+              </Button>
+            </div>
           )}
-        </div>
+        </Card>
       )}
 
       {showSessions && (
-        <div className="card-glass" style={{ padding: "16px", marginBottom: "12px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-            <span className="card-label" style={{ margin: 0 }}>Active Sessions</span>
-            <button onClick={() => setShowSessions(false)} className="btn-action-secondary" style={{ padding: "4px" }}><X size="12" /></button>
-          </div>
-          {sessions.length === 0 ? (
-            <div style={{ fontSize: "12px", color: "var(--japandi-muted)" }}>No active sessions found.</div>
-          ) : sessions.map(s => (
-            <div key={s.id} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "8px 0", borderBottom: "1px solid rgba(107,107,111,0.06)", fontSize: "12px" }}>
-              <Smartphone size={14} style={{ color: "var(--japandi-muted)" }} />
-              <div style={{ flex: 1 }}>
-                <div style={{ color: "var(--japandi-text)", fontWeight: 600 }}>{s.device || s.user_agent || "Unknown device"}</div>
-                <div style={{ color: "var(--japandi-muted)", fontSize: "10px" }}>{s.ip_address || ""} · Last active: {s.last_active_at ? new Date(s.last_active_at).toLocaleDateString() : "now"}</div>
-              </div>
-              <button onClick={() => handleRevokeSession(s.id)} className="btn-destructive-outline-sm"><LogOut size={12} /></button>
-            </div>
-          ))}
-        </div>
+        <Card padding="p-[32px]" className="mb-[24px] bg-washi-white animate-in slide-in-from-top-2">
+          <Inline justify="justify-between" items="items-center" className="mb-[24px]">
+            <h4 className="text-[12px] font-bold text-stone-400 tracking-widest uppercase m-0">Active Sessions</h4>
+            <button onClick={() => setShowSessions(false)} className="bg-transparent border-none text-stone-400 hover:text-sumi-900 cursor-pointer p-0 outline-none"><X size={16} /></button>
+          </Inline>
+          <Stack gap="gap-[0]">
+            {sessions.length === 0 ? (
+              <p className="text-[13px] text-stone-400 italic m-0">No active sessions found.</p>
+            ) : sessions.map((s, i) => (
+              <Inline key={s.id} items="items-center" gap="gap-[16px]" className={`py-[16px] ${i !== sessions.length - 1 ? "border-b border-stone-200" : ""}`}>
+                <div className="w-[32px] h-[32px] rounded-[4px] bg-stone-100 flex items-center justify-center shrink-0">
+                  <Smartphone size={16} className="text-stone-400" />
+                </div>
+                <div className="flex-1">
+                  <div className="text-[14px] font-medium text-sumi-900 mb-[4px]">{s.device || s.user_agent || "Unknown device"}</div>
+                  <div className="text-[12px] text-stone-400 font-mono tracking-wide">{s.ip_address || ""} · Last active: {s.last_active_at ? new Date(s.last_active_at).toLocaleDateString() : "now"}</div>
+                </div>
+                <Button onClick={() => handleRevokeSession(s.id)} variant="secondary" size="icon" className="text-clay-500 border-clay-500/30 hover:bg-clay-500/10 hover:text-clay-500"><LogOut size={14} /></Button>
+              </Inline>
+            ))}
+          </Stack>
+        </Card>
       )}
 
       {showConnectedAccounts && (
-        <div className="card-glass" style={{ padding: "16px", marginBottom: "12px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-            <span className="card-label" style={{ margin: 0 }}>Connected Accounts</span>
-            <button onClick={() => setShowConnectedAccounts(false)} className="btn-action-secondary" style={{ padding: "4px" }}><X size="12" /></button>
-          </div>
-          {connectedAccounts.length === 0 ? (
-            <div style={{ fontSize: "12px", color: "var(--japandi-muted)" }}>No connected accounts. Link Google, GitHub, or Slack from Connected Apps.</div>
-          ) : connectedAccounts.map(a => (
-            <div key={a.provider || a.id} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "8px 0", borderBottom: "1px solid rgba(107,107,111,0.06)", fontSize: "12px" }}>
-              <div style={{ width: "28px", height: "28px", borderRadius: "6px", backgroundColor: "rgba(255,90,0,0.1)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--japandi-accent)", fontSize: "10px", fontWeight: 700, textTransform: "uppercase" }}>
-                {(a.provider || "?")[0]}
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ color: "var(--japandi-text)", fontWeight: 600, textTransform: "capitalize" }}>{a.provider}</div>
-                <div style={{ color: "var(--japandi-muted)", fontSize: "10px" }}>{a.email || a.name || ""}</div>
-              </div>
-              <span className="badge badge-positive">Connected</span>
-            </div>
-          ))}
-        </div>
+        <Card padding="p-[32px]" className="mb-[24px] bg-washi-white animate-in slide-in-from-top-2">
+          <Inline justify="justify-between" items="items-center" className="mb-[24px]">
+            <h4 className="text-[12px] font-bold text-stone-400 tracking-widest uppercase m-0">Connected Accounts</h4>
+            <button onClick={() => setShowConnectedAccounts(false)} className="bg-transparent border-none text-stone-400 hover:text-sumi-900 cursor-pointer p-0 outline-none"><X size={16} /></button>
+          </Inline>
+          <Stack gap="gap-[0]">
+            {connectedAccounts.length === 0 ? (
+              <p className="text-[13px] text-stone-400 italic m-0">No connected accounts. Link Google, GitHub, or Slack from Connected Apps.</p>
+            ) : connectedAccounts.map((a, i) => (
+              <Inline key={a.provider || a.id} items="items-center" gap="gap-[16px]" className={`py-[16px] ${i !== connectedAccounts.length - 1 ? "border-b border-stone-200" : ""}`}>
+                <div className="w-[32px] h-[32px] rounded-[4px] bg-stone-100 flex items-center justify-center font-heading font-bold text-[14px] text-stone-500 shrink-0 uppercase">
+                  {(a.provider || "?")[0]}
+                </div>
+                <div className="flex-1">
+                  <div className="text-[14px] font-medium text-sumi-900 mb-[4px] capitalize">{a.provider}</div>
+                  <div className="text-[12px] text-stone-400 font-mono tracking-wide">{a.email || a.name || ""}</div>
+                </div>
+                <span className="px-[8px] py-[4px] rounded-[2px] bg-moss-600/10 text-moss-600 border border-moss-600/20 text-[10px] font-bold tracking-wide uppercase">Connected</span>
+              </Inline>
+            ))}
+          </Stack>
+        </Card>
       )}
 
       {showPasswordChange && (
-        <div style={s.overlay} onClick={() => setShowPasswordChange(false)}>
-          <div className="card-glass" style={{ border: "1px solid var(--japandi-border)", background: "rgba(20,20,23,0.95)", backdropFilter: "blur(22px)", padding: "28px", maxWidth: "480px", width: "100%" }} onClick={e => e.stopPropagation()}>
-            <h3 style={s.modalTitle}>Change Password</h3>
-            <div style={s.field}><label style={s.label}>Current Password</label><input type="password" value={passwordForm.current_password} onChange={e => setPasswordForm(p => ({ ...p, current_password: e.target.value }))} className="plan-input" style={{ width: "100%", boxSizing: "border-box" }} /></div>
-            <div style={s.field}><label style={s.label}>New Password</label><input type="password" value={passwordForm.new_password} onChange={e => setPasswordForm(p => ({ ...p, new_password: e.target.value }))} className="plan-input" style={{ width: "100%", boxSizing: "border-box" }} /></div>
-            <div style={s.field}><label style={s.label}>Confirm New Password</label><input type="password" value={passwordForm.confirm} onChange={e => setPasswordForm(p => ({ ...p, confirm: e.target.value }))} className="plan-input" style={{ width: "100%", boxSizing: "border-box" }} /></div>
-            <div style={{ display: "flex", gap: "8px", marginTop: "16px" }}>
-              <button onClick={handleChangePassword} className="btn-ember"><Check size={14} /> Update Password</button>
-              <button onClick={() => { setShowPasswordChange(false); setPasswordForm({ current_password: "", new_password: "", confirm: "" }); }} className="btn-action-secondary">Cancel</button>
-            </div>
-          </div>
+        <div className="fixed inset-0 bg-[#2B2A27]/20 backdrop-blur-sm flex items-center justify-center z-[1000] p-4" onClick={() => setShowPasswordChange(false)}>
+          <Card padding="p-[32px]" className="w-full max-w-[480px] bg-washi-white shadow-xl" onClick={e => e.stopPropagation()}>
+            <h3 className="text-[20px] font-heading text-sumi-900 mb-[24px] m-0">Change Password</h3>
+            <Stack gap="gap-[16px]">
+              <div>
+                <label className="block text-[11px] font-bold text-stone-400 tracking-widest uppercase mb-[8px]">Current Password</label>
+                <Input type="password" value={passwordForm.current_password} onChange={e => setPasswordForm(p => ({ ...p, current_password: e.target.value }))} />
+              </div>
+              <div>
+                <label className="block text-[11px] font-bold text-stone-400 tracking-widest uppercase mb-[8px]">New Password</label>
+                <Input type="password" value={passwordForm.new_password} onChange={e => setPasswordForm(p => ({ ...p, new_password: e.target.value }))} />
+              </div>
+              <div>
+                <label className="block text-[11px] font-bold text-stone-400 tracking-widest uppercase mb-[8px]">Confirm New Password</label>
+                <Input type="password" value={passwordForm.confirm} onChange={e => setPasswordForm(p => ({ ...p, confirm: e.target.value }))} />
+              </div>
+              <Inline gap="gap-[12px]" className="mt-[8px]">
+                <Button onClick={handleChangePassword} variant="primary"><Check size={14} className="mr-1" /> Update Password</Button>
+                <Button onClick={() => { setShowPasswordChange(false); setPasswordForm({ current_password: "", new_password: "", confirm: "" }); }} variant="secondary">Cancel</Button>
+              </Inline>
+            </Stack>
+          </Card>
         </div>
       )}
 
       {showDeleteConfirm && (
-        <div style={s.overlay} onClick={() => setShowDeleteConfirm(false)}>
-          <div className="card-glass" style={{ border: "1px solid var(--japandi-border)", background: "rgba(20,20,23,0.95)", backdropFilter: "blur(22px)", padding: "28px", maxWidth: "480px", width: "100%" }} onClick={e => e.stopPropagation()}>
-            <h3 style={{ ...s.modalTitle, color: "#ef4444" }}>Delete Account</h3>
-            <p style={{ fontSize: "13px", color: "var(--japandi-muted)", margin: "0 0 16px" }}>This action is irreversible. All your data will be permanently deleted. Are you absolutely sure?</p>
-            <div style={{ display: "flex", gap: "8px" }}>
-              <button onClick={handleDeleteAccount} className="btn-destructive-outline">Delete My Account</button>
-              <button onClick={() => setShowDeleteConfirm(false)} className="btn-action-secondary">Cancel</button>
-            </div>
-          </div>
+        <div className="fixed inset-0 bg-[#2B2A27]/20 backdrop-blur-sm flex items-center justify-center z-[1000] p-4" onClick={() => setShowDeleteConfirm(false)}>
+          <Card padding="p-[32px]" className="w-full max-w-[480px] bg-washi-white shadow-xl" onClick={e => e.stopPropagation()}>
+            <h3 className="text-[20px] font-heading text-clay-500 mb-[16px] m-0">Delete Account</h3>
+            <p className="text-[14px] text-stone-500 leading-relaxed mb-[32px]">This action is irreversible. All your data will be permanently deleted. Are you absolutely sure?</p>
+            <Inline gap="gap-[12px]">
+              <Button onClick={handleDeleteAccount} variant="primary" className="bg-clay-500 hover:bg-clay-600 text-white">Delete My Account</Button>
+              <Button onClick={() => setShowDeleteConfirm(false)} variant="secondary">Cancel</Button>
+            </Inline>
+          </Card>
         </div>
       )}
     </div>

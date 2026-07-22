@@ -5,53 +5,18 @@ export interface CheckboxProps extends Omit<React.InputHTMLAttributes<HTMLInputE
 }
 
 const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
-  ({ className = "", label, style, checked, ...props }, ref) => {
+  ({ className = "", label, checked, ...props }, ref) => {
     return (
-      <label
-        style={{
-          display: "inline-flex",
-          alignItems: "center",
-          gap: "10px",
-          cursor: "pointer",
-          userSelect: "none",
-          fontFamily: "'Satoshi', sans-serif",
-          fontSize: "14px",
-          color: "var(--japandi-text)",
-          ...style,
-        }}
-      >
-        <div style={{ position: "relative", width: "20px", height: "20px" }}>
+      <label className={`inline-flex items-center gap-[10px] cursor-pointer select-none font-ui text-[14px] text-[var(--sumi-900)] ${className}`}>
+        <div className="relative w-[20px] h-[20px]">
           <input
             type="checkbox"
             checked={checked}
-            style={{
-              position: "absolute",
-              opacity: 0,
-              cursor: "pointer",
-              height: 0,
-              width: 0,
-            }}
+            className="absolute opacity-0 cursor-pointer h-0 w-0 peer"
             ref={ref}
             {...props}
           />
-          {/* Neumorphic Tier-2 Box style re-themed for v4 */}
-          <div
-            style={{
-              width: "20px",
-              height: "20px",
-              borderRadius: "6px",
-              backgroundColor: "var(--dark-gray)",
-              transition: "all 0.2s ease",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              boxShadow: checked
-                ? "inset 2px 2px 5px rgba(0,0,0,0.8), inset -2px -2px 5px rgba(100,100,100,0.08)"
-                : "3px 3px 8px rgba(0,0,0,0.8), -3px -3px 8px rgba(100,100,100,0.12)",
-              border: checked ? "1px solid var(--japandi-accent)" : "1px solid transparent",
-              background: checked ? "rgba(232, 80, 2, 0.2)" : "var(--dark-gray)",
-            }}
-          >
+          <div className={`w-[20px] h-[20px] rounded-[var(--radius)] transition-all duration-200 flex items-center justify-center border peer-focus-visible:ring-2 peer-focus-visible:ring-[var(--indigo-ink)] peer-focus-visible:ring-offset-1 ${checked ? 'bg-[var(--indigo-ink)] border-[var(--indigo-ink)]' : 'bg-[var(--washi-white)] border-[var(--stone-200)]'}`}>
             {checked && (
               <svg
                 width="12"
@@ -62,7 +27,7 @@ const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
               >
                 <path
                   d="M1.5 5L4.5 8L10.5 1.5"
-                  stroke="var(--japandi-accent)"
+                  stroke="var(--washi-white)"
                   strokeWidth="2.5"
                   strokeLinecap="round"
                   strokeLinejoin="round"

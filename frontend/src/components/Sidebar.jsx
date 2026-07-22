@@ -1,60 +1,163 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import {
-  LayoutDashboard, Target, Zap, Brain, Settings,
-  ChevronsUpDown, ChevronLeft, ChevronRight, Plus, Check,
-  Bell, LogOut, Sparkles
+  Bell,
+  Brain,
+  Check,
+  ChevronsUpDown,
+  LayoutDashboard,
+  LogOut,
+  Menu,
+  Plus,
+  Search,
+  Settings,
+  Sparkles,
+  Target,
+  X,
+  Zap,
 } from "lucide-react";
 import api from "../utils/api";
-import Logo from "./Logo";
+import { useNotifications } from "../context/NotificationContext";
+import { Avatar } from "./ui/avatar";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+
+const NAV_ITEMS = [
+  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/plan", label: "Plan", icon: Target },
+  { to: "/execute", label: "Execute", icon: Zap },
+  { to: "/memory", label: "Memory", icon: Brain },
+  { to: "/settings", label: "Settings", icon: Settings },
+];
 
 let lastFetchedTime = 0;
 
-const ITEM_HEIGHT = 40;
-const ITEM_GAP = 4;
+function WorkspaceSwitcher({ activeWorkspace, workspaces, onSwitch, onCreate }) {
+  const [open, setOpen] = useState(false);
+  const [showCreate, setShowCreate] = useState(false);
+  const [name, setName] = useState("");
+  const ref = useRef(null);
 
-function SidebarIcon({ name, size = 18 }) {
-  const paths = {
-    dashboard: "M3 3h7v9H3zm11 0h7v5h-7zm0 9h7v9h-7zm-11 4h7v5H3z",
-    plan: "M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zm0-6a4 4 0 1 0 0-8 4 4 0 0 0 0 8z",
-    execute: "M13 2L3 14h9l-1 8 10-12h-9l1-8z",
-    memory: "M12 2a5 5 0 0 0-5 5v3a3 3 0 0 0-3 3v4a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-4a3 3 0 0 0-3-3V7a5 5 0 0 0-5-5zm-3 8V7a3 3 0 0 1 6 0v3H9z",
-    settings: "M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.1a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z",
-    logout: "M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"
+  useEffect(() => {
+    const handleClick = (event) => {
+      if (ref.current && !ref.current.contains(event.target)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  const submit = async (event) => {
+    event.preventDefault();
+    if (!name.trim()) return;
+    await onCreate(name.trim());
+    setName("");
+    setShowCreate(false);
+    setOpen(false);
   };
 
   return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d={paths[name]} />
-    </svg>
+    <div className="relative" ref={ref}>
+      <button
+        className="flex w-full items-center justify-between gap-2 rounded-[var(--radius)] border border-[var(--border-subtle)] bg-[var(--surface-raised)] p-2 text-left transition-colors hover:border-[var(--border-strong)]"
+        onClick={() => setOpen((value) => !value)}
+      >
+        <span className="min-w-0">
+          <span className="fd-eyebrow block text-[10px]">Workspace</span>
+          <span className="block truncate text-[14px] font-medium">{activeWorkspace?.name || "Workspace"}</span>
+        </span>
+        <ChevronsUpDown size={16} strokeWidth={1.5} className="text-[var(--text-subtle)]" />
+      </button>
+
+      {open && (
+        <div className="fd-panel absolute left-0 right-0 top-[calc(100%+8px)] z-30 overflow-hidden p-1 shadow-[var(--shadow-float)]">
+          <div className="max-h-[220px] overflow-y-auto">
+            {workspaces.map((workspace) => {
+              const active = activeWorkspace?.id === workspace.id;
+              return (
+                <button
+                  key={workspace.id}
+                  className={`flex w-full items-center justify-between gap-2 rounded-[var(--radius)] px-2 py-2 text-left text-[14px] transition-colors ${active ? "bg-[var(--linen-100)]" : "hover:bg-[var(--linen-100)]"}`}
+                  onClick={() => onSwitch(workspace.id)}
+                >
+                  <span className="truncate">{workspace.name}</span>
+                  {active && <Check size={14} strokeWidth={1.5} />}
+                </button>
+              );
+            })}
+          </div>
+          <div className="mt-1 border-t border-[var(--border-subtle)] pt-1">
+            {showCreate ? (
+              <form onSubmit={submit} className="flex flex-col gap-1 p-1">
+                <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Workspace name" autoFocus />
+                <div className="grid grid-cols-2 gap-1">
+                  <Button type="submit" size="sm" variant="primary">Create</Button>
+                  <Button type="button" size="sm" variant="secondary" onClick={() => setShowCreate(false)}>Cancel</Button>
+                </div>
+              </form>
+            ) : (
+              <button className="flex w-full items-center gap-2 rounded-[var(--radius)] px-2 py-2 text-left text-[14px] text-[var(--text-muted)] hover:bg-[var(--linen-100)] hover:text-[var(--text-primary)]" onClick={() => setShowCreate(true)}>
+                <Plus size={14} strokeWidth={1.5} /> New workspace
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function NotificationPopover() {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  const { notifications, unreadCount, markAllAsRead } = useNotifications();
+
+  useEffect(() => {
+    const handleClick = (event) => {
+      if (ref.current && !ref.current.contains(event.target)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  return (
+    <div className="relative" ref={ref}>
+      <button className="fd-button h-[36px] min-h-0 w-[36px] p-0" onClick={() => setOpen((value) => !value)} aria-label="Notifications">
+        <Bell size={16} strokeWidth={1.5} />
+        {unreadCount > 0 && <span className="absolute right-[7px] top-[7px] h-[6px] w-[6px] rounded-full bg-[var(--clay-500)]" />}
+      </button>
+      {open && (
+        <div className="fd-panel absolute bottom-[calc(100%+8px)] left-0 z-30 w-[320px] overflow-hidden p-0 shadow-[var(--shadow-float)] md:left-auto md:right-0">
+          <div className="flex items-center justify-between border-b border-[var(--border-subtle)] p-2">
+            <span className="text-[14px] font-medium">Notifications</span>
+            {unreadCount > 0 && <Button size="sm" variant="ghost" onClick={markAllAsRead}>Mark read</Button>}
+          </div>
+          <div className="max-h-[280px] overflow-y-auto">
+            {notifications.length === 0 ? (
+              <p className="p-3 text-center text-[13px] text-[var(--text-subtle)]">No notifications</p>
+            ) : (
+              notifications.slice(0, 8).map((notification) => (
+                <div key={notification.id} className={`border-b border-[var(--border-subtle)] p-2 last:border-0 ${!notification.is_read ? "bg-[var(--linen-100)]" : ""}`}>
+                  <p className="text-[13px] font-medium">{notification.title}</p>
+                  <p className="mt-1 text-[12px] leading-snug text-[var(--text-muted)]">{notification.message}</p>
+                  <p className="mt-1 font-mono text-[10px] text-[var(--text-subtle)]">{notification.created_at}</p>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
 function Sidebar() {
   const navigate = useNavigate();
-  const [collapsed, setCollapsed] = useState(() => localStorage.getItem("sidebar_collapsed") === "true");
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [workspaces, setWorkspaces] = useState([]);
   const [activeWorkspace, setActiveWorkspace] = useState(null);
-  const [switcherOpen, setSwitcherOpen] = useState(false);
-  const [notifOpen, setNotifOpen] = useState(false);
-  const [notifications, setNotifications] = useState([]);
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const [newWsName, setNewWsName] = useState("");
-  const [user, setUser] = useState(() => {
-    try { return JSON.parse(localStorage.getItem("user") || "{}"); } catch { return null; }
+  const [user] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("user") || "{}"); } catch { return {}; }
   });
-  const switcherRef = useRef(null);
-  const notifRef = useRef(null);
 
   const fetchWorkspaces = async () => {
     const now = Date.now();
@@ -62,278 +165,126 @@ function Sidebar() {
     lastFetchedTime = now;
     try {
       const res = await api.get("/api/workspaces");
-      const list = (res.data || []).filter(w => w.member_status === "active");
+      const list = (res.data || []).filter((workspace) => workspace.member_status === "active");
       setWorkspaces(list);
       const storedId = parseInt(localStorage.getItem("workspaceId"), 10);
-      const active = list.find(w => w.id === storedId) || list[0];
+      const active = list.find((workspace) => workspace.id === storedId) || list[0];
       if (active) {
         localStorage.setItem("workspaceId", active.id.toString());
         setActiveWorkspace(active);
       }
     } catch (err) {
       console.error("Error fetching workspaces in sidebar:", err);
-      const fallbackWsId = localStorage.getItem("workspaceId");
-      if (!fallbackWsId) {
-        try {
-          const userData = JSON.parse(localStorage.getItem("user") || "{}");
-          if (userData?.id) {
-            const fallbackRes = await api.get("/api/dashboard");
-            if (fallbackRes.data?.command_strip?.active_goal?.workspace_id) {
-              const wid = fallbackRes.data.command_strip.active_goal.workspace_id;
-              localStorage.setItem("workspaceId", wid.toString());
-              setActiveWorkspace({ id: wid, name: "Workspace" });
-            }
-          }
-        } catch (fallbackErr) {
-          console.warn("Sidebar fallback also failed:", fallbackErr);
-        }
-      }
     }
   };
 
   useEffect(() => {
     fetchWorkspaces();
-
-    const handleClickOutside = (event) => {
-      if (switcherRef.current && !switcherRef.current.contains(event.target)) {
-        setSwitcherOpen(false);
-      }
-      if (notifRef.current && !notifRef.current.contains(event.target)) {
-        setNotifOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  const handleToggleCollapse = () => {
-    const nextState = !collapsed;
-    setCollapsed(nextState);
-    localStorage.setItem("sidebar_collapsed", nextState.toString());
-  };
 
   const handleSwitchWorkspace = (id) => {
     localStorage.setItem("workspaceId", id.toString());
-    setSwitcherOpen(false);
     window.location.reload();
   };
 
-  const handleCreateWorkspace = async (e) => {
-    e.preventDefault();
-    if (!newWsName.trim()) return;
-    try {
-      const res = await api.post("/api/workspaces", { name: newWsName, stage: "Build" });
-      setNewWsName("");
-      setShowCreateForm(false);
-      setSwitcherOpen(false);
-      localStorage.setItem("workspaceId", res.data.id.toString());
-      window.location.reload();
-    } catch (err) {
-      console.error("Failed to create workspace:", err);
-    }
+  const handleCreateWorkspace = async (name) => {
+    const res = await api.post("/api/workspaces", { name, stage: "Build" });
+    localStorage.setItem("workspaceId", res.data.id.toString());
+    window.location.reload();
   };
 
-  const menuItems = [
-    { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { to: "/plan", label: "Plan", icon: Target },
-    { to: "/execute", label: "Execute", icon: Zap },
-    { to: "/memory", label: "Memory", icon: Brain },
-    { to: "/settings", label: "Settings", icon: Settings }
-  ];
+  const logout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("refresh_token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("workspaceId");
+    window.location.href = "/";
+  };
 
-  const activeIndex = menuItems.findIndex(item => location.pathname.startsWith(item.to));
-  const indicatorTranslate = activeIndex >= 0 ? activeIndex * (ITEM_HEIGHT + ITEM_GAP) : 0;
-  const indicatorVisible = activeIndex >= 0;
+  const nav = (
+    <div className="flex h-full flex-col">
+      <div className="border-b border-[var(--border-subtle)] p-3">
+        <button className="flex items-center gap-2 bg-transparent p-0 text-left" onClick={() => navigate("/dashboard")}>
+          <span className="flex h-[36px] w-[36px] items-center justify-center rounded-[var(--radius)] bg-[var(--sumi-900)] font-heading text-[15px] text-[var(--washi-white)]">Fd</span>
+          <span>
+            <span className="block font-heading text-[20px] leading-none">FounDesk</span>
+            <span className="fd-eyebrow text-[10px]">Founder OS</span>
+          </span>
+        </button>
+      </div>
 
-  const wsInitial = activeWorkspace ? activeWorkspace.name.charAt(0).toUpperCase() : "W";
-  const userInitial = user?.name ? user.name.charAt(0).toUpperCase() : user?.email?.charAt(0).toUpperCase() || "?";
+      <div className="flex flex-1 flex-col gap-3 overflow-y-auto p-3">
+        <WorkspaceSwitcher activeWorkspace={activeWorkspace} workspaces={workspaces} onSwitch={handleSwitchWorkspace} onCreate={handleCreateWorkspace} />
 
-  return (
-    <div
-      className={`sidebar tier-glass ${collapsed ? "is-collapsed" : ""}`}
-      style={{ width: collapsed ? "76px" : "252px" }}
-    >
-      <button
-        onClick={handleToggleCollapse}
-        className="dock-toggle"
-        aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-        title={collapsed ? "Expand" : "Collapse"}
-      >
-        {collapsed ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
-      </button>
+        <button
+          className="flex items-center gap-2 rounded-[var(--radius)] border border-[var(--border-subtle)] bg-[var(--linen-100)] px-2 py-2 text-left text-[13px] text-[var(--text-muted)] transition-colors hover:text-[var(--text-primary)]"
+          onClick={() => window.dispatchEvent(new CustomEvent("open-command-palette"))}
+        >
+          <Search size={15} strokeWidth={1.5} />
+          <span className="flex-1">Search or command</span>
+          <span className="font-mono text-[10px]">Ctrl K</span>
+        </button>
 
-      <div className="sidebar-scroll">
-        <div className="brand" onClick={() => navigate("/dashboard")} style={{ cursor: "pointer" }}>
-          <div className="brand-mark">
-            Fd
-          </div>
-          {!collapsed && (
-            <span className="brand-text">
-              FounDesk
-            </span>
-          )}
-        </div>
-
-        {!collapsed && (
-          <div className="ws-wrap" ref={switcherRef}>
-            <div className="workspace-pill tier-neu" onClick={() => setSwitcherOpen(!switcherOpen)}>
-              <div className="ws-avatar">{wsInitial}</div>
-              <div className="ws-meta">
-                <span className="ws-name">{activeWorkspace ? activeWorkspace.name : "Workspace"}</span>
-                {activeWorkspace && <span className="ws-role">{activeWorkspace.role}</span>}
-              </div>
-              <ChevronsUpDown size={13} className="ws-caret" />
-            </div>
-
-            {switcherOpen && (
-              <div className="ws-panel tier-glass" data-lenis-prevent>
-                <div className="ws-panel-list">
-                  {workspaces.map(ws => {
-                    const isActive = activeWorkspace && activeWorkspace.id === ws.id;
-                    return (
-                      <div
-                        key={ws.id}
-                        className={`ws-row ${isActive ? "is-active" : ""}`}
-                        onClick={() => handleSwitchWorkspace(ws.id)}
-                      >
-                        <div className="ws-row-avatar">{ws.name.charAt(0).toUpperCase()}</div>
-                        <div className="ws-row-meta">
-                          <div className="ws-row-name">{ws.name}</div>
-                          <span className="ws-row-role">{ws.role}</span>
-                        </div>
-                        {isActive && <Check size={13} className="ws-row-check" />}
-                      </div>
-                    );
-                  })}
-                </div>
-
-                <div className="ws-panel-footer">
-                  {showCreateForm ? (
-                    <form onSubmit={handleCreateWorkspace} className="ws-create-form">
-                      <input
-                        type="text"
-                        placeholder="Workspace name..."
-                        className="ws-input"
-                        value={newWsName}
-                        onChange={(e) => setNewWsName(e.target.value)}
-                        autoFocus
-                        required
-                      />
-                      <div className="ws-form-actions">
-                        <button type="submit" className="ws-btn-primary">Create</button>
-                        <button type="button" className="ws-btn-ghost" onClick={() => setShowCreateForm(false)}>
-                          Cancel
-                        </button>
-                      </div>
-                    </form>
-                  ) : (
-                    <button className="ws-add" onClick={() => setShowCreateForm(true)}>
-                      <Plus size={12} />
-                      New workspace
-                    </button>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        <nav className="nav">
-          {menuItems.map(item => (
+        <nav className="flex flex-col gap-1">
+          {NAV_ITEMS.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
-              data-icon={item.label.toLowerCase()}
-              className={({ isActive }) => `nav-item ${isActive ? "active" : ""} ${collapsed ? "is-collapsed" : ""}`}
+              onClick={() => setMobileOpen(false)}
+              className={({ isActive }) => `flex items-center gap-2 rounded-[var(--radius)] px-2 py-2 text-[14px] transition-colors ${isActive ? "bg-[var(--linen-100)] text-[var(--text-primary)]" : "text-[var(--text-muted)] hover:bg-[var(--linen-100)] hover:text-[var(--text-primary)]"}`}
             >
-              <item.icon size={18} />
-              {!collapsed && <span>{item.label}</span>}
+              <item.icon size={17} strokeWidth={1.5} />
+              {item.label}
             </NavLink>
           ))}
         </nav>
       </div>
 
-      <div className={`sidebar-footer tier-neu ${collapsed ? "is-collapsed" : ""}`}>
-        <div className="user-profile">
-          <div className="user-avatar">
-            {user?.picture ? (
-              <img src={user.picture} alt="" className="user-avatar-img" />
-            ) : (
-              <div className="user-avatar-fallback">{userInitial}</div>
-            )}
+      <div className="border-t border-[var(--border-subtle)] p-3">
+        <div className="mb-2 flex items-center gap-2">
+          <Avatar name={user?.name || user?.email} src={user?.picture} />
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-[13px] font-medium">{user?.name || user?.email || "User"}</p>
+            <p className="fd-eyebrow truncate text-[10px]">Account</p>
           </div>
-          {!collapsed && (
-            <span className="user-name">{user?.name || user?.email || "User"}</span>
-          )}
         </div>
-        <div className="footer-actions" ref={notifRef}>
-          <button
-            className="cmd-trigger-btn"
-            onClick={() => window.dispatchEvent(new CustomEvent("open-command-palette"))}
-            title="Command Bar (Ctrl+K)"
-            aria-label="Open command bar (Ctrl+K)"
-            style={{ marginRight: "4px" }}
-          >
-            <Sparkles size={14} />
+        <div className="flex items-center justify-between gap-1">
+          <button className="fd-button h-[36px] min-h-0 w-[36px] p-0" onClick={() => window.dispatchEvent(new CustomEvent("open-command-palette"))} aria-label="Open command palette">
+            <Sparkles size={16} strokeWidth={1.5} />
           </button>
-          <div style={{ position: "relative" }}>
-            <button
-              className={`icon-btn ${unreadCount > 0 ? "has-badge" : ""}`}
-              onClick={() => setNotifOpen(!notifOpen)}
-              title="Notifications"
-            >
-              <Bell size={14} />
-              {unreadCount > 0 && <span className="badge-dot" />}
-            </button>
-
-            {notifOpen && (
-              <div className="notif-panel tier-glass" data-lenis-prevent>
-                <div className="notif-head">
-                  <span>Notifications</span>
-                  {unreadCount > 0 && (
-                    <button
-                      className="notif-markall"
-                      onClick={async () => {
-                        try { await api.post("/api/notifications/mark-all-read"); } catch (err) { console.error("[Sidebar] Failed to mark all notifications as read:", err); }
-                        setNotifications([]);
-                        setUnreadCount(0);
-                      }}
-                    >
-                      <Check size={10} /> Mark all read
-                    </button>
-                  )}
-                </div>
-                <div className="notif-list">
-                  {notifications.length === 0 ? (
-                    <div className="notif-empty">No notifications yet</div>
-                  ) : (
-                    notifications.map((n, i) => (
-                      <div key={n.id || i} className={`notif-item ${n.is_unread ? "is-unread" : ""}`}>
-                        <div className="notif-title">{n.title}</div>
-                        <div className="notif-message">{n.message}</div>
-                        <div className="notif-time">{n.created_at}</div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-          <button
-            className="icon-btn logout-btn"
-            onClick={() => {
-              localStorage.removeItem("token");
-              localStorage.removeItem("user");
-              localStorage.removeItem("workspaceId");
-              window.location.href = "/";
-            }}
-            title="Logout"
-          >
-            <LogOut size={14} />
+          <NotificationPopover />
+          <button className="fd-button h-[36px] min-h-0 w-[36px] p-0 text-[var(--clay-500)]" onClick={logout} aria-label="Log out">
+            <LogOut size={16} strokeWidth={1.5} />
           </button>
         </div>
       </div>
     </div>
+  );
+
+  return (
+    <>
+      <div className="fixed left-0 right-0 top-0 z-40 flex h-[56px] items-center justify-between border-b border-[var(--border-subtle)] bg-[var(--surface-page)] px-2 md:hidden">
+        <button className="fd-button h-[40px] min-h-0 w-[40px] p-0" onClick={() => setMobileOpen(true)} aria-label="Open navigation">
+          <Menu size={18} strokeWidth={1.5} />
+        </button>
+        <button className="flex items-center gap-2 bg-transparent p-0 font-heading text-[18px]" onClick={() => navigate("/dashboard")}>
+          FounDesk
+        </button>
+        <button className="fd-button h-[40px] min-h-0 w-[40px] p-0" onClick={() => window.dispatchEvent(new CustomEvent("open-command-palette"))} aria-label="Open command palette">
+          <Search size={18} strokeWidth={1.5} />
+        </button>
+      </div>
+
+      {mobileOpen && <div className="fixed inset-0 z-50 bg-[var(--surface-overlay)] md:hidden" onClick={() => setMobileOpen(false)} />}
+      <aside className={`fixed bottom-0 left-0 top-0 z-50 w-[var(--shell-sidebar)] border-r border-[var(--border-subtle)] bg-[var(--surface-page)] transition-transform duration-280 ease-out-soft md:sticky md:translate-x-0 ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}>
+        <div className="absolute right-2 top-2 md:hidden">
+          <button className="fd-button h-[36px] min-h-0 w-[36px] p-0" onClick={() => setMobileOpen(false)} aria-label="Close navigation">
+            <X size={17} strokeWidth={1.5} />
+          </button>
+        </div>
+        {nav}
+      </aside>
+    </>
   );
 }
 

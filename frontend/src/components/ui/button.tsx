@@ -1,8 +1,8 @@
 import React from "react";
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "ghost" | "destructive";
-  size?: "sm" | "md" | "lg";
+  variant?: "primary" | "secondary" | "ghost" | "destructive" | "quiet";
+  size?: "sm" | "md" | "lg" | "icon";
   children?: React.ReactNode;
   ariaLabel?: string;
 }
@@ -15,19 +15,21 @@ export function Button({
   className = "",
   ...props
 }: ButtonProps) {
-  const baseClasses = "inline-flex items-center justify-center rounded-sm font-sans font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 disabled:pointer-events-none";
+  const baseClasses = "fd-button";
   
   const sizeClasses = {
-    sm: "h-8 px-3 text-sm",
-    md: "h-10 px-4 py-2 text-base",
-    lg: "h-12 px-6 py-3 text-lg"
+    sm: "min-h-[32px] px-[12px] text-[13px]",
+    md: "min-h-[40px] px-[16px] text-[14px]",
+    lg: "min-h-[48px] px-[24px] text-[16px]",
+    icon: "h-[40px] w-[40px] min-h-0 p-0"
   };
 
   const variantClasses = {
-    primary: "bg-primary text-washi-white hover:bg-[#2D3A4D]",
-    secondary: "bg-transparent border border-border text-foreground hover:bg-linen-100",
-    ghost: "bg-transparent text-stone-400 hover:text-foreground hover:bg-linen-100",
-    destructive: "bg-transparent border border-clay-500 text-clay-500 hover:bg-clay-500 hover:text-washi-white"
+    primary: "bg-[var(--indigo-ink)] text-[var(--washi-white)] border-[var(--indigo-ink)] hover:opacity-90",
+    secondary: "bg-[var(--surface-raised)] text-[var(--text-primary)] border-[var(--border-subtle)] hover:border-[var(--border-strong)]",
+    ghost: "bg-transparent text-[var(--text-muted)] border-transparent hover:bg-[var(--linen-100)] hover:text-[var(--text-primary)]",
+    quiet: "bg-[var(--linen-100)] text-[var(--text-primary)] border-transparent hover:bg-[var(--stone-200)]",
+    destructive: "bg-transparent text-[var(--danger)] border-[var(--clay-500)] hover:bg-[rgba(181,101,74,0.08)]"
   };
 
   const classes = `${baseClasses} ${sizeClasses[size]} ${variantClasses[variant]} ${className}`;

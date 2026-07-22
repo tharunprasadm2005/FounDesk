@@ -6,6 +6,7 @@ import CascadeTab from "./Goals/CascadeTab";
 import DefenseTab from "./Goals/DefenseTab";
 import PhaseTab from "./Goals/PhaseTab";
 import FollowUpsTab from "./Goals/FollowUpsTab";
+import { Section, Stack, Inline } from "../components/layout";
 
 const tabs = [
   { id: "cascade", label: "Goal Cascade", icon: "target" },
@@ -50,38 +51,34 @@ export default function Goals() {
   }, []);
 
   return (
-    <div style={{ fontFamily: "'Satoshi', sans-serif" }}>
+    <Section padding="p-0" className="max-w-7xl mx-auto w-full font-ui">
       <style>{`
         @keyframes fadeSlide { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
         .fade-in { animation: fadeSlide 0.35s ease-out; }
-        .orange-btn-hover:hover { transform: translateY(-1.5px); }
-        .orange-btn-hover:active { transform: translateY(0); }
-        .select-custom { outline: none; font-family: inherit; }
-        .select-custom:hover { border-color: transparent !important;!important; background-color: rgba(255, 255, 255, 0.05) !important; }
-        .goal-checkbox:hover { color: var(--japandi-accent) !important; }
       `}</style>
 
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
-        <div>
-          <h1 style={{ fontSize: "24px", fontWeight: "800", color: "var(--japandi-text)", margin: "0 0 2px", fontFamily: "'Clash Display', sans-serif" }}>Plan</h1>
-          <p style={{ fontSize: "12.5px", color: "var(--japandi-muted)", margin: 0 }}>Map your startup roadmap and defend operational focus.</p>
-        </div>
-      </div>
+      <Inline justify="justify-between" items="items-center" className="mb-[64px]">
+        <Stack gap="gap-[8px]">
+          <h1 className="text-[32px] md:text-[40px] font-heading text-sumi-900 m-0">Plan</h1>
+          <p className="text-[12px] font-mono text-stone-400 m-0 uppercase tracking-widest">Map your startup roadmap and defend operational focus.</p>
+        </Stack>
+      </Inline>
 
-      <div style={{ marginBottom: "24px" }}>
-        <div className="view-tabs">
-          {tabs.map(t => (
-            <button
-              key={t.id}
-              className={`view-tab ${activeTab === t.id ? "active" : ""}`}
-              onClick={() => setActiveTab(t.id)}
-              style={{ background: "transparent", border: "none", cursor: "pointer" }}
-            >
-              <Icon name={t.icon} size={14} /> {t.label}
-            </button>
-          ))}
-        </div>
-      </div>
+      <Inline gap="gap-[8px]" className="mb-[48px] p-[4px] bg-linen-100 rounded-[4px] border border-stone-200 w-fit flex-wrap">
+        {tabs.map(t => (
+          <button
+            key={t.id}
+            className={`flex items-center gap-[8px] px-[16px] py-[8px] rounded-[2px] text-[13px] font-medium transition-colors cursor-pointer outline-none ${
+              activeTab === t.id 
+                ? "bg-washi-white text-sumi-900 shadow-sm border border-stone-200" 
+                : "text-stone-400 hover:text-sumi-900 border border-transparent bg-transparent"
+            }`}
+            onClick={() => setActiveTab(t.id)}
+          >
+            <Icon name={t.icon} size={14} /> {t.label}
+          </button>
+        ))}
+      </Inline>
 
       {activeTab === "cascade" && (
         <CascadeTab
@@ -98,6 +95,6 @@ export default function Goals() {
       {activeTab === "defense" && <DefenseTab />}
       {activeTab === "phase" && <PhaseTab goals={goals} />}
       {activeTab === "followups" && <FollowUpsTab />}
-    </div>
+    </Section>
   );
 }

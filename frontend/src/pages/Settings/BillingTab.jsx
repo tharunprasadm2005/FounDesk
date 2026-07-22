@@ -2,10 +2,13 @@ import { useState, useEffect } from "react";
 import api from "../../utils/api";
 import { useToast } from "../../context/ToastContext";
 import { CheckCircle, AlertCircle, FileText } from "lucide-react";
-import { PLAN_TIERS, FONT_SANS, getPlanDisplayName, getPlanBadgeLabel, SETTINGS_STYLE as s } from "./SettingsConstants";
+import { PLAN_TIERS } from "./SettingsConstants";
+import { Card } from "../../components/ui/card";
+import { Button } from "../../components/ui/button";
+import { Inline, Stack } from "../../components/layout";
 
 export default function BillingTab() {
-  const toast = useToast();
+  const { toast } = useToast();
 
   const [billing, setBilling] = useState(null);
   const [billingConfig, setBillingConfig] = useState(null);
@@ -50,8 +53,8 @@ export default function BillingTab() {
   const activePlanKey = rawPlan.toString().toLowerCase();
 
   return (
-    <div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: "12px", marginBottom: "20px" }}>
+    <div className="animate-in fade-in">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-[16px] mb-[32px]">
         {PLAN_TIERS.map(tier => {
           const isCurrent = tier.key === activePlanKey;
           const tierIndex = PLAN_TIERS.findIndex(t => t.key === activePlanKey);
@@ -62,136 +65,143 @@ export default function BillingTab() {
           const showReactivate = isCurrent && (status === "cancelled" || status === "past_due");
 
           return (
-            <div key={tier.key} className="card-glass" style={{ padding: "24px", border: isCurrent ? `1px solid ${tier.color}44` : "1px solid transparent", position: "relative" }}>
+            <Card key={tier.key} padding="p-[24px]" className={`relative bg-washi-white flex flex-col ${isCurrent ? 'ring-2 ring-moss-600' : ''}`}>
               {isCurrent && (
-                <span className="badge" style={{ position: "absolute", top: "12px", right: "12px", backgroundColor: tier.color + "22", color: tier.color, border: `1px solid ${tier.color}33` }}>
+                <span className="absolute top-[12px] right-[12px] px-[8px] py-[4px] rounded-[2px] bg-moss-600/10 text-moss-600 border border-moss-600/20 text-[10px] font-bold tracking-widest uppercase">
                   Current
                 </span>
               )}
-              <div style={{ fontSize: "14px", fontWeight: 700, color: "var(--japandi-text)", marginBottom: "8px", fontFamily: FONT_SANS }}>{tier.name}</div>
-              <div style={{ fontSize: "22px", fontWeight: 800, color: "var(--japandi-text)", marginBottom: "12px" }}>
-                {tier.currency === "INR" ? "\u20B9" : "$"}{tier.price}<span style={{ fontSize: "12px", fontWeight: 400, color: "var(--japandi-muted)" }}>/mo</span>
+              <div className="text-[16px] font-heading text-sumi-900 mb-[12px]">{tier.name}</div>
+              <div className="text-[32px] font-medium text-sumi-900 mb-[24px] font-mono tracking-tight">
+                {tier.currency === "INR" ? "\u20B9" : "$"}{tier.price}<span className="text-[14px] text-stone-400 font-sans tracking-normal">/mo</span>
               </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginBottom: "16px" }}>
+              <Stack gap="gap-[12px]" className="mb-[32px] flex-1">
                 {tier.features.map((f, i) => (
-                  <div key={i} style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", color: "var(--japandi-text)" }}>
-                    <CheckCircle size={10} style={{ color: tier.color }} />
-                    {f}
-                  </div>
+                  <Inline key={i} items="items-start" gap="gap-[12px]" className="text-[13px] text-stone-500">
+                    <CheckCircle size={14} className="text-moss-600 mt-[2px] shrink-0" />
+                    <span>{f}</span>
+                  </Inline>
                 ))}
+              </Stack>
+              <div className="mt-auto pt-[24px] border-t border-stone-200">
+                {isCurrent && showCancel && (
+                  <Button onClick={handleCancelSubscription} variant="secondary" className="w-full text-clay-500 border-clay-500/30 hover:bg-clay-500/10 hover:text-clay-500">Cancel Subscription</Button>
+                )}
+                {isCurrent && showReactivate && (
+                  <Button onClick={handleReactivateSubscription} variant="primary" className="w-full">Reactivate</Button>
+                )}
+                {isUpgrade && (
+                  <Button onClick={() => handleChangePlan(tier.key)} variant="primary" className="w-full">Upgrade</Button>
+                )}
+                {isDowngrade && (
+                  <Button onClick={() => handleChangePlan(tier.key)} variant="secondary" className="w-full">Downgrade</Button>
+                )}
               </div>
-              {isCurrent && showCancel && (
-                <button onClick={handleCancelSubscription} className="btn-destructive-outline-sm" style={{ width: "100%", fontSize: "11px" }}>Cancel Subscription</button>
-              )}
-              {isCurrent && showReactivate && (
-                <button onClick={handleReactivateSubscription} className="btn-ember" style={{ width: "100%", fontSize: "11px" }}>Reactivate</button>
-              )}
-              {isUpgrade && (
-                <button onClick={() => handleChangePlan(tier.key)} className="btn-ember" style={{ width: "100%", fontSize: "11px" }}>Upgrade</button>
-              )}
-              {isDowngrade && (
-                <button onClick={() => handleChangePlan(tier.key)} className="btn-action-secondary" style={{ width: "100%", fontSize: "11px" }}>Downgrade</button>
-              )}
-            </div>
+            </Card>
           );
         })}
       </div>
 
-      {trialDays !== null && trialDays !== undefined && (
-        <div className="card-glass" style={{ padding: "16px", marginBottom: "12px" }}>
-          <div style={{ fontSize: "11px", color: "var(--japandi-muted)", marginBottom: "4px", textTransform: "uppercase", letterSpacing: "0.04em" }}>
-            Trial {trialDays > 0 ? `${trialDays} days remaining` : "expired"}
-          </div>
-          <div style={{ height: "4px", backgroundColor: "rgba(107,107,111,0.15)", borderRadius: "2px", overflow: "hidden" }}>
-            <div style={{ height: "100%", width: `${Math.min(100, Math.max(0, (trialDays / 30) * 100))}%`, backgroundColor: trialDays > 7 ? "var(--japandi-accent)" : "#ef4444", borderRadius: "2px", transition: "width 0.3s" }} />
-          </div>
-        </div>
-      )}
-
-      {billing?.subscription_status && (
-        <div className="card-glass" style={{ padding: "16px", marginBottom: "12px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div>
-              <div className="card-label" style={{ margin: 0 }}>Subscription Status</div>
-              <div style={{ fontSize: "12px", color: "var(--japandi-text)", marginTop: "4px" }}>
-                {status.charAt(0).toUpperCase() + status.slice(1)}
-                {billing?.current_period_end && ` \u00B7 Renews ${new Date(billing.current_period_end).toLocaleDateString()}`}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-[16px] mb-[32px]">
+        <Stack gap="gap-[16px]">
+          {trialDays !== null && trialDays !== undefined && (
+            <Card padding="p-[24px]" className="bg-washi-white">
+              <div className="text-[11px] font-bold text-stone-400 tracking-widest uppercase mb-[12px]">
+                Trial {trialDays > 0 ? `${trialDays} days remaining` : "expired"}
               </div>
-            </div>
-            <span className="badge" style={{ backgroundColor: status === "active" ? "rgba(62,207,142,0.15)" : "rgba(255,90,0,0.15)", color: status === "active" ? "#4ade80" : "var(--japandi-accent)", border: "1px solid " + (status === "active" ? "rgba(62,207,142,0.2)" : "rgba(255,90,0,0.2)") }}>
-              {status.charAt(0).toUpperCase() + status.slice(1)}
-            </span>
-          </div>
-        </div>
-      )}
+              <div className="h-[6px] bg-stone-200 rounded-full overflow-hidden">
+                <div className={`h-full rounded-full transition-all duration-500 ${trialDays > 7 ? "bg-moss-600" : "bg-clay-500"}`} style={{ width: `${Math.min(100, Math.max(0, (trialDays / 30) * 100))}%` }} />
+              </div>
+            </Card>
+          )}
 
-      <div className="card-glass" style={{ padding: "20px", marginBottom: "12px" }}>
-        <div className="card-label" style={{ marginBottom: "12px" }}>Usage</div>
-        {usage ? (
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-            {Object.entries(usage).map(([key, val]) => (
-              <div key={key}>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", marginBottom: "4px" }}>
-                  <span style={{ color: "var(--japandi-muted)", textTransform: "capitalize" }}>{key.replace(/_/g, " ")}</span>
-                  <span style={{ color: "var(--japandi-text)", fontWeight: 600 }}>
-                    {val.used || 0}{val.limit ? ` / ${val.limit}` : ""}
-                    {val.limits_exceeded && <AlertCircle size={12} style={{ color: "#ef4444", marginLeft: "4px", verticalAlign: "middle" }} />}
-                  </span>
+          {billing?.subscription_status && (
+            <Card padding="p-[24px]" className="bg-washi-white h-full">
+              <Inline justify="justify-between" items="items-center">
+                <div>
+                  <h3 className="text-[12px] font-bold text-stone-400 tracking-widest uppercase m-0 mb-[8px]">Subscription Status</h3>
+                  <div className="text-[14px] font-medium text-sumi-900">
+                    {status.charAt(0).toUpperCase() + status.slice(1)}
+                    {billing?.current_period_end && <span className="text-stone-400 text-[13px] ml-[8px] font-mono tracking-wide">· Renews {new Date(billing.current_period_end).toLocaleDateString()}</span>}
+                  </div>
                 </div>
-                {val.limit && (
-                  <div style={{ height: "3px", backgroundColor: "rgba(107,107,111,0.1)", borderRadius: "2px", overflow: "hidden", position: "relative" }}>
-                    <div style={{ height: "100%", width: `${Math.min(100, ((val.used || 0) / val.limit) * 100)}%`, backgroundColor: ((val.used || 0) / val.limit) > 0.8 || val.limits_exceeded ? "#ef4444" : "var(--japandi-accent)", borderRadius: "2px" }} />
-                  </div>
-                )}
-                {val.limits_exceeded && (
-                  <div style={{ fontSize: "10px", color: "#ef4444", display: "flex", alignItems: "center", gap: "4px" }}>
-                    <AlertCircle size={10} /> Limit exceeded
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div style={{ fontSize: "12px", color: "var(--japandi-muted)" }}>No usage data available.</div>
-        )}
+                <span className={`px-[12px] py-[6px] rounded-[2px] border text-[11px] font-bold tracking-widest uppercase ${status === "active" ? "bg-moss-600/10 text-moss-600 border-moss-600/20" : "bg-clay-500/10 text-clay-500 border-clay-500/20"}`}>
+                  {status}
+                </span>
+              </Inline>
+            </Card>
+          )}
+        </Stack>
+
+        <Card padding="p-[24px]" className="bg-washi-white h-full">
+          <h3 className="text-[12px] font-bold text-stone-400 tracking-widest uppercase mb-[24px] m-0">Usage</h3>
+          {usage ? (
+            <Stack gap="gap-[16px]">
+              {Object.entries(usage).map(([key, val]) => (
+                <div key={key}>
+                  <Inline justify="justify-between" className="text-[12px] mb-[8px]">
+                    <span className="text-stone-500 capitalize">{key.replace(/_/g, " ")}</span>
+                    <span className="font-mono font-medium text-sumi-900 flex items-center">
+                      {val.used || 0}{val.limit ? <span className="text-stone-400"> / {val.limit}</span> : ""}
+                      {val.limits_exceeded && <AlertCircle size={14} className="text-clay-500 ml-[6px]" />}
+                    </span>
+                  </Inline>
+                  {val.limit && (
+                    <div className="h-[4px] bg-stone-200 rounded-full overflow-hidden">
+                      <div className={`h-full rounded-full transition-all duration-500 ${((val.used || 0) / val.limit) > 0.8 || val.limits_exceeded ? "bg-clay-500" : "bg-moss-600"}`} style={{ width: `${Math.min(100, ((val.used || 0) / val.limit) * 100)}%` }} />
+                    </div>
+                  )}
+                  {val.limits_exceeded && (
+                    <div className="text-[11px] font-medium text-clay-500 flex items-center gap-[6px] mt-[6px]">
+                      <AlertCircle size={12} /> Limit exceeded
+                    </div>
+                  )}
+                </div>
+              ))}
+            </Stack>
+          ) : (
+            <p className="text-[13px] text-stone-400 italic m-0">No usage data available.</p>
+          )}
+        </Card>
       </div>
 
-      <button onClick={() => { setShowInvoiceHistory(!showInvoiceHistory); if (!showInvoiceHistory && !invoices.length) fetchInvoices(); }} className="btn-action-secondary" style={{ marginBottom: "12px" }}>
-        <FileText size={14} /> Invoice History
-      </button>
+      <Button onClick={() => { setShowInvoiceHistory(!showInvoiceHistory); if (!showInvoiceHistory && !invoices.length) fetchInvoices(); }} variant={showInvoiceHistory ? "primary" : "secondary"} className="mb-[24px]">
+        <FileText size={14} className="mr-1" /> Invoice History
+      </Button>
 
       {showInvoiceHistory && (
-        <div className="card-glass" style={{ padding: "16px", marginBottom: "12px" }}>
-          <div className="card-label" style={{ marginBottom: "8px" }}>Invoice History</div>
+        <Card padding="p-0" className="bg-washi-white overflow-hidden animate-in slide-in-from-top-2">
           {invoices.length === 0 ? (
-            <div style={{ fontSize: "12px", color: "var(--japandi-muted)" }}>No invoices found.</div>
+            <div className="p-[24px] text-[13px] text-stone-400 italic text-center">No invoices found.</div>
           ) : (
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "11px" }}>
-              <thead>
-                <tr style={{ borderBottom: "1px solid rgba(107,107,111,0.08)" }}>
-                  {["Date", "Amount", "Status", "Plan", "Payment ID"].map(h => (
-                    <th key={h} style={{ textAlign: "left", padding: "8px 10px", color: "var(--japandi-muted)", fontWeight: 600, textTransform: "uppercase", fontSize: "9px", letterSpacing: "1px" }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {invoices.map((inv, i) => (
-                  <tr key={inv.id || i} style={{ borderBottom: "1px solid rgba(107,107,111,0.06)" }}>
-                    <td style={{ padding: "8px 10px", color: "var(--japandi-text)" }}>{inv.date ? new Date(inv.date).toLocaleDateString() : inv.created_at ? new Date(inv.created_at).toLocaleDateString() : "\u2014"}</td>
-                    <td style={{ padding: "8px 10px", color: "var(--japandi-text)", fontWeight: 600 }}>{inv.amount ? `${inv.currency || "$"}${(inv.amount / 100).toFixed(2)}` : "\u2014"}</td>
-                    <td style={{ padding: "8px 10px" }}>
-                      <span className="badge" style={{ backgroundColor: inv.status === "paid" ? "rgba(62,207,142,0.12)" : "rgba(107,107,111,0.12)", color: inv.status === "paid" ? "#4ade80" : "var(--japandi-muted)", fontSize: "9px" }}>
-                        {inv.status || "\u2014"}
-                      </span>
-                    </td>
-                    <td style={{ padding: "8px 10px", color: "var(--japandi-muted)" }}>{inv.plan || inv.plan_id || "\u2014"}</td>
-                    <td style={{ padding: "8px 10px", color: "var(--japandi-muted)", fontFamily: "monospace", fontSize: "10px" }}>{inv.payment_id || inv.id || "\u2014"}</td>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-stone-200">
+                    {["Date", "Amount", "Status", "Plan", "Payment ID"].map(h => (
+                      <th key={h} className="py-[12px] px-[16px] text-[10px] font-bold text-stone-400 tracking-widest uppercase whitespace-nowrap">{h}</th>
+                    ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-stone-200">
+                  {invoices.map((inv, i) => (
+                    <tr key={inv.id || i} className="hover:bg-linen-100/50 transition-colors">
+                      <td className="py-[12px] px-[16px] text-[13px] text-stone-500 font-mono tracking-wide">{inv.date ? new Date(inv.date).toLocaleDateString() : inv.created_at ? new Date(inv.created_at).toLocaleDateString() : "\u2014"}</td>
+                      <td className="py-[12px] px-[16px] text-[14px] font-medium text-sumi-900 font-mono tracking-tight">{inv.amount ? `${inv.currency || "$"}${(inv.amount / 100).toFixed(2)}` : "\u2014"}</td>
+                      <td className="py-[12px] px-[16px]">
+                        <span className={`px-[8px] py-[4px] rounded-[2px] border text-[10px] font-bold tracking-widest uppercase ${inv.status === "paid" ? "bg-moss-600/10 text-moss-600 border-moss-600/20" : "bg-stone-100 text-stone-500 border-stone-200"}`}>
+                          {inv.status || "\u2014"}
+                        </span>
+                      </td>
+                      <td className="py-[12px] px-[16px] text-[13px] text-stone-500 capitalize">{inv.plan || inv.plan_id || "\u2014"}</td>
+                      <td className="py-[12px] px-[16px] text-[12px] text-stone-400 font-mono tracking-wide">{inv.payment_id || inv.id || "\u2014"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
-        </div>
+        </Card>
       )}
     </div>
   );

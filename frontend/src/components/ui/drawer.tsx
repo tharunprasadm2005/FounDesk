@@ -5,26 +5,29 @@ interface DrawerProps {
   onClose: () => void;
   title: string;
   children: React.ReactNode;
+  width?: string;
 }
 
-export function Drawer({ isOpen, onClose, title, children }: DrawerProps) {
+export function Drawer({ isOpen, onClose, title, children, width = "max-w-[560px]" }: DrawerProps) {
   const drawerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!isOpen) return;
 
-    // Scroll locks
     document.body.style.overflow = "hidden";
-    document.body.setAttribute("data-lenis-prevent", "true");
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     };
     window.addEventListener("keydown", handleKeyDown);
 
+    const focusable = drawerRef.current?.querySelectorAll('button, [href], input, select, textarea, [tabindex="0"]');
+    if (focusable && focusable.length > 0) {
+      (focusable[0] as HTMLElement).focus();
+    }
+
     return () => {
       document.body.style.overflow = "";
-      document.body.removeAttribute("data-lenis-prevent");
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [isOpen, onClose]);
@@ -32,52 +35,25 @@ export function Drawer({ isOpen, onClose, title, children }: DrawerProps) {
   if (!isOpen) return null;
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        width: "100vw",
-        height: "100vh",
-        backgroundColor: "rgba(0, 0, 0, 0.6)",
-        backdropFilter: "blur(3px)",
-        zIndex: 9999,
-      }}
-      onClick={onClose}
-    >
-      <div
+    <div className="fixed inset-0 z-[9999] bg-[var(--surface-overlay)] fd-enter" onClick={onClose} role="presentation">
+      <aside
         ref={drawerRef}
-        style={{
-          position: "fixed",
-          display: "flex",
-          flexDirection: "column",
-          gap: "20px",
-          boxSizing: "border-box",
-        }}
-        className="glass-panel custom-drawer"
+        className={`absolute right-0 top-0 flex h-full w-full ${width} flex-col border-l border-[var(--border-subtle)] bg-[var(--surface-raised)] shadow-[var(--shadow-float)]`}
         onClick={(e) => e.stopPropagation()}
-        data-lenis-prevent /* Ignore Lenis on scrollable drawer content */
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="drawer-title"
       >
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <h2 style={{ margin: 0, fontSize: "18px" }}>{title}</h2>
-          <button
-            onClick={onClose}
-            style={{
-              background: "transparent",
-              border: "none",
-              color: "var(--japandi-muted)",
-              cursor: "pointer",
-              fontSize: "22px",
-            }}
-          >
+        <div className="flex items-center justify-between border-b border-[var(--border-subtle)] p-3">
+          <h2 id="drawer-title" className="font-ui text-[16px] font-medium tracking-[0]">{title}</h2>
+          <button className="fd-button h-[32px] min-h-0 w-[32px] p-0 text-[var(--text-muted)]" onClick={onClose} aria-label="Close drawer">
             &times;
           </button>
         </div>
-        <div style={{ flex: 1, overflowY: "auto" }}>{children}</div>
-      </div>
+        <div className="flex-1 overflow-y-auto p-3">{children}</div>
+      </aside>
     </div>
   );
 }
 
 export default Drawer;
-export { Drawer };

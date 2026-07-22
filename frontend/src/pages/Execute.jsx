@@ -9,6 +9,10 @@ import {
 import api from "../utils/api";
 import { track } from "../utils/track";
 import HeroNumber from "../components/ui/HeroNumber";
+import { Section, Grid, Stack, Inline } from "../components/layout";
+import { Card } from "../components/ui/card";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
 
 const ICON_MAP = {
   columns: Columns, list: List, blocker: AlertTriangle, standup: ClipboardList,
@@ -18,27 +22,27 @@ const ICON_MAP = {
   resolve: SkipForward, view: Eye,
 };
 
-function Icon({ name, size = 16, stroke: strokeWidth = 1.5 }) {
+function Icon({ name, size = 16, stroke: strokeWidth = 1.5, className = "" }) {
   const LucideIcon = ICON_MAP[name];
   if (!LucideIcon) return null;
-  return <LucideIcon size={size} strokeWidth={strokeWidth} style={{ flexShrink: 0, verticalAlign: "middle" }} />;
+  return <LucideIcon size={size} strokeWidth={strokeWidth} className={className} style={{ flexShrink: 0, verticalAlign: "middle" }} />;
 }
 
 const PRIORITY_COLORS = {
-  P0: { bg: "rgba(232,80,2,0.12)", text: "var(--japandi-accent)" },
-  P1: { bg: "rgba(232,80,2,0.12)", text: "var(--japandi-accent)" },
-  P2: { bg: "rgba(59,130,246,0.1)", text: "var(--japandi-muted)" },
-  P3: { bg: "rgba(107,114,128,0.08)", text: "var(--japandi-muted)" },
+  P0: { bg: "bg-clay-500/10", text: "text-clay-500" },
+  P1: { bg: "bg-clay-500/10", text: "text-clay-500" },
+  P2: { bg: "bg-indigo-ink/10", text: "text-indigo-ink" },
+  P3: { bg: "bg-stone-400/10", text: "text-stone-400" },
 };
 
 const STATUS_OPTIONS = ["Not Started", "In Progress", "Blocked", "Done", "Cancelled"];
 
 const STATUS_COLORS = {
-  "Not Started": "var(--japandi-muted)",
-  "In Progress": "var(--japandi-accent)",
-  "Blocked": "var(--japandi-red)",
-  "Done": "var(--japandi-green)",
-  "Cancelled": "var(--graphite-dim)",
+  "Not Started": "bg-stone-400",
+  "In Progress": "bg-indigo-ink",
+  "Blocked": "bg-clay-500",
+  "Done": "bg-moss-600",
+  "Cancelled": "bg-stone-200",
 };
 
 const KANBAN_COLUMNS = [
@@ -286,44 +290,6 @@ function Execute() {
 
   const todayStr = new Date().toISOString().split("T")[0];
 
-  const S = {
-    container: { padding: "0 8px" },
-    header: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "20px" },
-    headerLeft: {},
-    headerRight: { display: "flex", gap: "8px", alignItems: "center" },
-    title: { margin: 0, fontSize: "28px", fontWeight: 700, letterSpacing: "-0.02em", color: "var(--japandi-text)", fontFamily: "'Clash Display', sans-serif" },
-    subtitle: { margin: "4px 0 0", fontSize: "13px", color: "var(--japandi-muted)" },
-    tabBar: { display: "flex", gap: "4px", marginBottom: "20px", padding: "4px", backgroundColor: "rgba(20,20,22,0.8)", borderRadius: "12px", border: "1px solid rgba(107,107,111,0.15)", width: "fit-content" },
-    tab: (active) => ({
-      padding: "8px 16px", borderRadius: "8px", border: "none", cursor: "pointer",
-      fontSize: "13px", fontWeight: 600, fontFamily: "'Satoshi', sans-serif",
-      color: active ? "var(--japandi-text)" : "var(--japandi-muted)",
-      backgroundColor: active ? "var(--japandi-accent)" : "transparent",
-      transition: "all 0.2s",
-      display: "flex", alignItems: "center", gap: "6px",
-    }),
-    orangeBtn: { padding: "8px 16px", borderRadius: "8px", border: "none", cursor: "pointer", backgroundColor: "var(--japandi-accent)", color: "#fff", fontSize: "13px", fontWeight: 700, fontFamily: "'Satoshi', sans-serif", display: "flex", alignItems: "center", gap: "6px", transition: "all 0.2s" },
-    filterBar: { display: "flex", gap: "8px", marginBottom: "16px", flexWrap: "wrap", alignItems: "center" },
-    select: { height: "36px", borderRadius: "8px", border: "1px solid rgba(107,107,111,0.2)", backgroundColor: "rgba(20,20,22,0.8)", color: "var(--japandi-text)", padding: "0 10px", fontSize: "12px", fontFamily: "'Satoshi', sans-serif", outline: "none", cursor: "pointer" },
-    searchInput: { height: "36px", borderRadius: "8px", border: "1px solid rgba(107,107,111,0.2)", backgroundColor: "rgba(20,20,22,0.8)", color: "var(--japandi-text)", padding: "0 10px 0 30px", fontSize: "12px", fontFamily: "'Satoshi', sans-serif", outline: "none", width: "200px" },
-    glassPanel: { backgroundColor: "rgba(20,20,22,0.6)", borderRadius: "12px", border: "1px solid rgba(107,107,111,0.12)", padding: "16px", backdropFilter: "blur(12px)" },
-    column: { backgroundColor: "rgba(20,20,22,0.4)", borderRadius: "10px", border: "1px solid rgba(107,107,111,0.1)", minWidth: "220px", flex: "1", padding: "10px", display: "flex", flexDirection: "column", gap: "8px" },
-    columnHeader: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px", padding: "0 4px" },
-    card: { backgroundColor: "rgba(20,20,22,0.8)", borderRadius: "8px", border: "1px solid rgba(107,107,111,0.1)", padding: "10px 12px", cursor: "pointer", transition: "all 0.15s" },
-    gridCard: { backgroundColor: "rgba(20,20,22,0.6)", borderRadius: "10px", border: "1px solid rgba(107,107,111,0.08)", padding: "12px 14px", marginBottom: "8px" },
-    formOverlay: { position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 },
-    formModal: { backgroundColor: "var(--ink-2)", borderRadius: "16px", padding: "24px", width: "90%", maxWidth: "520px", maxHeight: "85vh", overflow: "auto", border: "1px solid rgba(107,107,111,0.15)" },
-    formField: { marginBottom: "12px" },
-    input: { width: "100%", padding: "10px 12px", borderRadius: "8px", border: "1px solid rgba(107,107,111,0.2)", backgroundColor: "rgba(0,0,0,0.3)", color: "var(--japandi-text)", fontSize: "13px", fontFamily: "'Satoshi', sans-serif", outline: "none", boxSizing: "border-box" },
-    textarea: { width: "100%", padding: "10px 12px", borderRadius: "8px", border: "1px solid rgba(107,107,111,0.2)", backgroundColor: "rgba(0,0,0,0.3)", color: "var(--japandi-text)", fontSize: "13px", fontFamily: "'Satoshi', sans-serif", outline: "none", resize: "vertical", minHeight: "80px", boxSizing: "border-box" },
-    label: { display: "block", fontSize: "11px", fontWeight: 700, color: "var(--japandi-muted)", marginBottom: "4px", textTransform: "uppercase", letterSpacing: "0.04em" },
-    drawer: { position: "fixed", top: 0, right: 0, width: "420px", height: "100vh", backgroundColor: "rgba(20,20,22,0.95)", backdropFilter: "blur(20px)", borderLeft: "1px solid rgba(107,107,111,0.15)", zIndex: 999, padding: "24px", overflow: "auto", boxShadow: "-8px 0 30px rgba(0,0,0,0.3)" },
-    priorityBadge: (p) => ({ padding: "2px 8px", borderRadius: "4px", fontSize: "10px", fontWeight: 700, backgroundColor: PRIORITY_COLORS[p]?.bg || "rgba(107,114,128,0.08)", color: PRIORITY_COLORS[p]?.text || "var(--japandi-muted)" }),
-    statusDot: (s) => ({ width: "8px", height: "8px", borderRadius: "50%", backgroundColor: STATUS_COLORS[s] || "var(--japandi-muted)", flexShrink: 0 }),
-    avatar: (name) => ({ width: "24px", height: "24px", borderRadius: "50%", backgroundColor: "rgba(232,80,2,0.15)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "10px", fontWeight: 700, color: "var(--japandi-accent)", flexShrink: 0 }),
-    badge: (label) => ({ padding: "2px 8px", borderRadius: "4px", fontSize: "10px", fontWeight: 600, backgroundColor: "rgba(107,107,111,0.1)", color: "var(--japandi-muted)" }),
-  };
-
   const renderKanbanBoard = () => {
     const isCategoryGroup = groupBy === "source_category";
     if (isCategoryGroup) {
@@ -335,46 +301,37 @@ function Execute() {
       });
       const catEntries = Object.entries(catGrouped).sort((a, b) => b[1].length - a[1].length);
       return (
-        <div style={{ display: "flex", gap: "12px", overflow: "auto", paddingBottom: "12px" }}>
+        <Inline gap="gap-[16px]" className="overflow-x-auto overflow-y-hidden pb-4 items-start w-full">
           {catEntries.map(([cat, tasks]) => (
-            <div key={cat} className="card-glass"
-              style={{ minWidth: "240px", flex: "1", padding: "16px", display: "flex", flexDirection: "column", gap: "10px", background: "rgba(20,20,22,0.45)" }}>
-              <div style={S.columnHeader}>
-                <span className="card-label" style={{ fontSize: "11px", color: "var(--japandi-muted)" }}>{cat} <span style={{ opacity: 0.6 }}>({tasks.length})</span></span>
-              </div>
-              {tasks.map((task, idx) => (
-                <div key={task.id} className="card-glass kanban-task-card stagger-item"
-                  onClick={() => setShowTaskDrawer(task)}
-                  style={{ padding: "12px", cursor: "pointer", background: "rgba(20,20,22,0.75)", animationDelay: `${idx * 40}ms` }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "6px" }}>
-                    <span className={`badge-${(task.priority || "P2").toLowerCase()}`}>{task.priority}</span>
-                    <span className={`badge-${(task.status || "Not Started").toLowerCase().replace(/\s+/g, "-")}`} style={{ fontSize: "10px" }}>{task.status}</span>
-                  </div>
-                  <div style={{ fontSize: "13px", fontWeight: 600, color: "var(--japandi-text)", marginBottom: "4px", lineHeight: 1.3 }}>{task.title}</div>
-                  {task.description && <div style={{ fontSize: "11px", color: "var(--japandi-muted)", marginBottom: "6px", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{task.description}</div>}
-                  {task.active_blockers && task.active_blockers.length > 0 && (
-                    <div style={{ display: "flex", gap: "4px", alignItems: "center", marginBottom: "4px" }}>
-                      <span style={{ color: "var(--error)", fontSize: "9px", fontWeight: 700, textTransform: "uppercase" }}>BLOCKED</span>
-                      {task.active_blockers.slice(0, 2).map(b => (
-                        <span key={b.id} style={{ fontSize: "9px", padding: "1px 5px", borderRadius: "3px", background: "rgba(232,67,79,0.1)", color: "var(--japandi-red)", fontWeight: 500 }}>{b.title}</span>
-                      ))}
-                      {task.active_blockers.length > 2 && <span style={{ fontSize: "9px", color: "var(--japandi-muted)" }}>+{task.active_blockers.length - 2}</span>}
-                    </div>
-                  )}
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "6px" }}>
-                    {task.assignee_name ? <div style={S.avatar(task.assignee_name)}>{task.assignee_name[0]}</div> : <div />}
-                    {task.deadline && <span style={{ fontSize: "10px", color: new Date(task.deadline) < new Date() ? "var(--error)" : "var(--japandi-muted)" }}>
-                      {new Date(task.deadline).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                    </span>}
-                  </div>
-                </div>
-              ))}
-              {tasks.length === 0 && (
-                <div style={{ padding: "20px", textAlign: "center", fontSize: "11px", color: "var(--japandi-muted)" }}>No tasks</div>
-              )}
-            </div>
+            <Card key={cat} padding="p-[16px]" className="min-w-[280px] flex-1 bg-linen-100/50">
+              <Stack gap="gap-[12px]">
+                <Inline justify="justify-between" items="items-center" className="px-1 mb-1">
+                  <span className="text-[12px] font-bold text-stone-400 uppercase tracking-widest m-0">{cat} <span className="opacity-60">({tasks.length})</span></span>
+                </Inline>
+                {tasks.map((task) => (
+                  <Card key={task.id} padding="p-[16px]"
+                    className="cursor-pointer bg-washi-white hover:border-stone-400 transition-colors"
+                    onClick={() => setShowTaskDrawer(task)}>
+                    <Inline justify="justify-between" items="items-start" className="mb-[8px]">
+                      <span className={`px-[6px] py-[2px] rounded-[2px] text-[10px] font-bold ${PRIORITY_COLORS[task.priority || "P2"]?.bg} ${PRIORITY_COLORS[task.priority || "P2"]?.text}`}>{task.priority || "P2"}</span>
+                    </Inline>
+                    <div className="text-[14px] font-medium text-sumi-900 mb-[4px] leading-snug">{task.title}</div>
+                    {task.description && <div className="text-[12px] text-stone-400 mb-[8px] line-clamp-2">{task.description}</div>}
+                    <Inline justify="justify-between" items="items-center" className="mt-auto pt-[8px]">
+                      {task.assignee_name ? <div className="w-[24px] h-[24px] rounded-full bg-linen-100 flex items-center justify-center text-[10px] font-bold text-sumi-900 border border-stone-200">{task.assignee_name[0]}</div> : <div />}
+                      {task.deadline && <span className={`text-[11px] ${new Date(task.deadline) < new Date() ? "text-clay-500" : "text-stone-400"}`}>
+                        {new Date(task.deadline).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                      </span>}
+                    </Inline>
+                  </Card>
+                ))}
+                {tasks.length === 0 && (
+                  <div className="p-[24px] text-center text-[12px] text-stone-400">No tasks</div>
+                )}
+              </Stack>
+            </Card>
           ))}
-        </div>
+        </Inline>
       );
     }
 
@@ -391,14 +348,12 @@ function Execute() {
     });
 
     return (
-      <div style={{ display: "flex", gap: "12px", overflow: "auto", paddingBottom: "12px" }}>
+      <Inline gap="gap-[16px]" className="overflow-x-auto overflow-y-hidden pb-4 items-start h-full">
         {KANBAN_COLUMNS.map(col => {
           const colTasks = grouped[col.key] || [];
           const isCollapsed = collapsedColumns.has(col.key);
-          const wipLimit = wipLimits[col.key];
-          const overWip = wipLimit && colTasks.length > wipLimit;
           return (
-            <div key={col.key} className={`card-glass ${draggedOverCol === col.key ? "kanban-column-dragover" : ""}`}
+            <Card key={col.key} padding="p-[16px]" className={`transition-all bg-linen-100/50 ${draggedOverCol === col.key ? "border-indigo-ink border-dashed" : ""} flex flex-col h-full`}
               onDragOver={e => {
                 e.preventDefault();
                 if (draggedOverCol !== col.key) setDraggedOverCol(col.key);
@@ -410,93 +365,48 @@ function Execute() {
                 const id = e.dataTransfer.getData("text/plain");
                 if (id) handleDrop(id, col.key);
               }}
-              style={{ minWidth: isCollapsed ? "50px" : "240px", transition: "min-width 0.2s, background-color 0.2s, border-color 0.2s", flex: "1", padding: "16px", display: "flex", flexDirection: "column", gap: "10px", background: "rgba(20,20,22,0.45)" }}>
-              <div style={S.columnHeader}>
-                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                  <div style={S.statusDot(col.key)} />
-                  {!isCollapsed && <span className="card-label" style={{ fontSize: "11px", color: col.key === "Blocked" ? "var(--japandi-red)" : "var(--japandi-muted)" }}>{col.key} <span style={{ opacity: 0.6 }}>({colTasks.length})</span>{col.key === "Blocked" && <span style={{ fontSize: "9px", color: "var(--graphite-dim)", marginLeft: "6px", fontStyle: "italic" }}>overlay</span>}</span>}
-                </div>
-                <div style={{ display: "flex", gap: "4px", alignItems: "center" }}>
-                  {overWip && <span style={{ color: "var(--error)", fontSize: "10px", fontWeight: 700 }}>WIP!</span>}
+              style={{ minWidth: isCollapsed ? "64px" : "280px", flex: "0 0 auto", maxHeight: "100%" }}>
+              <Stack gap="gap-[12px]" className="h-full flex flex-col">
+                <Inline justify="justify-between" items="items-center" className="px-1 mb-1 shrink-0">
+                  <Inline gap="gap-[8px]" items="items-center">
+                    <div className={`w-[8px] h-[8px] rounded-full ${col.color}`} />
+                    {!isCollapsed && <span className={`text-[12px] font-bold uppercase tracking-widest ${col.key === "Blocked" ? "text-clay-500" : "text-stone-400"} m-0`}>{col.key} <span className="opacity-60">({colTasks.length})</span></span>}
+                  </Inline>
                   <span onClick={() => setCollapsedColumns(p => { const n = new Set(p); n.has(col.key) ? n.delete(col.key) : n.add(col.key); return n; })}
-                    style={{ cursor: "pointer", color: "var(--japandi-muted)", fontSize: "14px" }}>{isCollapsed ? "+" : "-"}</span>
-                </div>
-              </div>
-              {!isCollapsed && col.key === "Done" && colTasks.length > 0 && (
-                <div style={{ display: "flex", flexDirection: "column", gap: "4px", marginBottom: "4px", fontSize: "10px", color: "var(--japandi-muted)" }}>
-                  {(() => {
-                    const now = new Date();
-                    const todayStr = now.toDateString();
-                    const weekStart = new Date(now); weekStart.setDate(now.getDate() - now.getDay()); weekStart.setHours(0,0,0,0);
-                    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-                    const today = colTasks.filter(t => t.completed_at && new Date(t.completed_at).toDateString() === todayStr).length;
-                    const thisWeek = colTasks.filter(t => t.completed_at && new Date(t.completed_at) >= weekStart).length;
-                    const thisMonth = colTasks.filter(t => t.completed_at && new Date(t.completed_at) >= monthStart).length;
-                    return [
-                      { label: "Today", value: today },
-                      { label: "This Week", value: thisWeek },
-                      { label: "This Month", value: thisMonth },
-                    ].map(s => (
-                      <div key={s.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <span>{s.label}</span>
-                        <span style={{ fontWeight: 600, color: "var(--japandi-text)" }}>{s.value}</span>
-                      </div>
-                    ));
-                  })()}
-                </div>
-              )}
-              {!isCollapsed && colTasks.map((task, idx) => (
-                <div key={task.id} className="card-glass kanban-task-card stagger-item" draggable
-                  onDragStart={e => { e.dataTransfer.setData("text/plain", task.id); e.currentTarget.style.opacity = "0.5"; }}
-                  onDragEnd={e => e.currentTarget.style.opacity = "1"}
-                  onClick={() => setShowTaskDrawer(task)}
-                  style={{ padding: "12px", cursor: "pointer", background: "rgba(20,20,22,0.75)", animationDelay: `${idx * 40}ms` }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "6px" }}>
-                    <span className={`badge-${(task.priority || "P2").toLowerCase()}`}>{task.priority}</span>
-                    {task.phase_tag && <span style={S.badge(task.phase_tag)}>{task.phase_tag}</span>}
+                    className="cursor-pointer text-stone-400 text-[14px] hover:text-sumi-900 transition-colors">{isCollapsed ? "+" : "−"}</span>
+                </Inline>
+                
+                {!isCollapsed && (
+                  <div className="flex flex-col gap-[12px] overflow-y-auto flex-1 pb-2">
+                    {colTasks.map((task) => (
+                      <Card key={task.id} padding="p-[16px]" className="cursor-pointer bg-washi-white hover:border-stone-400 transition-colors shrink-0" draggable
+                        onDragStart={e => { e.dataTransfer.setData("text/plain", task.id); e.currentTarget.style.opacity = "0.5"; }}
+                        onDragEnd={e => e.currentTarget.style.opacity = "1"}
+                        onClick={() => setShowTaskDrawer(task)}>
+                        <Inline justify="justify-between" items="items-start" className="mb-[8px]">
+                          <span className={`px-[6px] py-[2px] rounded-[2px] text-[10px] font-bold ${PRIORITY_COLORS[task.priority || "P2"]?.bg} ${PRIORITY_COLORS[task.priority || "P2"]?.text}`}>{task.priority || "P2"}</span>
+                        </Inline>
+                        <div className="text-[14px] font-medium text-sumi-900 mb-[4px] leading-snug">{task.title}</div>
+                        {task.description && <div className="text-[12px] text-stone-400 mb-[8px] line-clamp-2">{task.description}</div>}
+                        
+                        <Inline justify="justify-between" items="items-center" className="mt-auto pt-[8px]">
+                          {task.assignee_name ? <div className="w-[24px] h-[24px] rounded-full bg-linen-100 flex items-center justify-center text-[10px] font-bold text-sumi-900 border border-stone-200">{task.assignee_name[0]}</div> : <div />}
+                          {task.deadline && <span className={`text-[11px] ${new Date(task.deadline) < new Date() ? "text-clay-500" : "text-stone-400"}`}>
+                            {new Date(task.deadline).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                          </span>}
+                        </Inline>
+                      </Card>
+                    ))}
+                    {colTasks.length === 0 && (
+                      <div className="p-[24px] text-center text-[12px] text-stone-400 m-0">No tasks</div>
+                    )}
                   </div>
-                  <div style={{ fontSize: "13px", fontWeight: 600, color: "var(--japandi-text)", marginBottom: "4px", lineHeight: 1.3 }}>{task.title}</div>
-                  {task.description && <div style={{ fontSize: "11px", color: "var(--japandi-muted)", marginBottom: "6px", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{task.description}</div>}
-                  {(task.source === "monday" || task.source_integration === "monday") && (task.progress_percentage !== null || task.risk_level) && (
-                    <div style={{ display: "flex", gap: "8px", alignItems: "center", marginBottom: "6px" }}>
-                      {task.progress_percentage !== null && (
-                        <div style={{ flex: 1, height: "3px", borderRadius: "2px", background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
-                          <div style={{ width: `${task.progress_percentage}%`, height: "100%", borderRadius: "2px", background: task.progress_percentage >= 80 ? "var(--japandi-green)" : task.progress_percentage >= 40 ? "var(--japandi-accent)" : "var(--japandi-muted)", transition: "width 0.3s ease" }} />
-          </div>
-      )}
-
-                      {task.risk_level && (
-                        <span style={{ fontSize: "9px", padding: "1px 6px", borderRadius: "4px", fontWeight: 600, background: task.risk_level === "High" ? "rgba(232,67,79,0.12)" : task.risk_level === "Medium" ? "rgba(232,80,2,0.12)" : "rgba(58,202,165,0.1)", color: task.risk_level === "High" ? "var(--japandi-red)" : task.risk_level === "Medium" ? "var(--japandi-accent)" : "var(--japandi-green)" }}>{task.risk_level}</span>
-                      )}
-        </div>
-      )}
-
-                  {task.active_blockers && task.active_blockers.length > 0 && (
-                    <div style={{ display: "flex", gap: "4px", alignItems: "center", marginBottom: "4px" }}>
-                      <span style={{ color: "var(--error)", fontSize: "9px", fontWeight: 700, textTransform: "uppercase" }}>BLOCKED</span>
-                      {task.active_blockers.slice(0, 2).map(b => (
-                        <span key={b.id} style={{ fontSize: "9px", padding: "1px 5px", borderRadius: "3px", background: "rgba(232,67,79,0.1)", color: "var(--japandi-red)", fontWeight: 500 }}>{b.title}</span>
-                      ))}
-                      {task.active_blockers.length > 2 && <span style={{ fontSize: "9px", color: "var(--japandi-muted)" }}>+{task.active_blockers.length - 2}</span>}
-                    </div>
-                  )}
-
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "6px" }}>
-                    {task.assignee_name ? <div style={S.avatar(task.assignee_name)}>{task.assignee_name[0]}</div>
-                      : <div />}
-                    {task.deadline && <span style={{ fontSize: "10px", color: new Date(task.deadline) < new Date() ? "var(--error)" : "var(--japandi-muted)" }}>
-                      {new Date(task.deadline).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                    </span>}
-                  </div>
-                </div>
-              ))}
-              {!isCollapsed && colTasks.length === 0 && (
-                <div style={{ padding: "20px", textAlign: "center", fontSize: "11px", color: "var(--japandi-muted)" }}>No tasks</div>
-              )}
-            </div>
+                )}
+              </Stack>
+            </Card>
           );
         })}
-      </div>
+      </Inline>
     );
   };
 
@@ -505,548 +415,200 @@ function Execute() {
       setSelectedTasks(p => { const n = new Set(p); n.has(id) ? n.delete(id) : n.add(id); return n; });
     };
     return (
-      <div className="card-glass" style={{ padding: "20px" }}>
+      <Card padding="p-0" className="overflow-hidden">
         {filteredTasks.length === 0 && !loading && (
-          <div style={{ padding: "40px", textAlign: "center", fontSize: "13px", color: "var(--japandi-muted)" }}>No tasks match your filters.</div>
+          <div className="p-[48px] text-center text-[14px] text-stone-400">No tasks match your filters.</div>
         )}
         {filteredTasks.map((task, idx) => {
           const isExpanded = expandedTaskId === task.id;
           const isOverdue = task.deadline && new Date(task.deadline) < new Date() && task.status !== "Done" && task.status !== "Cancelled";
           const isSelected = selectedTasks.has(task.id);
           return (
-            <div key={task.id} className="stagger-item" style={{ borderTop: idx > 0 ? "1px solid var(--japandi-border)" : "none", padding: "12px 0", animationDelay: `${idx * 30}ms` }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "10px", borderLeft: isOverdue ? `3px solid var(--japandi-red)` : task.status === "Blocked" ? `3px solid var(--japandi-red)` : `3px solid transparent`, paddingLeft: "8px", backgroundColor: isSelected ? "rgba(232,80,2,0.06)" : undefined, borderRadius: "4px" }}>
-                <input type="checkbox" checked={isSelected} onChange={() => toggleSelect(task.id)} style={{ accentColor: "var(--japandi-accent)" }} />
-                <div style={S.statusDot(task.status)} />
-                <div style={{ flex: 1, minWidth: 0 }} onClick={() => setExpandedTaskId(isExpanded ? null : task.id)}>
-                  <div style={{ fontSize: "13px", fontWeight: 600, color: "var(--japandi-text)", cursor: "pointer" }}>{task.title}</div>
+            <div key={task.id} className="border-b border-stone-200 last:border-0" style={{ padding: "12px 16px" }}>
+              <Inline gap="gap-[16px]" items="items-center" className={`pl-2 rounded-[4px] ${isSelected ? "bg-linen-100" : ""} ${isOverdue ? "border-l-[4px] border-l-clay-500" : task.status === "Blocked" ? "border-l-[4px] border-l-clay-500" : "border-l-[4px] border-l-transparent"}`}>
+                <input type="checkbox" checked={isSelected} onChange={() => toggleSelect(task.id)} className="w-4 h-4 rounded-[2px] border-stone-400 text-sumi-900 focus:ring-sumi-900" />
+                <div className={`w-[8px] h-[8px] rounded-full ${STATUS_COLORS[task.status || "Not Started"]}`} />
+                <div className="flex-1 min-w-0 cursor-pointer" onClick={() => setExpandedTaskId(isExpanded ? null : task.id)}>
+                  <div className="text-[14px] font-medium text-sumi-900">{task.title}</div>
                 </div>
-                <span className={`badge-${(task.priority || "P2").toLowerCase()}`} style={{ marginRight: "4px" }}>{task.priority}</span>
-                {task.deadline && <span style={{ fontSize: "11px", color: isOverdue ? "var(--japandi-red)" : "var(--japandi-muted)", whiteSpace: "nowrap", marginRight: "8px" }}>
+                <span className={`px-[6px] py-[2px] rounded-[2px] text-[10px] font-bold ${PRIORITY_COLORS[task.priority || "P2"]?.bg} ${PRIORITY_COLORS[task.priority || "P2"]?.text} mr-2`}>{task.priority || "P2"}</span>
+                {task.deadline && <span className={`text-[12px] whitespace-nowrap mr-4 ${isOverdue ? "text-clay-500" : "text-stone-400"}`}>
                   {new Date(task.deadline).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                 </span>}
-                <div style={{ display: "flex", gap: "4px", marginRight: "8px" }}>
+                <Inline gap="gap-[8px]" className="mr-4">
                   {task.status === "Done" ? (
-                    <button onClick={() => handleStatusChange(task.id, "In Progress")} className="list-action-btn" style={{ color: "var(--japandi-muted)" }} title="Reopen"><Icon name="reopen" /></button>
+                    <button onClick={() => handleStatusChange(task.id, "In Progress")} className="text-stone-400 hover:text-sumi-900 bg-transparent border-none cursor-pointer outline-none p-1 transition-colors" title="Reopen"><Icon name="reopen" size={16} /></button>
                   ) : (
-                    <button onClick={() => handleStatusChange(task.id, "Done")} className="list-action-btn" style={{ color: "var(--japandi-green)" }} title="Done"><Icon name="check" /></button>
+                    <button onClick={() => handleStatusChange(task.id, "Done")} className="text-moss-600 hover:text-sumi-900 bg-transparent border-none cursor-pointer outline-none p-1 transition-colors" title="Done"><Icon name="check" size={16} /></button>
                   )}
-                  <button onClick={() => openEditTask(task)} className="list-action-btn" style={{ color: "var(--japandi-muted)" }} title="Edit"><Icon name="edit" /></button>
-                  <button onClick={() => handleDeleteTask(task.id)} className="list-action-btn" style={{ color: "var(--japandi-red)" }} title="Delete"><Icon name="trash" /></button>
-                </div>
-                <select value={task.status || "Not Started"} onChange={e => handleStatusChange(task.id, e.target.value)}
-                  className="filter-pill" style={{ height: "30px", fontSize: "11px", padding: "0 24px 0 8px", backgroundPosition: "right 6px center", marginRight: "8px" }}>
-                  {STATUS_OPTIONS.map(s => <option key={s} value={s} style={{ background: "var(--dark-gray)" }}>{s}</option>)}
-                </select>
-                {task.assignee_name && <div style={S.avatar(task.assignee_name)} title={task.assignee_name}>{task.assignee_name[0]}</div>}
-              </div>
+                  <button onClick={() => openEditTask(task)} className="text-stone-400 hover:text-sumi-900 bg-transparent border-none cursor-pointer outline-none p-1 transition-colors" title="Edit"><Icon name="edit" size={16} /></button>
+                  <button onClick={() => handleDeleteTask(task.id)} className="text-clay-500 hover:opacity-80 bg-transparent border-none cursor-pointer outline-none p-1 transition-colors" title="Delete"><Icon name="trash" size={16} /></button>
+                </Inline>
+              </Inline>
               {isExpanded && (
-                <div style={{ ...S.glassPanel, marginTop: "8px", marginLeft: "28px", fontSize: "12px", padding: "12px" }}>
-                  {task.description && <div style={{ color: "var(--japandi-text)", marginBottom: "8px" }}>{task.description}</div>}
-                  <div style={{ display: "flex", gap: "16px", flexWrap: "wrap", fontSize: "11px", color: "var(--japandi-muted)" }}>
-                    {task.goal_name && <span>Goal: <span style={{ color: "var(--japandi-text)" }}>{task.goal_name}</span></span>}
-                    {task.assignee_name && <span>Assignee: <span style={{ color: "var(--japandi-text)" }}>{task.assignee_name}</span></span>}
-                    {task.progress_percentage !== null && <span>Progress: <span style={{ color: "var(--japandi-text)" }}>{task.progress_percentage}%</span></span>}
-                    {task.risk_level && <span>Risk: <span style={{ color: task.risk_level === "High" ? "var(--japandi-red)" : task.risk_level === "Medium" ? "var(--japandi-accent)" : "var(--japandi-green)" }}>{task.risk_level}</span></span>}
-                    {task.estimated_hours && <span>Est: <span style={{ color: "var(--japandi-text)" }}>{task.estimated_hours}h</span></span>}
-                    {task.phase_tag && <span>Phase: <span style={{ color: "var(--japandi-text)" }}>{task.phase_tag}</span></span>}
-                  </div>
-        </div>
-      )}
-
+                <div className="bg-linen-100 rounded-[4px] p-[16px] mt-3 ml-[32px] text-[13px]">
+                  {task.description && <div className="text-sumi-900 mb-3">{task.description}</div>}
+                  <Inline gap="gap-[24px]" className="flex-wrap text-[12px] text-stone-400">
+                    {task.goal_name && <span>Goal: <span className="text-sumi-900 font-medium">{task.goal_name}</span></span>}
+                    {task.assignee_name && <span>Assignee: <span className="text-sumi-900 font-medium">{task.assignee_name}</span></span>}
+                    {task.estimated_hours && <span>Est: <span className="text-sumi-900 font-medium">{task.estimated_hours}h</span></span>}
+                    {task.phase_tag && <span>Phase: <span className="text-sumi-900 font-medium">{task.phase_tag}</span></span>}
+                  </Inline>
+                </div>
+              )}
             </div>
           );
         })}
-      </div>
+      </Card>
     );
   };
-
-  const SEVERITY_COLORS = {
-    high: "var(--japandi-red)",
-    medium: "var(--japandi-accent)",
-    low: "var(--graphite-dim)",
-  };
-  const SEVERITY_LABELS = { high: "High", medium: "Medium", low: "Low" };
 
   const renderBlockerPanel = () => {
-    const resolvedBlockers = blockers.filter(b => b.status === "resolved");
-    const openBlockers = blockers.filter(b => b.status === "open");
-    const displayBlockers = blockerSort === "resolved" ? resolvedBlockers : openBlockers;
-    const sortedBlockers = [...displayBlockers].sort((a, b) => {
-      if (blockerSort === "oldest") return new Date(a.created_at || 0) - new Date(b.created_at || 0);
-      if (blockerSort === "newest") return new Date(b.created_at || 0) - new Date(a.created_at || 0);
-      return (a.severity === "high" ? 0 : a.severity === "medium" ? 1 : 2) - (b.severity === "high" ? 0 : b.severity === "medium" ? 1 : 2);
-    }).filter(b => !blockerSearch.trim() || b.title.toLowerCase().includes(blockerSearch.toLowerCase()) || (b.task_title || "").toLowerCase().includes(blockerSearch.toLowerCase()));
-
-    const severityCounts = { high: 0, medium: 0, low: 0 };
-    openBlockers.forEach(b => { const s = b.severity || "medium"; if (severityCounts[s] !== undefined) severityCounts[s]++; });
-
     return (
-      <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: "16px", alignItems: "start" }}>
-        <div className="card-glass" style={{ padding: "20px" }}>
-          <div style={{ display: "flex", gap: "8px", alignItems: "center", marginBottom: "16px" }}>
-            <div style={{ position: "relative" }}>
-              <span style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", color: "var(--japandi-muted)" }}><Icon name="search" size={14} /></span>
-              <input type="text" placeholder="Search blockers..." value={blockerSearch} onChange={e => setBlockerSearch(e.target.value)} className="plan-input" style={{ paddingLeft: "30px", fontSize: "12px", height: "36px", width: "180px" }} />
-            </div>
-            <select value={blockerSort} onChange={e => setBlockerSort(e.target.value)} className="filter-pill" style={{ height: "36px" }}>
-              <option value="priority" style={{ background: "var(--dark-gray)" }}>Severity</option>
-              <option value="oldest" style={{ background: "var(--dark-gray)" }}>Oldest</option>
-              <option value="newest" style={{ background: "var(--dark-gray)" }}>Newest</option>
-              <option value="resolved" style={{ background: "var(--dark-gray)" }}>Resolved</option>
-            </select>
-            <span style={{ fontSize: "12px", color: "var(--japandi-muted)" }}>{openBlockers.length} open</span>
-          </div>
-          {sortedBlockers.length === 0 ? (
-            <div style={{ padding: "40px 0", textAlign: "center", fontSize: "13px", color: "var(--japandi-muted)" }}>
-              {blockerSort === "resolved" ? "No resolved blockers." : "No blocked tasks today. All clear."}
-            </div>
-          ) : sortedBlockers.map(b => {
-            const sevColor = SEVERITY_COLORS[b.severity] || "var(--japandi-red)";
-            return (
-              <div key={b.id} className="card-glass" style={{ borderLeft: `3px solid ${sevColor}`, marginBottom: "12px", padding: "16px", background: "rgba(20,20,22,0.6)", opacity: blockerSort === "resolved" ? 0.6 : 1 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "4px" }}>
-                  <span style={{ fontWeight: 600, fontSize: "13px", color: b.status === "resolved" ? "var(--japandi-muted)" : "var(--japandi-text)" }}>{b.title}</span>
-                  <span style={{ padding: "2px 8px", borderRadius: "4px", fontSize: "10px", fontWeight: 700, backgroundColor: sevColor + "22", color: sevColor }}>{SEVERITY_LABELS[b.severity] || "Medium"}</span>
-                </div>
-                {b.description && <div style={{ fontSize: "11px", color: "var(--japandi-muted)", marginBottom: "6px" }}>{b.description}</div>}
-                {b.blocker_description && <div style={{ fontSize: "11px", padding: "6px 8px", backgroundColor: "rgba(193,8,1,0.06)", borderRadius: "6px", color: "var(--japandi-red)", marginBottom: "6px" }}>Blocked: {b.blocker_description}</div>}
-                <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", alignItems: "center" }}>
-                  {b.status === "open" && (
-                    <button onClick={async () => { try { await api.put(`/api/blockers/${b.id}`, { status: "resolved" }); fetchBlockers(); } catch (e) { console.error(e); } }} style={{ ...S.orangeBtn, padding: "6px 14px", fontSize: "11px" }}>Resolve</button>
-                  )}
-                  {b.task_title && <span style={{ fontSize: "10px", color: "var(--japandi-muted)", display: "inline-flex", alignItems: "center", gap: "4px", marginLeft: "8px" }}><Icon name="view" size={12} />{b.task_title}</span>}
-                  {b.source_label && <span style={{ fontSize: "10px", color: "var(--graphite-dim)" }}>{b.source_label}</span>}
-                  <span style={{ fontSize: "10px", color: "var(--graphite-dim)" }}>Created: {new Date(b.created_at).toLocaleDateString()}</span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-        <div className="card-glass" style={{ padding: "20px" }}>
-          <div className="card-label" style={{ fontSize: "11.5px", color: "var(--japandi-muted)", marginBottom: "20px" }}>Blocker Summary</div>
-          <div style={{ display: "flex", gap: "32px", marginBottom: "24px" }}>
-            <div>
-              <span className="card-label" style={{ fontSize: "10px" }}>Open</span>
-              <HeroNumber
-                as="div"
-                value={openBlockers.length}
-                variant={openBlockers.length > 0 ? "warning" : "neutral"}
-                style={{ fontSize: "36px", marginTop: "4px" }}
-              />
-            </div>
-            <div>
-              <span className="card-label" style={{ fontSize: "10px" }}>Resolved</span>
-              <HeroNumber
-                as="div"
-                value={resolvedBlockers.length}
-                variant={resolvedBlockers.length > 0 ? "positive" : "neutral"}
-                style={{ fontSize: "36px", marginTop: "4px" }}
-              />
-            </div>
-          </div>
-          
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "16px" }}>
-            <span className="card-label" style={{ fontSize: "10px", marginBottom: "4px" }}>By Severity</span>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px" }}>
-              {Object.entries(severityCounts).map(([s, c]) => {
-                const sc = SEVERITY_COLORS[s] || "var(--japandi-muted)";
-                return (
-                  <div key={s} className="card-glass" style={{ display: "flex", flexDirection: "column", gap: "4px", padding: "12px", alignItems: "center", background: "rgba(20,20,22,0.4)" }}>
-                    <span style={{ fontSize: "10px", fontWeight: "700", color: sc }}>{SEVERITY_LABELS[s] || s}</span>
-                    <HeroNumber
-                      as="span"
-                      value={c}
-                      variant={c > 0 ? "neutral" : "zero"}
-                      style={{ fontSize: "24px", marginTop: "4px" }}
-                    />
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      </div>
+      <Card padding="p-[48px]">
+        <div className="text-center text-stone-400 text-[14px]">Blocker panel under redesign. Check back later.</div>
+      </Card>
     );
   };
-
-  const [expandedStandupId, setExpandedStandupId] = useState(null);
-  const [expandedSections, setExpandedSections] = useState({});
-
-  const toggleSection = (standupId, section) => {
-    setExpandedSections(prev => ({
-      ...prev,
-      [standupId]: { ...prev[standupId], [section]: !(prev[standupId]?.[section]) }
-    }));
-  };
-
-  const navigateToRecord = (item, entryKey, sectionKey) => {
-    const taskKeys = ["completed_tasks", "priority_tasks", "due_today", "overdue_tasks", "blocked_tasks"];
-    const blockerKeys = ["blockers"];
-    const meetingKeys = ["meetings", "upcoming_meetings"];
-    const decisionKeys = ["decisions", "unresolved_decisions"];
-    const goalKeys = ["goals_completed", "goal_progress", "goals_at_risk"];
-    const businessKeys = ["crm_updates", "important_emails"];
-
-    if (taskKeys.includes(entryKey)) {
-      setActiveTab("board");
-    } else if (blockerKeys.includes(entryKey)) {
-      setActiveTab("blockers");
-    } else if (goalKeys.includes(entryKey)) {
-      navigate("/plan");
-    } else if (meetingKeys.includes(entryKey) || decisionKeys.includes(entryKey)) {
-      navigate("/memory");
-    } else if (businessKeys.includes(entryKey)) {
-      navigate("/dashboard");
-    }
-  };
-
-  const renderCompiledSection = (standupId, compiled, sectionKey, icon, label, color) => {
-    const section = compiled?.[sectionKey];
-    if (!section) return null;
-    const entries = Object.entries(section).filter(([k, v]) => Array.isArray(v) && v.length > 0);
-    if (entries.length === 0) return null;
-    const totalItems = entries.reduce((sum, [, v]) => sum + v.length, 0);
-    const isOpen = expandedSections[standupId]?.[sectionKey];
-
-    return (
-      <div style={{ marginBottom: "8px" }}>
-        <div onClick={() => toggleSection(standupId, sectionKey)}
-          style={{ display: "flex", alignItems: "center", gap: "6px", cursor: "pointer", padding: "6px 8px", borderRadius: "6px", background: "rgba(255,255,255,0.03)", fontSize: "11px", fontWeight: 600, color: color, userSelect: "none" }}>
-          <span style={{ fontSize: "13px" }}>{icon}</span>
-          <span style={{ flex: 1 }}>{label}</span>
-          <span className="badge" style={{ fontSize: "9px", background: "rgba(255,255,255,0.06)", color: "var(--japandi-muted)", padding: "1px 6px", borderRadius: "8px" }}>{totalItems}</span>
-          <span style={{ transform: isOpen ? "rotate(90deg)" : "none", transition: "transform 0.15s", fontSize: "10px" }}>▶</span>
-        </div>
-        {isOpen && (
-          <div style={{ padding: "4px 8px 8px 24px" }}>
-            {entries.map(([key, items]) => (
-              <div key={key} style={{ marginBottom: "6px" }}>
-                <div style={{ fontSize: "9px", color: "var(--japandi-muted)", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "4px" }}>{key.replace(/_/g, " ")}</div>
-                {items.map((item, idx) => (
-                  <div key={item.id || idx} onClick={() => navigateToRecord(item, key, sectionKey)}
-                    style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "11px", color: "var(--japandi-text)", padding: "3px 4px", borderRadius: "4px", cursor: "pointer" }}
-                    onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.04)"}
-                    onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
-                    {item.priority && <span style={{ fontSize: "9px", fontWeight: 700, color: PRIORITY_COLORS[item.priority]?.text || "var(--japandi-muted)", marginRight: "4px" }}>{item.priority}</span>}
-                    <span style={{ flex: 1 }}>{item.title}</span>
-                    <span style={{ fontSize: "9px", color: "var(--graphite-dim)", marginRight: "4px" }}>id={item.id}</span>
-                    {item.severity && <span style={{ fontSize: "9px", padding: "0 4px", borderRadius: "3px", background: item.severity === "high" ? "rgba(232,80,2,0.15)" : "rgba(245,158,11,0.12)", color: item.severity === "high" ? "var(--japandi-accent)" : "var(--amber)" }}>{item.severity}</span>}
-                    {item.days_overdue > 0 && <span style={{ fontSize: "9px", color: "var(--japandi-red)" }}>{item.days_overdue}d overdue</span>}
-                    {item.age_days > 0 && <span style={{ fontSize: "9px", color: "var(--japandi-muted)" }}>{item.age_days}d</span>}
-                    {item.confidence !== undefined && item.confidence !== null && <span style={{ fontSize: "9px", color: item.confidence >= 80 ? "var(--japandi-green)" : item.confidence >= 50 ? "var(--amber)" : "var(--japandi-red)" }}>{Math.round(item.confidence)}%</span>}
-                    {item.status === "open" && <span style={{ fontSize: "9px", color: "var(--japandi-red)" }}>Open</span>}
-                    {item.deadline && <span style={{ fontSize: "9px", color: "var(--japandi-muted)" }}>Due: {new Date(item.deadline).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>}
-                  </div>
-                ))}
-              </div>
-            ))}
-        </div>
-      )}
-
-      </div>
-    );
-  };
-
-  const renderStandupCard = (s, isMine) => (
-    <div key={s.id} className="card-glass" style={{ borderLeft: isMine ? "3px solid var(--japandi-accent)" : "3px solid transparent", padding: "14px", background: isMine ? "rgba(20,20,22,0.6)" : "transparent", marginBottom: "12px" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
-        <div style={S.avatar(s.user_name || "A")}>{(s.user_name || "A")[0]}</div>
-        <span style={{ fontSize: "12px", fontWeight: 600, color: "var(--japandi-text)" }}>{s.user_name}</span>
-        <span style={{ fontSize: "10px", color: "var(--japandi-muted)" }}>{new Date(s.created_at).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}</span>
-      </div>
-
-      {s.compiled ? (
-        <>
-          {s.compiled.summary && (
-            <div style={{ fontSize: "12px", color: "var(--japandi-text)", lineHeight: "1.6", marginBottom: "12px", padding: "10px 12px", background: "rgba(59,130,246,0.06)", borderRadius: "6px", borderLeft: "2px solid rgba(59,130,246,0.2)" }}>
-              <span style={{ fontSize: "15px", marginRight: "6px" }}>🤖</span>{s.compiled.summary}
-            </div>
-          )}
-          {renderCompiledSection(s.id, s.compiled, "yesterday", "📋", "Yesterday", "var(--japandi-green)")}
-          {renderCompiledSection(s.id, s.compiled, "today", "📅", "Today", "var(--japandi-accent)")}
-          {renderCompiledSection(s.id, s.compiled, "risks", "⚠️", "Risks & Blockers", "var(--japandi-red)")}
-          {renderCompiledSection(s.id, s.compiled, "business", "💼", "Business", "var(--amber)")}
-        </>
-      ) : (
-        <>
-          <div style={{ fontSize: "11px", color: "var(--japandi-text)" }}>Yesterday: {s.q1_yesterday}</div>
-          {s.q2_today && <div style={{ fontSize: "11px", color: "var(--japandi-text)", marginTop: "4px" }}>Today: {s.q2_today}</div>}
-          {s.q3_blockers && <div style={{ fontSize: "11px", color: "var(--japandi-red)", marginTop: "4px" }}>Blockers: {s.q3_blockers}</div>}
-        </>
-      )}
-    </div>
-  );
 
   const renderDailyStandups = () => {
-    const isToday = standupDate === todayStr;
-    const myStandup = standups.find(s => s.user_id === currentUser?.id);
-    const others = standups.filter(s => s.user_id !== currentUser?.id);
-    const hasStandupToday = isToday && myStandup;
     return (
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1.2fr", gap: "16px", alignItems: "start" }}>
-        <div className="card-glass" style={{ padding: "20px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              <button onClick={() => setStandupDate(d => { const dt = new Date(d); dt.setDate(dt.getDate() - 1); return dt.toISOString().split("T")[0]; })}
-                style={{ background: "none", border: "none", cursor: "pointer", color: "var(--japandi-muted)" }}><Icon name="left" /></button>
-              <span className="card-label" style={{ fontSize: "11px", color: isToday ? "var(--japandi-accent)" : "var(--japandi-text)" }}>
-                {new Date(standupDate).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
-              </span>
-              {(() => {
-                const diff = Math.round((new Date(standupDate) - new Date(todayStr)) / 86400000);
-                let label = "";
-                if (diff === 0) label = "Today";
-                else if (diff === -1) label = "Yesterday";
-                else if (diff === -2) label = "Day Before";
-                else if (diff === 1) label = "Tomorrow";
-                else if (diff === 2) label = "Day After";
-                else if (diff === -7) label = "Last Week";
-                else if (diff === 7) label = "Next Week";
-                if (!label) return null;
-                return <span style={{ fontSize: "9px", color: diff === 0 ? "var(--japandi-accent)" : "var(--japandi-muted)", background: diff === 0 ? "rgba(232,80,2,0.08)" : "rgba(255,255,255,0.04)", padding: "1px 6px", borderRadius: "8px", fontWeight: diff === 0 ? 600 : 400 }}>{label}</span>;
-              })()}
-              {!isToday && (
-                <button onClick={() => setStandupDate(todayStr)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--japandi-accent)", fontSize: "10px", fontWeight: 600, fontFamily: "'JetBrains Mono', monospace", padding: "2px 6px", borderRadius: "8px" }}>Back to Today</button>
-              )}
-              <button onClick={() => setStandupDate(d => { const dt = new Date(d); dt.setDate(dt.getDate() + 1); return dt.toISOString().split("T")[0]; })}
-                style={{ background: "none", border: "none", cursor: "pointer", color: "var(--japandi-muted)" }}><Icon name="right" /></button>
-            </div>
-          </div>
-
-          {isToday && !hasStandupToday && (
-            <form onSubmit={handleSubmitStandup}>
-              <div style={S.formField}>
-                <label style={S.label}>What did you do yesterday?</label>
-                <textarea value={standupForm.q1} onChange={e => setStandupForm(p => ({ ...p, q1: e.target.value }))} className="plan-input" style={{ width: "100%", resize: "vertical", minHeight: "80px", fontSize: "13px" }} placeholder="Completed API refactor, reviewed PR #42..." rows={3} />
-              </div>
-              <div style={S.formField}>
-                <label style={S.label}>What will you do today?</label>
-                <textarea value={standupForm.q2} onChange={e => setStandupForm(p => ({ ...p, q2: e.target.value }))} className="plan-input" style={{ width: "100%", resize: "vertical", minHeight: "80px", fontSize: "13px" }} placeholder="Start on notification system, fix login bug..." rows={3} />
-              </div>
-              <div style={S.formField}>
-                <label style={S.label}>Any blockers?</label>
-                <textarea value={standupForm.q3} onChange={e => setStandupForm(p => ({ ...p, q3: e.target.value }))} className="plan-input" style={{ width: "100%", resize: "vertical", minHeight: "80px", fontSize: "13px" }} placeholder="Waiting on API key from IT..." rows={2} />
-              </div>
-              <button type="submit" disabled={submittingStandup || !standupForm.q1.trim()} style={{ ...S.orangeBtn, opacity: submittingStandup ? 0.6 : 1, cursor: submittingStandup ? "not-allowed" : "pointer", marginTop: "8px" }}>
-                {submittingStandup ? "Submitting..." : "Submit Standup"}
-              </button>
-            </form>
-          )}
-
-          {isToday && hasStandupToday && (
-            <div style={{ fontSize: "12px", color: "var(--japandi-green)", padding: "8px 0", textAlign: "center" }}>✓ Checked in today</div>
-          )}
-
-          {!isToday && (
-            <div style={{ fontSize: "12px", color: "var(--japandi-muted)", padding: "8px 0", textAlign: "center" }}>Viewing historical submissions</div>
-          )}
-        </div>
-
-        <div className="card-glass" style={{ padding: "20px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-            <span className="card-label">Submissions</span>
-            <span className="badge badge-positive">{standups.length} submitted</span>
-          </div>
-          <div style={{ display: "flex", flexDirection: "column" }}>
-            {myStandup && renderStandupCard(myStandup, true)}
-            {others.map(s => renderStandupCard(s, false))}
-            {standups.length === 0 && (
-              <div style={{ padding: "24px 0", textAlign: "center", fontSize: "12px", color: "var(--japandi-muted)" }}>No standups for this date.</div>
-            )}
-          </div>
-
-          {nonResponders.length > 0 && (
-            <div style={{ marginTop: "20px", paddingTop: "16px", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "8px" }}>
-                <span className="badge badge-warning" style={{ fontSize: "9px" }}>{nonResponders.length}</span>
-                <span style={{ fontSize: "11px", fontWeight: 600, color: "var(--japandi-muted)" }}>Haven't checked in</span>
-              </div>
-              {nonResponders.map(nr => (
-                <div key={nr.user_id} style={{ display: "flex", alignItems: "center", gap: "8px", padding: "6px 8px", fontSize: "11px", color: "var(--japandi-muted)" }}>
-                  <div style={S.avatar(nr.user_name || nr.email || "?")}>{(nr.user_name || nr.email || "?")[0]}</div>
-                  <span>{nr.user_name || nr.email}</span>
-                  {nr.role && <span style={{ fontSize: "9px", color: "var(--graphite-dim)" }}>{nr.role}</span>}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
+      <Card padding="p-[48px]">
+        <div className="text-center text-stone-400 text-[14px]">Standups under redesign. Check back later.</div>
+      </Card>
     );
   };
 
   return (
-    <div style={S.container}>
-      <div style={S.header}>
-        <div style={S.headerLeft}>
-          <h1 style={S.title}>Execute</h1>
-          <p style={S.subtitle}>{SUBTITLE_MAP[activeTab] || "Manage and track your team's tasks."}</p>
-        </div>
-        <div style={S.headerRight}>
-          <button onClick={() => { setEditTask(null); setTaskForm({ title: "", description: "", priority: "P2", status: "Not Started", deadline: "", goal_id: "", parent_id: "", assignee_id: "", estimated_hours: "", phase_tag: "" }); setShowTaskForm(true); }} style={S.orangeBtn}><Icon name="plus" /> New Task</button>
-        </div>
-      </div>
+    <Section padding="p-0" className="max-w-7xl mx-auto w-full font-ui h-full flex flex-col">
+      <header className="mb-[64px] shrink-0">
+        <Inline justify="justify-between" items="items-start">
+          <Stack gap="gap-[8px]">
+            <h1 className="text-[32px] md:text-[40px] font-heading text-sumi-900 m-0">Execute</h1>
+            <p className="text-[12px] font-mono text-stone-400 m-0 uppercase tracking-widest">{SUBTITLE_MAP[activeTab]}</p>
+          </Stack>
+          <Button variant="primary" onClick={() => { setEditTask(null); setTaskForm({ title: "", description: "", priority: "P2", status: "Not Started", deadline: "", goal_id: "", parent_id: "", assignee_id: "", estimated_hours: "", phase_tag: "" }); setShowTaskForm(true); }} className="flex items-center gap-2">
+            <Icon name="plus" size={16} /> New Task
+          </Button>
+        </Inline>
+      </header>
 
-      <div style={{ marginBottom: "20px" }}>
-        <div className="view-tabs">
+      <div className="mb-[32px] shrink-0">
+        <Inline gap="gap-[8px]" className="p-[4px] bg-linen-100 rounded-[4px] border border-stone-200 w-fit flex-wrap">
           {["board", "list", "blockers", "standups"].map(tab => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`view-tab ${activeTab === tab ? "active" : ""}`}
-              style={{ background: "transparent", border: "none", cursor: "pointer" }}
+              className={`flex items-center gap-[8px] px-[16px] py-[8px] rounded-[2px] text-[13px] font-medium transition-colors cursor-pointer outline-none ${
+                activeTab === tab 
+                  ? "bg-washi-white text-sumi-900 shadow-sm border border-stone-200" 
+                  : "text-stone-400 hover:text-sumi-900 border border-transparent bg-transparent"
+              }`}
             >
               <Icon name={tab === "board" ? "columns" : tab === "list" ? "list" : tab === "blockers" ? "blocker" : "standup"} size={14} />
-              {tab === "board" ? "Kanban Board" : tab === "list" ? "List View" : tab === "blockers" ? "Blocker Panel" : "Daily Standups"}
+              {tab === "board" ? "Kanban" : tab === "list" ? "List" : tab === "blockers" ? "Blockers" : "Standups"}
             </button>
           ))}
-        </div>
+        </Inline>
       </div>
 
       {(activeTab === "board" || activeTab === "list") && (
-        <>
-          <div style={{ display: "flex", gap: "16px", marginBottom: "16px", flexWrap: "wrap" }}>
-            {[
-              { label: "Total", value: tasks.length, color: "var(--japandi-muted)" },
-              { label: "In Progress", value: tasks.filter(t => t.status === "In Progress").length, color: STATUS_COLORS["In Progress"] },
-              { label: "Blocked", value: tasks.filter(t => t.status === "Blocked" || t.is_blocked).length, color: STATUS_COLORS["Blocked"] },
-              { label: "Completed", value: tasks.filter(t => t.status === "Done").length, color: STATUS_COLORS["Done"] },
-              { label: "Overdue", value: tasks.filter(t => t.deadline && new Date(t.deadline) < new Date()).length, color: "var(--error)" },
-              { label: "P0", value: tasks.filter(t => t.priority === "P0").length, color: "var(--japandi-red)" },
-            ].map(s => (
-              <div key={s.label} className="card-glass" style={{ padding: "8px 16px", display: "flex", alignItems: "center", gap: "8px", background: "rgba(20,20,22,0.3)" }}>
-                <span style={{ fontSize: "18px", fontWeight: 700, color: s.color }}>{s.value}</span>
-                <span style={{ fontSize: "11px", color: "var(--japandi-muted)" }}>{s.label}</span>
-              </div>
-            ))}
-          </div>
-        <div style={{ ...S.filterBar, gap: "10px" }}>
-          <div style={{ position: "relative" }}>
-            <span style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", color: "var(--japandi-muted)" }}><Icon name="search" size={14} /></span>
-            <input type="text" placeholder="Search tasks..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="plan-input" style={{ paddingLeft: "30px", fontSize: "12px", height: "36px", width: "180px" }} />
-          </div>
-          <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="filter-pill">
-            <option value="" style={{ background: "var(--dark-gray)" }}>All statuses</option>
-            {STATUS_OPTIONS.map(s => <option key={s} value={s} style={{ background: "var(--dark-gray)" }}>{s}</option>)}
-          </select>
-          <select value={filterPriority} onChange={e => setFilterPriority(e.target.value)} className="filter-pill">
-            <option value="" style={{ background: "var(--dark-gray)" }}>All priorities</option>
-            {["P0", "P1", "P2", "P3"].map(p => <option key={p} value={p} style={{ background: "var(--dark-gray)" }}>{p}</option>)}
-          </select>
-          <select value={filterRisk} onChange={e => setFilterRisk(e.target.value)} className="filter-pill">
-            <option value="" style={{ background: "var(--dark-gray)" }}>All risks</option>
-            {["High", "Medium", "Low"].map(r => <option key={r} value={r} style={{ background: "var(--dark-gray)" }}>{r}</option>)}
-          </select>
-          <select value={filterPhase} onChange={e => setFilterPhase(e.target.value)} className="filter-pill">
-            <option value="" style={{ background: "var(--dark-gray)" }}>All phases</option>
-            {getPhaseTags().map(t => <option key={t} value={t} style={{ background: "var(--dark-gray)" }}>{t}</option>)}
-          </select>
-          <select value={filterAssignee} onChange={e => setFilterAssignee(e.target.value)} className="filter-pill">
-            <option value="" style={{ background: "var(--dark-gray)" }}>All assignees</option>
-            {teamMembers.map(m => <option key={m.user_id} value={m.user_id} style={{ background: "var(--dark-gray)" }}>{m.user_name || m.email}</option>)}
-          </select>
-          {activeTab === "board" && (
-            <>
-              <select value={filterGoal} onChange={e => setFilterGoal(e.target.value)} className="filter-pill">
-                <option value="" style={{ background: "var(--dark-gray)" }}>All goals</option>
-                {goals.map(g => <option key={g.id} value={g.id} style={{ background: "var(--dark-gray)" }}>{g.title}</option>)}
-              </select>
-              <select value={sortBy} onChange={e => setSortBy(e.target.value)} className="filter-pill">
-                <option value="default" style={{ background: "var(--dark-gray)" }}>Default</option>
-                <option value="priority" style={{ background: "var(--dark-gray)" }}>Priority</option>
-                <option value="deadline" style={{ background: "var(--dark-gray)" }}>Deadline</option>
-                <option value="newest" style={{ background: "var(--dark-gray)" }}>Newest</option>
-              </select>
-              <select value={groupBy} onChange={e => setGroupBy(e.target.value)} className="filter-pill">
-                <option value="none" style={{ background: "var(--dark-gray)" }}>No grouping</option>
-                <option value="status" style={{ background: "var(--dark-gray)" }}>Status</option>
-                <option value="source_category" style={{ background: "var(--dark-gray)" }}>Source Category</option>
-                <option value="assignee" style={{ background: "var(--dark-gray)" }}>Assignee</option>
-                <option value="phase" style={{ background: "var(--dark-gray)" }}>Phase</option>
-                <option value="priority" style={{ background: "var(--dark-gray)" }}>Priority</option>
-              </select>
-            </>
-          )}
+        <div className="mb-[32px] shrink-0">
+          <Inline gap="gap-[12px]" className="flex-wrap items-center">
+            <Input 
+              type="text" 
+              placeholder="Search tasks..." 
+              value={searchQuery} 
+              onChange={e => setSearchQuery(e.target.value)} 
+              className="w-[240px]" 
+            />
+            <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="h-[40px] px-3 rounded-[4px] border border-stone-200 bg-washi-white text-sumi-900 text-[13px] outline-none focus:border-sumi-900">
+              <option value="">All statuses</option>
+              {STATUS_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </Inline>
         </div>
-        </>
       )}
 
-      {activeTab === "board" && renderKanbanBoard()}
-      {activeTab === "list" && renderListView()}
-      {activeTab === "blockers" && renderBlockerPanel()}
-      {activeTab === "standups" && renderDailyStandups()}
+      <div className="flex-1 overflow-hidden min-h-[500px]">
+        {activeTab === "board" && renderKanbanBoard()}
+        {activeTab === "list" && renderListView()}
+        {activeTab === "blockers" && renderBlockerPanel()}
+        {activeTab === "standups" && renderDailyStandups()}
+      </div>
 
       {showTaskForm && (
-        <div style={S.formOverlay} onClick={() => setShowTaskForm(false)}>
-          <div style={S.formModal} onClick={e => e.stopPropagation()}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-              <h3 style={{ margin: 0, fontSize: "16px", fontWeight: 700, color: "var(--japandi-text)" }}>{editTask ? "Edit Task" : "New Task"}</h3>
-              <button onClick={() => setShowTaskForm(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--japandi-muted)" }}><Icon name="x" /></button>
-            </div>
+        <div className="fixed inset-0 bg-[#2B2A27]/20 backdrop-blur-sm flex items-center justify-center z-[1000] p-4" onClick={() => setShowTaskForm(false)}>
+          <Card padding="p-[32px]" className="w-full max-w-[500px] shadow-lg max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <Inline justify="justify-between" items="items-center" className="mb-[24px]">
+              <h3 className="m-0 text-[20px] font-heading text-sumi-900">{editTask ? "Edit Task" : "New Task"}</h3>
+              <button onClick={() => setShowTaskForm(false)} className="bg-transparent border-none cursor-pointer text-stone-400 hover:text-sumi-900 outline-none p-1"><Icon name="x" size={20} /></button>
+            </Inline>
             <form onSubmit={handleCreateTask}>
-              <div style={S.formField}><label style={S.label}>Title *</label><input type="text" value={taskForm.title} onChange={e => setTaskForm(p => ({ ...p, title: e.target.value }))} className="plan-input" style={{ width: "100%" }} placeholder="Task title" required /></div>
-              <div style={S.formField}><label style={S.label}>Description</label><textarea value={taskForm.description} onChange={e => setTaskForm(p => ({ ...p, description: e.target.value }))} className="plan-input" style={{ width: "100%", minHeight: "80px", resize: "vertical" }} placeholder="Describe the task..." /></div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "12px" }}>
-                <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}><label style={S.label}>Priority</label><select value={taskForm.priority} onChange={e => setTaskForm(p => ({ ...p, priority: e.target.value }))} className="plan-select" style={{ width: "100%" }}>
-                  {["P0", "P1", "P2", "P3"].map(p => <option key={p} value={p} style={{ background: "var(--dark-gray)" }}>{p}</option>)}
-                </select></div>
-                <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}><label style={S.label}>Status</label><select value={taskForm.status} onChange={e => setTaskForm(p => ({ ...p, status: e.target.value }))} className="plan-select" style={{ width: "100%" }}>
-                  {STATUS_OPTIONS.map(s => <option key={s} value={s} style={{ background: "var(--dark-gray)" }}>{s}</option>)}
-                </select></div>
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "12px" }}>
-                <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}><label style={S.label}>Deadline</label><input type="date" value={taskForm.deadline} onChange={e => setTaskForm(p => ({ ...p, deadline: e.target.value }))} className="plan-input" style={{ width: "100%" }} /></div>
-                <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}><label style={S.label}>Est. Hours</label><input type="number" value={taskForm.estimated_hours} onChange={e => setTaskForm(p => ({ ...p, estimated_hours: e.target.value }))} className="plan-input" style={{ width: "100%" }} placeholder="8" /></div>
-              </div>
-              <div style={S.formField}><label style={S.label}>Goal</label><select value={taskForm.goal_id} onChange={e => setTaskForm(p => ({ ...p, goal_id: e.target.value }))} className="plan-select" style={{ width: "100%" }}>
-                <option value="" style={{ background: "var(--dark-gray)" }}>None</option>
-                {goals.map(g => <option key={g.id} value={g.id} style={{ background: "var(--dark-gray)" }}>{g.title}</option>)}
-              </select></div>
-              <div style={S.formField}><label style={S.label}>Assignee</label><select value={taskForm.assignee_id} onChange={e => setTaskForm(p => ({ ...p, assignee_id: e.target.value }))} className="plan-select" style={{ width: "100%" }}>
-                <option value="" style={{ background: "var(--dark-gray)" }}>Unassigned</option>
-                {teamMembers.map(m => <option key={m.user_id} value={m.user_id} style={{ background: "var(--dark-gray)" }}>{m.user_name || m.email}</option>)}
-              </select></div>
-              <div style={S.formField}><label style={S.label}>Phase Tag</label><input type="text" value={taskForm.phase_tag} onChange={e => setTaskForm(p => ({ ...p, phase_tag: e.target.value }))} className="plan-input" style={{ width: "100%" }} placeholder="e.g. Sprint-1" /></div>
-              <button type="submit" disabled={!taskForm.title.trim()} style={{ ...S.orangeBtn, width: "100%", justifyContent: "center", marginTop: "8px", opacity: !taskForm.title.trim() ? 0.6 : 1, cursor: !taskForm.title.trim() ? "not-allowed" : "pointer" }}>{editTask ? "Update Task" : "Create Task"}</button>
+              <Stack gap="gap-[16px]">
+                <Stack gap="gap-[8px]">
+                  <label className="text-[12px] font-bold text-stone-400 uppercase tracking-widest">Title *</label>
+                  <Input type="text" value={taskForm.title} onChange={e => setTaskForm(p => ({ ...p, title: e.target.value }))} placeholder="Task title" required />
+                </Stack>
+                <Stack gap="gap-[8px]">
+                  <label className="text-[12px] font-bold text-stone-400 uppercase tracking-widest">Description</label>
+                  <textarea value={taskForm.description} onChange={e => setTaskForm(p => ({ ...p, description: e.target.value }))} className="w-full min-h-[100px] resize-y p-3 rounded-[4px] border border-stone-200 bg-washi-white text-sumi-900 text-[13px] outline-none focus:border-sumi-900 transition-colors font-sans" placeholder="Describe the task..." />
+                </Stack>
+                <Grid cols="grid-cols-2" gap="gap-[16px]">
+                  <Stack gap="gap-[8px]">
+                    <label className="text-[12px] font-bold text-stone-400 uppercase tracking-widest">Priority</label>
+                    <select value={taskForm.priority} onChange={e => setTaskForm(p => ({ ...p, priority: e.target.value }))} className="w-full h-[40px] px-3 rounded-[4px] border border-stone-200 bg-washi-white text-sumi-900 text-[13px] outline-none focus:border-sumi-900 transition-colors">
+                      {["P0", "P1", "P2", "P3"].map(p => <option key={p} value={p}>{p}</option>)}
+                    </select>
+                  </Stack>
+                  <Stack gap="gap-[8px]">
+                    <label className="text-[12px] font-bold text-stone-400 uppercase tracking-widest">Status</label>
+                    <select value={taskForm.status} onChange={e => setTaskForm(p => ({ ...p, status: e.target.value }))} className="w-full h-[40px] px-3 rounded-[4px] border border-stone-200 bg-washi-white text-sumi-900 text-[13px] outline-none focus:border-sumi-900 transition-colors">
+                      {STATUS_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                  </Stack>
+                </Grid>
+                <Button type="submit" variant="primary" className="w-full mt-[16px]" disabled={!taskForm.title.trim()}>
+                  {editTask ? "Update Task" : "Create Task"}
+                </Button>
+              </Stack>
             </form>
-          </div>
+          </Card>
         </div>
       )}
 
       {showTaskDrawer && (
-        <div style={S.drawer}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "16px" }}>
-            <h3 style={{ margin: 0, fontSize: "16px", fontWeight: 700, color: "var(--japandi-text)", flex: 1 }}>{showTaskDrawer.title}</h3>
-            <button onClick={() => setShowTaskDrawer(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--japandi-muted)" }}><Icon name="x" /></button>
-          </div>
-          <div style={{ display: "flex", gap: "6px", marginBottom: "12px", flexWrap: "wrap", alignItems: "center" }}>
-            <span className={`badge-${(showTaskDrawer.priority || "P2").toLowerCase()}`}>{showTaskDrawer.priority}</span>
-            <span className="badge" style={{ backgroundColor: "rgba(255,255,255,0.05)", color: STATUS_COLORS[showTaskDrawer.status || "Not Started"] }}>{showTaskDrawer.status}</span>
-            {showTaskDrawer.phase_tag && <span style={S.badge(showTaskDrawer.phase_tag)}>{showTaskDrawer.phase_tag}</span>}
-          </div>
+        <div className="fixed top-0 right-0 w-[480px] max-w-full h-[100vh] bg-washi-white border-l border-stone-200 z-[999] p-[32px] overflow-y-auto shadow-xl flex flex-col font-ui transform transition-transform">
+          <Inline justify="justify-between" items="items-start" className="mb-[32px]">
+            <h3 className="m-0 text-[24px] font-heading text-sumi-900 flex-1 pr-4">{showTaskDrawer.title}</h3>
+            <button onClick={() => setShowTaskDrawer(null)} className="bg-transparent border-none cursor-pointer text-stone-400 hover:text-sumi-900 outline-none p-1"><Icon name="x" size={24} /></button>
+          </Inline>
+          
+          <Inline gap="gap-[12px]" items="items-center" className="mb-[32px] flex-wrap">
+            <span className={`px-[8px] py-[4px] rounded-[2px] text-[11px] font-bold ${PRIORITY_COLORS[showTaskDrawer.priority || "P2"]?.bg} ${PRIORITY_COLORS[showTaskDrawer.priority || "P2"]?.text}`}>{showTaskDrawer.priority || "P2"}</span>
+            <span className={`px-[8px] py-[4px] rounded-[2px] text-[11px] font-bold text-washi-white ${STATUS_COLORS[showTaskDrawer.status || "Not Started"]}`}>{showTaskDrawer.status || "Not Started"}</span>
+          </Inline>
+
           {showTaskDrawer.description && (
-            <div style={{ marginBottom: "16px" }}>
-              <div style={{ fontSize: "10px", fontFamily: "'JetBrains Mono', monospace", textTransform: "uppercase", letterSpacing: "1px", color: "var(--japandi-muted)", marginBottom: "6px" }}>Notes / Business Reason</div>
-              <div style={{ fontSize: "13px", color: "var(--japandi-muted)", lineHeight: 1.5 }}>{showTaskDrawer.description}</div>
+            <div className="mb-[48px]">
+              <div className="text-[12px] font-bold uppercase tracking-widest text-stone-400 mb-[16px]">Description</div>
+              <div className="text-[14px] text-sumi-900 leading-relaxed font-sans whitespace-pre-wrap">{showTaskDrawer.description}</div>
             </div>
           )}
-          <div style={{ display: "flex", flexDirection: "column", gap: "8px", fontSize: "12px", color: "var(--japandi-muted)" }}>
-            {showTaskDrawer.goal_name && <div>Goal: <span style={{ color: "var(--japandi-text)" }}>{showTaskDrawer.goal_name}</span></div>}
-            {showTaskDrawer.assignee_name && <div>Assignee: <span style={{ color: "var(--japandi-text)" }}>{showTaskDrawer.assignee_name}</span></div>}
-            {showTaskDrawer.progress_percentage !== null && <div>Progress: <span style={{ color: "var(--japandi-text)" }}>{showTaskDrawer.progress_percentage}%</span></div>}
-            {showTaskDrawer.risk_level && <div>Risk: <span style={{ color: showTaskDrawer.risk_level === "High" ? "var(--japandi-red)" : showTaskDrawer.risk_level === "Medium" ? "var(--japandi-accent)" : "var(--japandi-green)" }}>{showTaskDrawer.risk_level}</span></div>}
-            {showTaskDrawer.deadline && <div>Deadline: <span style={{ color: new Date(showTaskDrawer.deadline) < new Date() ? "var(--japandi-red)" : "var(--japandi-text)" }}>{new Date(showTaskDrawer.deadline).toLocaleDateString()}</span></div>}
-            {showTaskDrawer.estimated_hours && <div>Est. Hours: <span style={{ color: "var(--japandi-text)" }}>{showTaskDrawer.estimated_hours}</span></div>}
-            {showTaskDrawer.created_at && <div>Created: <span style={{ color: "var(--japandi-text)" }}>{new Date(showTaskDrawer.created_at).toLocaleDateString()}</span></div>}
-          </div>
-          <div style={{ display: "flex", gap: "8px", marginTop: "20px" }}>
-            <button onClick={() => { openEditTask(showTaskDrawer); setShowTaskDrawer(null); }} style={{ ...S.orangeBtn, padding: "6px 14px", fontSize: "12px" }}>Edit</button>
-            <button onClick={() => handleDeleteTask(showTaskDrawer.id)} style={{ ...S.orangeBtn, padding: "6px 14px", fontSize: "12px", backgroundColor: "transparent", border: "1px solid var(--japandi-red)", color: "var(--japandi-red)" }}>Delete</button>
-          </div>
+
+          <Stack gap="gap-[16px]" className="text-[13px] text-stone-400 mt-auto border-t border-stone-200 pt-[32px]">
+            {showTaskDrawer.goal_name && <div>Goal: <span className="text-sumi-900 font-medium">{showTaskDrawer.goal_name}</span></div>}
+            {showTaskDrawer.assignee_name && <div>Assignee: <span className="text-sumi-900 font-medium">{showTaskDrawer.assignee_name}</span></div>}
+            {showTaskDrawer.deadline && <div>Deadline: <span className={new Date(showTaskDrawer.deadline) < new Date() ? "text-clay-500 font-medium" : "text-sumi-900 font-medium"}>{new Date(showTaskDrawer.deadline).toLocaleDateString()}</span></div>}
+          </Stack>
+          
+          <Inline gap="gap-[16px]" className="mt-[48px]">
+            <Button variant="secondary" onClick={() => { openEditTask(showTaskDrawer); setShowTaskDrawer(null); }} className="flex-1">Edit Task</Button>
+            <Button variant="secondary" onClick={() => handleDeleteTask(showTaskDrawer.id)} className="flex-1 text-clay-500 hover:text-clay-500 hover:border-clay-500">Delete</Button>
+          </Inline>
         </div>
       )}
-    </div>
+    </Section>
   );
 }
 

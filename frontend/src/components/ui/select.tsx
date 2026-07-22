@@ -5,31 +5,11 @@ export interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElemen
 }
 
 const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
-  ({ className = "", children, style, ...props }, ref) => {
-    const baseStyle: React.CSSProperties = {
-      display: "flex",
-      height: "44px", // 44px mobile touch targets
-      width: "100%",
-      borderRadius: "10px",
-      border: "1.5px solid var(--edge)",
-      backgroundColor: "var(--dark-gray)",
-      paddingLeft: "12px",
-      paddingRight: "12px",
-      fontSize: "13px",
-      color: "var(--japandi-text)",
-      fontFamily: "'Satoshi', sans-serif",
-      outline: "none",
-      transition: "all 0.2s ease-in-out",
-      cursor: "pointer",
-      boxSizing: "border-box",
-    };
-
+  ({ className = "", children, ...props }, ref) => {
     return (
       <select
-        style={{ ...baseStyle, ...style }}
-        className={`custom-input-focus ${className}`}
+        className={`fd-field cursor-pointer pr-8 ${className}`}
         ref={ref}
-        data-lenis-prevent
         {...props}
       >
         {children}

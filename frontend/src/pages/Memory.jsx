@@ -3,6 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { Search, FileText, HelpCircle, Clock } from "lucide-react";
 import api from "../utils/api";
 import { track } from "../utils/track";
+import { Section, Grid, Stack, Inline } from "../components/layout";
+import { Card } from "../components/ui/card";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
 
 const ICON_MAP = {
   search: Search,
@@ -11,32 +15,32 @@ const ICON_MAP = {
   chronicle: Clock,
 };
 
-function Icon({ name, size = 18, stroke: strokeWidth = 1.5 }) {
+function Icon({ name, size = 18, stroke: strokeWidth = 1.5, className = "" }) {
   const LucideIcon = ICON_MAP[name] || Search;
-  return <LucideIcon size={size} strokeWidth={strokeWidth} style={{ flexShrink: 0, verticalAlign: "middle" }} />;
+  return <LucideIcon size={size} strokeWidth={strokeWidth} className={className} style={{ flexShrink: 0, verticalAlign: "middle" }} />;
 }
 
 function renderMarkdown(md) {
   if (!md) return "";
   let html = md
     .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
-    .replace(/^### (.*$)/gm, "<strong style='font-size:13px;display:block;margin:10px 0 4px;color:var(--japandi-text)'>$1</strong>")
-    .replace(/^## (.*$)/gm, "<strong style='font-size:14px;display:block;margin:12px 0 6px;color:var(--japandi-text)'>$1</strong>")
-    .replace(/^# (.*$)/gm, "<strong style='font-size:16px;display:block;margin:14px 0 8px;color:var(--japandi-text);border-bottom: none;padding-bottom:4px'>$1</strong>")
+    .replace(/^### (.*$)/gm, "<strong class='block mt-2 mb-1 text-[13px] text-sumi-900'>$1</strong>")
+    .replace(/^## (.*$)/gm, "<strong class='block mt-3 mb-1.5 text-[14px] text-sumi-900'>$1</strong>")
+    .replace(/^# (.*$)/gm, "<strong class='block mt-3.5 mb-2 text-[16px] text-sumi-900 pb-1'>$1</strong>")
     .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
-    .replace(/`([^`]+)`/g, "<code style='background:rgba(232,80,2,0.1);padding:1px 5px;border-radius:3px;font-size:11px'>$1</code>")
-    .replace(/^- (.*$)/gm, "<span style='display:block;padding-left:14px;position:relative;margin:2px 0'>• $1</span>")
+    .replace(/`([^`]+)`/g, "<code class='bg-linen-100 px-1 py-0.5 rounded-[2px] text-[11px] text-indigo-ink'>$1</code>")
+    .replace(/^- (.*$)/gm, "<span class='block pl-3.5 relative my-0.5'>• $1</span>")
     .replace(/\n/g, "<br/>");
   return html;
 }
 
 const TYPE_ICONS = {
-  product: { emoji: "△", color: "#6366f1" },
-  hiring: { emoji: "○", color: "#ec4899" },
-  sales: { emoji: "◇", color: "#14b8a6" },
-  financial: { emoji: "☆", color: "#eab308" },
-  technical: { emoji: "□", color: "#a855f7" },
-  strategic: { emoji: "⊙", color: "#f97316" },
+  product: { emoji: "△", color: "text-indigo-ink" },
+  hiring: { emoji: "○", color: "text-clay-500" },
+  sales: { emoji: "◇", color: "text-moss-600" },
+  financial: { emoji: "☆", color: "text-amber-600" },
+  technical: { emoji: "□", color: "text-indigo-ink" },
+  strategic: { emoji: "⊙", color: "text-clay-500" },
 };
 
 const STATUS_ORDER = ["pending_confirmation", "confirmed", "dismissed", "reversed", "superseded"];
@@ -161,19 +165,6 @@ function Memory() {
       ]);
       setKnowledgeItems(knowledgeRes.data);
       setPastPackets(packetsRes.data);
-    } catch (err) {
-      console.error("Failed to fetch handoff/knowledge data:", err);
-    }
-  };
-
-  const fetchPastPackets = async () => {
-    try {
-      const [packetsRes, knowledgeRes] = await Promise.all([
-        api.get("/api/handoff/packets"),
-        api.get("/api/knowledge"),
-      ]);
-      setPastPackets(packetsRes.data);
-      setKnowledgeItems(knowledgeRes.data);
     } catch (err) {
       console.error("Failed to fetch handoff/knowledge data:", err);
     }
@@ -353,7 +344,7 @@ function Memory() {
     { id: "chronicle", label: "Chronicle Timeline", icon: "chronicle" },
   ];
 
-  const decisionTypeColor = (type) => TYPE_ICONS[type] || { emoji: "●", color: "#8a8a85" };
+  const decisionTypeColor = (type) => TYPE_ICONS[type] || { emoji: "●", color: "text-stone-400" };
   const statusLabel = (s) => (s || "proposed").replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
 
   const subtitleMap = {
@@ -364,106 +355,56 @@ function Memory() {
   };
 
   return (
-    <div className="memory-page" style={{ padding: "24px 32px", fontFamily: "'Satoshi', sans-serif" }}>
-      <style>{`
-        .memory-page input, .memory-page select, .memory-page textarea, .memory-page button {
-          font-family: 'Satoshi', sans-serif;
-        }
-        .memory-page input:focus, .memory-page select:focus, .memory-page textarea:focus {
-          outline: none;
-          border-color: var(--japandi-accent) !important;
-        }
-        @keyframes fadeSlide {
-          from { opacity: 0; transform: translateY(6px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        .fade-in { animation: fadeSlide 0.3s ease-out; }
-        .select-custom {
-          outline: none;
-          font-family: inherit;
-          cursor: pointer;
-        }
-        .select-custom:hover {
-          border-color: transparent !important;
-          background-color: rgba(255, 255, 255, 0.05) !important;
-        }
-      `}</style>
+    <Section padding="p-0" className="max-w-7xl mx-auto w-full font-ui flex flex-col h-full">
+      <header className="mb-[64px] shrink-0">
+        <Inline justify="justify-between" items="items-start">
+          <Stack gap="gap-[8px]">
+            <h1 className="text-[32px] md:text-[40px] font-heading text-sumi-900 m-0">Memory Vault</h1>
+            <p className="text-[12px] font-mono text-stone-400 m-0 uppercase tracking-widest">{subtitleMap[activeTab]}</p>
+          </Stack>
+        </Inline>
+      </header>
 
-      <div style={{ marginBottom: 24 }}>
-        <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: "var(--japandi-text)", fontFamily: "'Clash Display', sans-serif" }}>
-          Memory Vault
-        </h1>
-        <p style={{ margin: "4px 0 0", fontSize: 12, color: "var(--japandi-muted)", fontWeight: 500 }}>
-          {subtitleMap[activeTab]}
-        </p>
-      </div>
-
-      <div className="view-tabs" style={{ marginBottom: 24 }}>
-        {tabs.map(tab => (
-          <button
-            key={tab.id}
-            className={`view-tab ${activeTab === tab.id ? "active" : ""}`}
-            onClick={() => setActiveTab(tab.id)}
-            style={{
-              cursor: "pointer",
-              border: "none",
-              background: "transparent",
-            }}
-          >
-            <Icon name={tab.icon} size={14} />
-            {tab.label}
-          </button>
-        ))}
-      </div>
-
-      {activeTab === "decisions" && (
-        <div className="fade-in">
-          <div style={{ display: "flex", gap: 10, marginBottom: 20, flexWrap: "wrap", alignItems: "center" }}>
-            <div style={{ position: "relative", flex: 1, minWidth: 200, maxWidth: 320 }}>
-              <Search size={14} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--japandi-muted)" }} />
-              <input
-                placeholder="Search decisions..."
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                className="plan-input"
-                style={{
-                  width: "100%",
-                  paddingLeft: "32px",
-                  fontSize: "12.5px",
-                }}
-              />
-            </div>
-            <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="plan-select" style={{ fontSize: "12.5px" }}>
-              <option value="">All Statuses</option>
-              <option value="pending_confirmation">Pending</option>
-              <option value="confirmed">Confirmed</option>
-              <option value="dismissed">Dismissed</option>
-              <option value="reversed">Reversed</option>
-              <option value="superseded">Superseded</option>
-            </select>
-            <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)} className="plan-select" style={{ fontSize: "12.5px" }}>
-              <option value="">All Types</option>
-              <option value="product">Product</option>
-              <option value="hiring">Hiring</option>
-              <option value="sales">Sales</option>
-              <option value="financial">Financial</option>
-              <option value="technical">Technical</option>
-              <option value="strategic">Strategic</option>
-            </select>
-            <button onClick={() => setShowAddDecision(!showAddDecision)} className="btn-ember">
-              + Log Decision
+      <div className="mb-[32px] shrink-0">
+        <Inline gap="gap-[8px]" className="p-[4px] bg-linen-100 rounded-[4px] border border-stone-200 w-fit flex-wrap">
+          {tabs.map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-[8px] px-[16px] py-[8px] rounded-[2px] text-[13px] font-medium transition-colors cursor-pointer outline-none ${
+                activeTab === tab.id 
+                  ? "bg-washi-white text-sumi-900 shadow-sm border border-stone-200" 
+                  : "text-stone-400 hover:text-sumi-900 border border-transparent bg-transparent"
+              }`}
+            >
+              <Icon name={tab.icon} size={14} /> {tab.label}
             </button>
-            <span style={{ fontSize: 11, color: "var(--japandi-muted)", fontWeight: 600 }}>{decisions.length} {decisions.length === 1 ? 'decision' : 'decisions'}</span>
-          </div>
+          ))}
+        </Inline>
+      </div>
 
-          {showAddDecision && (
-            <form onSubmit={handleAddDecision} className="card-glass" style={{ padding: "20px !important", marginBottom: 20, display: "flex", flexDirection: "column", gap: 12 }}>
-              <input placeholder="Decision text..." value={addDecisionForm.decision} onChange={e => setAddDecisionForm(f => ({ ...f, decision: e.target.value }))} required
-                className="plan-input" style={{ width: "100%", fontSize: "12.5px" }} />
-              <textarea placeholder="Context / details..." value={addDecisionForm.context} onChange={e => setAddDecisionForm(f => ({ ...f, context: e.target.value }))} rows={3}
-                className="plan-input" style={{ width: "100%", fontSize: "12px", fontFamily: "inherit" }} />
-              <select value={addDecisionForm.decision_type} onChange={e => setAddDecisionForm(f => ({ ...f, decision_type: e.target.value }))}
-                className="plan-select" style={{ fontSize: "12px" }}>
+      <div className="flex-1 overflow-hidden min-h-[500px]">
+        {activeTab === "decisions" && (
+          <div className="animate-in fade-in h-full overflow-y-auto pr-2 pb-8">
+            <Inline gap="gap-[16px]" className="mb-[24px] flex-wrap items-center">
+              <Input 
+                type="text" 
+                placeholder="Search decisions..." 
+                value={searchQuery} 
+                onChange={e => setSearchQuery(e.target.value)} 
+                className="w-[280px]" 
+                icon={<Search size={14} />}
+              />
+              <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="h-[40px] px-3 rounded-[4px] border border-stone-200 bg-washi-white text-sumi-900 text-[13px] outline-none focus:border-sumi-900 transition-colors">
+                <option value="">All Statuses</option>
+                <option value="pending_confirmation">Pending</option>
+                <option value="confirmed">Confirmed</option>
+                <option value="dismissed">Dismissed</option>
+                <option value="reversed">Reversed</option>
+                <option value="superseded">Superseded</option>
+              </select>
+              <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)} className="h-[40px] px-3 rounded-[4px] border border-stone-200 bg-washi-white text-sumi-900 text-[13px] outline-none focus:border-sumi-900 transition-colors">
+                <option value="">All Types</option>
                 <option value="product">Product</option>
                 <option value="hiring">Hiring</option>
                 <option value="sales">Sales</option>
@@ -471,453 +412,442 @@ function Memory() {
                 <option value="technical">Technical</option>
                 <option value="strategic">Strategic</option>
               </select>
-              <div style={{ display: "flex", gap: 10 }}>
-                <button type="submit" className="btn-ember">Save</button>
-                <button type="button" onClick={() => setShowAddDecision(false)} className="btn-action-secondary">Cancel</button>
-              </div>
-            </form>
-          )}
+              <Button variant="primary" onClick={() => setShowAddDecision(!showAddDecision)}>+ Log Decision</Button>
+            </Inline>
 
-          {loading ? (
-            <div style={{ padding: "60px 0", textAlign: "center", color: "var(--japandi-muted)", fontSize: 13 }}>Loading...</div>
-          ) : decisions.length === 0 ? (
-            <div style={{ padding: 40, textAlign: "center", borderRadius: 12, border: "1px dashed var(--edge)", background: "rgba(255,255,255,0.02)" }}>
-              <p style={{ color: "var(--japandi-muted)", fontSize: 13, fontWeight: 600, marginBottom: 12 }}>No decisions yet</p>
-              {pipelineInfo && (
-                <div style={{ fontSize: 11, color: "var(--japandi-muted)", lineHeight: 1.8 }}>
-                  <div>Integrations: {(pipelineInfo.integrations_connected || 0)} connected</div>
-                  <div>Events fetched: {pipelineInfo.raw_events_count || 0}</div>
-                  <div>Last LLM call: {pipelineInfo.last_llm_call || "Never"}</div>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 12 }}>
-              {decisions.map(d => {
-                const tc = decisionTypeColor(d.decision_type);
-                const isEditing = editingDecisionId === d.id;
-                const needsConfirm = d.ai_status === "pending_confirmation" || (!d.ai_status && d.status === "Proposed");
-                const isStrategic = d.decision_type && d.decision_type.toLowerCase() === "strategic";
-                const isPending = d.ai_status === "pending_confirmation" || (!d.ai_status && d.status === "Proposed");
-                const isConfirmed = d.status === "Confirmed" || d.ai_status === "confirmed";
+            {showAddDecision && (
+              <Card padding="p-[24px]" className="mb-[24px] bg-washi-white shadow-sm">
+                <form onSubmit={handleAddDecision}>
+                  <Stack gap="gap-[16px]">
+                    <Input placeholder="Decision text..." value={addDecisionForm.decision} onChange={e => setAddDecisionForm(f => ({ ...f, decision: e.target.value }))} required />
+                    <textarea placeholder="Context / details..." value={addDecisionForm.context} onChange={e => setAddDecisionForm(f => ({ ...f, context: e.target.value }))} rows={3}
+                      className="w-full min-h-[80px] p-3 rounded-[4px] border border-stone-200 bg-washi-white text-sumi-900 text-[13px] outline-none focus:border-sumi-900 font-sans resize-y" />
+                    <select value={addDecisionForm.decision_type} onChange={e => setAddDecisionForm(f => ({ ...f, decision_type: e.target.value }))}
+                      className="h-[40px] px-3 rounded-[4px] border border-stone-200 bg-washi-white text-sumi-900 text-[13px] outline-none focus:border-sumi-900 transition-colors">
+                      <option value="product">Product</option>
+                      <option value="hiring">Hiring</option>
+                      <option value="sales">Sales</option>
+                      <option value="financial">Financial</option>
+                      <option value="technical">Technical</option>
+                      <option value="strategic">Strategic</option>
+                    </select>
+                    <Inline gap="gap-[12px]">
+                      <Button type="submit" variant="primary">Save</Button>
+                      <Button type="button" variant="secondary" onClick={() => setShowAddDecision(false)}>Cancel</Button>
+                    </Inline>
+                  </Stack>
+                </form>
+              </Card>
+            )}
 
-                return (
-                  <div key={d.id} className="card-glass" style={{
-                    padding: "16px !important",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: 10,
-                  }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
-                      <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-                        {isPending ? (
-                          <span className="tag tag-ember">
-                            {statusLabel(d.ai_status || d.status || "proposed")}
-                          </span>
-                        ) : isConfirmed ? (
-                          <span className="badge badge-positive">
-                            {statusLabel(d.ai_status || d.status || "proposed")}
-                          </span>
-                        ) : (
-                          <span className="tag tag-graphite">
-                            {statusLabel(d.ai_status || d.status || "proposed")}
-                          </span>
-                        )}
-                        {d.decision_type && (
-                          <span className={`tag ${isStrategic ? "tag-ember" : "tag-graphite"}`}>
-                            {tc.emoji} {d.decision_type}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    {isEditing ? (
-                      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                        <input
-                          value={editForm.decision}
-                          onChange={e => setEditForm(f => ({ ...f, decision: e.target.value }))}
-                          className="plan-input"
-                          style={{ width: "100%", fontSize: "13px", fontWeight: 700 }}
-                        />
-                        <textarea
-                          value={editForm.context}
-                          onChange={e => setEditForm(f => ({ ...f, context: e.target.value }))}
-                          rows={3}
-                          className="plan-input"
-                          style={{ width: "100%", fontSize: "12px", fontFamily: "inherit" }}
-                        />
-                        <div style={{ display: "flex", gap: 6 }}>
-                          <button onClick={() => saveEditing(d.id)} className="btn-ember" style={{ padding: "6px 14px", fontSize: "11.5px" }}>Save</button>
-                          <button onClick={cancelEditing} className="btn-action-secondary">Cancel</button>
-                        </div>
-                      </div>
-                    ) : (
-                      <>
-                        <div style={{ fontSize: 13.5, fontWeight: 700, color: "var(--japandi-text)", fontFamily: "'Clash Display', sans-serif", lineHeight: 1.3 }}>{d.decision}</div>
-                        <div style={{ fontSize: 11.5, color: "var(--japandi-muted)", lineHeight: 1.5, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{d.context}</div>
-                      </>
-                    )}
-
-                    {!isEditing && (
-                      <div style={{ display: "flex", gap: 6, marginTop: "auto", paddingTop: 8, borderTop: "1px solid var(--japandi-border)", width: "100%" }}>
-                        {needsConfirm && (
-                          <button onClick={() => handleConfirmDecision(d.id)} className="btn-action-success">
-                            ✓ Confirm
-                          </button>
-                        )}
-                        <button onClick={() => startEditing(d)} className="btn-action-secondary">
-                          ✎ Edit
-                        </button>
-                        <button onClick={() => handleDeleteDecision(d.id)} className="btn-action-danger" style={{ marginLeft: "auto" }}>
-                          ✕ Delete
-                        </button>
-                      </div>
-                    )}
+            {loading ? (
+              <div className="py-[64px] text-center text-stone-400 text-[13px]">Loading...</div>
+            ) : decisions.length === 0 ? (
+              <Card padding="p-[48px]" className="text-center bg-linen-100/50 border-dashed border-stone-200">
+                <p className="text-stone-400 text-[14px] font-medium m-0">No decisions yet</p>
+                {pipelineInfo && (
+                  <div className="mt-4 text-[12px] text-stone-400 leading-relaxed font-mono">
+                    <div>Integrations: {(pipelineInfo.integrations_connected || 0)} connected</div>
+                    <div>Events fetched: {pipelineInfo.raw_events_count || 0}</div>
                   </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      )}
+                )}
+              </Card>
+            ) : (
+              <Grid cols="grid-cols-1 md:grid-cols-2 lg:grid-cols-3" gap="gap-[24px]">
+                {decisions.map(d => {
+                  const tc = decisionTypeColor(d.decision_type);
+                  const isEditing = editingDecisionId === d.id;
+                  const needsConfirm = d.ai_status === "pending_confirmation" || (!d.ai_status && d.status === "Proposed");
+                  const isPending = d.ai_status === "pending_confirmation" || (!d.ai_status && d.status === "Proposed");
+                  const isConfirmed = d.status === "Confirmed" || d.ai_status === "confirmed";
 
-      {activeTab === "notes" && (
-        <div className="fade-in">
-          <div style={{ display: "flex", gap: 10, marginBottom: 20, flexWrap: "wrap", alignItems: "center" }}>
-            <div style={{ position: "relative", flex: 1, minWidth: 200, maxWidth: 320 }}>
-              <Search size={14} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--japandi-muted)" }} />
-              <input
-                placeholder="Search notes..."
-                value={notesSearchQuery}
-                onChange={e => setNotesSearchQuery(e.target.value)}
-                className="plan-input"
-                style={{ width: "100%", paddingLeft: "32px", fontSize: "12.5px" }}
-              />
-            </div>
-            <select value={notesTypeFilter} onChange={e => setNotesTypeFilter(e.target.value)}
-              className="plan-select" style={{ fontSize: "12.5px" }}>
-              <option value="">All Types</option>
-              <option value="Sprint Planning">Sprint Planning</option>
-              <option value="Standup">Standup</option>
-              <option value="Investor Sync">Investor Sync</option>
-              <option value="Client Call">Client Call</option>
-              <option value="Retro">Retro</option>
-              <option value="1:1">1:1</option>
-              <option value="All Hands">All Hands</option>
-              <option value="Brainstorm">Brainstorm</option>
-              <option value="Review">Review</option>
-              <option value="Other">Other</option>
-            </select>
-            <select value={notesStatusFilter} onChange={e => setNotesStatusFilter(e.target.value)}
-              className="plan-select" style={{ fontSize: "12.5px" }}>
-              <option value="">All Statuses</option>
-              <option value="Draft">Draft</option>
-              <option value="Finalized">Finalized</option>
-              <option value="Archived">Archived</option>
-            </select>
-            <span style={{ fontSize: 11, color: "var(--japandi-muted)", fontWeight: 600 }}>{notes.length} notes</span>
+                  return (
+                    <Card key={d.id} padding="p-[24px]" className="flex flex-col h-full bg-washi-white hover:border-stone-400 transition-colors">
+                      <Inline justify="justify-between" items="items-start" className="mb-[16px]">
+                        <Inline gap="gap-[8px]" items="items-center" className="flex-wrap">
+                          {isPending ? (
+                            <span className="px-[8px] py-[4px] rounded-[2px] bg-clay-500/10 text-clay-500 text-[11px] font-bold tracking-wide uppercase">
+                              {statusLabel(d.ai_status || d.status || "proposed")}
+                            </span>
+                          ) : isConfirmed ? (
+                            <span className="px-[8px] py-[4px] rounded-[2px] bg-moss-600/10 text-moss-600 text-[11px] font-bold tracking-wide uppercase">
+                              {statusLabel(d.ai_status || d.status || "proposed")}
+                            </span>
+                          ) : (
+                            <span className="px-[8px] py-[4px] rounded-[2px] bg-stone-200 text-stone-500 text-[11px] font-bold tracking-wide uppercase">
+                              {statusLabel(d.ai_status || d.status || "proposed")}
+                            </span>
+                          )}
+                          {d.decision_type && (
+                            <span className={`px-[8px] py-[4px] rounded-[2px] bg-linen-100 ${tc.color} text-[11px] font-bold tracking-wide uppercase border border-stone-200`}>
+                              {tc.emoji} {d.decision_type}
+                            </span>
+                          )}
+                        </Inline>
+                      </Inline>
+
+                      {isEditing ? (
+                        <Stack gap="gap-[12px]" className="flex-1">
+                          <Input value={editForm.decision} onChange={e => setEditForm(f => ({ ...f, decision: e.target.value }))} className="font-bold text-[14px]" />
+                          <textarea value={editForm.context} onChange={e => setEditForm(f => ({ ...f, context: e.target.value }))} rows={4}
+                            className="w-full p-3 rounded-[4px] border border-stone-200 bg-washi-white text-sumi-900 text-[13px] outline-none focus:border-sumi-900 font-sans resize-y" />
+                          <Inline gap="gap-[12px]">
+                            <Button onClick={() => saveEditing(d.id)} variant="primary" size="sm">Save</Button>
+                            <Button onClick={cancelEditing} variant="secondary" size="sm">Cancel</Button>
+                          </Inline>
+                        </Stack>
+                      ) : (
+                        <Stack gap="gap-[12px]" className="flex-1">
+                          <div className="text-[16px] font-medium text-sumi-900 leading-snug">{d.decision}</div>
+                          <div className="text-[13px] text-stone-400 leading-relaxed line-clamp-3">{d.context}</div>
+                        </Stack>
+                      )}
+
+                      {!isEditing && (
+                        <Inline gap="gap-[12px]" items="items-center" className="mt-6 pt-4 border-t border-stone-200 w-full">
+                          {needsConfirm && (
+                            <Button onClick={() => handleConfirmDecision(d.id)} variant="secondary" size="sm" className="text-moss-600 border-moss-600/30 hover:bg-moss-600/10">
+                              ✓ Confirm
+                            </Button>
+                          )}
+                          <Button onClick={() => startEditing(d)} variant="secondary" size="sm">Edit</Button>
+                          <Button onClick={() => handleDeleteDecision(d.id)} variant="secondary" size="sm" className="ml-auto text-clay-500 border-clay-500/30 hover:bg-clay-500/10 hover:text-clay-500">Delete</Button>
+                        </Inline>
+                      )}
+                    </Card>
+                  );
+                })}
+              </Grid>
+            )}
           </div>
+        )}
 
-          {loading ? (
-            <div style={{ padding: "60px 0", textAlign: "center", color: "var(--japandi-muted)", fontSize: 13 }}>Loading...</div>
-          ) : notes.length === 0 ? (
-            <div style={{ padding: 40, textAlign: "center", borderRadius: 12, border: "1px dashed var(--edge)", background: "rgba(255,255,255,0.02)" }}>
-              <p style={{ color: "var(--japandi-muted)", fontSize: 13, fontWeight: 600 }}>No meeting notes yet</p>
-            </div>
-          ) : (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 12 }}>
-              {notes.map(n => {
-                const getMeetingTypeTagClass = (type) => {
-                  const t = type || "";
-                  if (t === "Investor Sync") return "tag tag-ember";
-                  if (t === "Review") return "tag tag-warning";
-                  return "tag tag-graphite";
-                };
-
-                const isFinalized = n.status === "Finalized";
-
-                return (
-                  <div key={n.id} className="card-glass" style={{ padding: "16px !important", display: "flex", flexDirection: "column", gap: 10 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8, flexWrap: "wrap" }}>
-                      <span className={getMeetingTypeTagClass(n.meeting_type)}>{n.meeting_type}</span>
-                      <span style={{ fontSize: 10, color: "var(--japandi-muted)", fontFamily: "'JetBrains Mono', monospace" }}>{n.meeting_date || n.created_at?.split("T")[0] || ""}</span>
-                    </div>
-                    <div style={{ fontSize: 13.5, fontWeight: 700, color: "var(--japandi-text)", fontFamily: "'Clash Display', sans-serif" }}>{n.title}</div>
-                    <div style={{ fontSize: 11, color: "var(--japandi-muted)" }}>{n.attendees}</div>
-                    <div style={{ fontSize: 11.5, color: "var(--japandi-muted)", lineHeight: 1.5, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{n.summary}</div>
-                    <div style={{ display: "flex", gap: 10, marginTop: "auto", paddingTop: 8, borderTop: "1px solid var(--japandi-border)", alignItems: "center" }}>
-                      <select value={n.status || "Draft"} onChange={e => handleNoteStatusChange(n.id, e.target.value)}
-                        className="neu-control select-custom" style={{ cursor: "pointer", fontSize: "11px", padding: "6px 12px", border: "none", color: isFinalized ? "var(--japandi-green)" : "var(--japandi-text)", outline: "none" }}>
-                        <option value="Draft" style={{ background: "var(--dark-gray)", color: "var(--japandi-muted)" }}>Draft</option>
-                        <option value="Finalized" style={{ background: "var(--dark-gray)", color: "var(--japandi-green)" }}>Finalized</option>
-                        <option value="Archived" style={{ background: "var(--dark-gray)", color: "var(--japandi-muted)" }}>Archived</option>
-                      </select>
-                      <button onClick={() => handleDeleteNote(n.id)} className="btn-action-danger" style={{ marginLeft: "auto" }}>
-                        Delete
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      )}
-
-      {activeTab === "handoff" && (
-        <div className="fade-in">
-          <div style={{ display: "flex", gap: 10, marginBottom: 20, flexWrap: "wrap", alignItems: "center" }}>
-            <div style={{ position: "relative", flex: 1, minWidth: 200, maxWidth: 320 }}>
-              <Search size={14} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--japandi-muted)" }} />
-              <input
-                placeholder="Search knowledge..."
-                value={knowledgeSearchQuery}
-                onChange={e => setKnowledgeSearchQuery(e.target.value)}
-                className="plan-input"
-                style={{ width: "100%", paddingLeft: "32px", fontSize: "12.5px" }}
+        {activeTab === "notes" && (
+          <div className="animate-in fade-in h-full overflow-y-auto pr-2 pb-8">
+            <Inline gap="gap-[16px]" className="mb-[24px] flex-wrap items-center">
+              <Input 
+                type="text" 
+                placeholder="Search notes..." 
+                value={notesSearchQuery} 
+                onChange={e => setNotesSearchQuery(e.target.value)} 
+                className="w-[280px]" 
+                icon={<Search size={14} />}
               />
-            </div>
-            <select value={knowledgeCategoryFilter} onChange={e => setKnowledgeCategoryFilter(e.target.value)}
-              className="plan-select" style={{ fontSize: "12.5px" }}>
-              <option value="">All Types</option>
-              <option value="lesson_learned">Lessons Learned</option>
-              <option value="architecture">Architecture</option>
-              <option value="playbook">Playbooks</option>
-              <option value="insight">Insights</option>
-              <option value="best_practice">Best Practices</option>
-              <option value="documentation">Documentation</option>
-              <option value="retrospective">Retrospectives</option>
-              <option value="tip">Tips</option>
-            </select>
-            <button onClick={handleSyncKnowledge} disabled={syncingKnowledge} className="btn-ember"
-              style={{ cursor: syncingKnowledge ? "not-allowed" : "pointer", opacity: syncingKnowledge ? 0.6 : 1 }}>
-              {syncingKnowledge ? "Syncing..." : "Sync Knowledge"}
-            </button>
-            <button onClick={() => setShowAddKnowledge(!showAddKnowledge)} className="btn-ember">
-              + Add Knowledge
-            </button>
-          </div>
+              <select value={notesTypeFilter} onChange={e => setNotesTypeFilter(e.target.value)} className="h-[40px] px-3 rounded-[4px] border border-stone-200 bg-washi-white text-sumi-900 text-[13px] outline-none focus:border-sumi-900 transition-colors">
+                <option value="">All Types</option>
+                <option value="Sprint Planning">Sprint Planning</option>
+                <option value="Standup">Standup</option>
+                <option value="Investor Sync">Investor Sync</option>
+                <option value="Client Call">Client Call</option>
+                <option value="Retro">Retro</option>
+                <option value="1:1">1:1</option>
+                <option value="All Hands">All Hands</option>
+                <option value="Brainstorm">Brainstorm</option>
+                <option value="Review">Review</option>
+                <option value="Other">Other</option>
+              </select>
+              <select value={notesStatusFilter} onChange={e => setNotesStatusFilter(e.target.value)} className="h-[40px] px-3 rounded-[4px] border border-stone-200 bg-washi-white text-sumi-900 text-[13px] outline-none focus:border-sumi-900 transition-colors">
+                <option value="">All Statuses</option>
+                <option value="Draft">Draft</option>
+                <option value="Finalized">Finalized</option>
+                <option value="Archived">Archived</option>
+              </select>
+            </Inline>
 
-          {showAddKnowledge && (
-            <form onSubmit={handleAddKnowledge} className="card-glass" style={{ padding: "20px !important", marginBottom: 20, display: "flex", flexDirection: "column", gap: 12 }}>
-              <input placeholder="Title" value={addKnowledgeForm.title} onChange={e => setAddKnowledgeForm(f => ({ ...f, title: e.target.value }))} required
-                className="plan-input" style={{ width: "100%", fontSize: "12.5px" }} />
-              <select value={addKnowledgeForm.knowledge_type} onChange={e => setAddKnowledgeForm(f => ({ ...f, knowledge_type: e.target.value }))}
-                className="plan-select" style={{ fontSize: "12px" }}>
-                <option value="documentation">Documentation</option>
+            {loading ? (
+              <div className="py-[64px] text-center text-stone-400 text-[13px]">Loading...</div>
+            ) : notes.length === 0 ? (
+              <Card padding="p-[48px]" className="text-center bg-linen-100/50 border-dashed border-stone-200">
+                <p className="text-stone-400 text-[14px] font-medium m-0">No meeting notes yet</p>
+              </Card>
+            ) : (
+              <Grid cols="grid-cols-1 md:grid-cols-2 lg:grid-cols-3" gap="gap-[24px]">
+                {notes.map(n => {
+                  const getMeetingTypeTagClass = (type) => {
+                    const t = type || "";
+                    if (t === "Investor Sync") return "bg-clay-500/10 text-clay-500";
+                    if (t === "Review") return "bg-amber-600/10 text-amber-600";
+                    return "bg-linen-100 text-stone-500 border border-stone-200";
+                  };
+
+                  const isFinalized = n.status === "Finalized";
+
+                  return (
+                    <Card key={n.id} padding="p-[24px]" className="flex flex-col h-full bg-washi-white hover:border-stone-400 transition-colors">
+                      <Inline justify="justify-between" items="items-start" className="mb-[16px] flex-wrap">
+                        <span className={`px-[8px] py-[4px] rounded-[2px] text-[11px] font-bold tracking-wide uppercase ${getMeetingTypeTagClass(n.meeting_type)}`}>{n.meeting_type}</span>
+                        <span className="text-[11px] text-stone-400 font-mono tracking-wide">{n.meeting_date || n.created_at?.split("T")[0] || ""}</span>
+                      </Inline>
+                      <div className="text-[16px] font-medium text-sumi-900 mb-[8px] leading-snug">{n.title}</div>
+                      <div className="text-[12px] text-stone-400 mb-[16px] italic">{n.attendees}</div>
+                      <div className="text-[13px] text-stone-500 leading-relaxed line-clamp-4 flex-1 mb-[24px]">{n.summary}</div>
+                      <Inline gap="gap-[12px]" items="items-center" className="mt-auto pt-4 border-t border-stone-200 w-full">
+                        <select value={n.status || "Draft"} onChange={e => handleNoteStatusChange(n.id, e.target.value)}
+                          className="h-[32px] px-2 rounded-[4px] border border-stone-200 bg-transparent text-[12px] font-medium outline-none cursor-pointer" style={{ color: isFinalized ? "var(--moss-600)" : "var(--sumi-900)" }}>
+                          <option value="Draft">Draft</option>
+                          <option value="Finalized">Finalized</option>
+                          <option value="Archived">Archived</option>
+                        </select>
+                        <Button onClick={() => handleDeleteNote(n.id)} variant="secondary" size="sm" className="ml-auto text-clay-500 border-clay-500/30 hover:bg-clay-500/10 hover:text-clay-500">
+                          Delete
+                        </Button>
+                      </Inline>
+                    </Card>
+                  );
+                })}
+              </Grid>
+            )}
+          </div>
+        )}
+
+        {activeTab === "handoff" && (
+          <div className="animate-in fade-in h-full overflow-y-auto pr-2 pb-8">
+            <Inline gap="gap-[16px]" className="mb-[24px] flex-wrap items-center">
+              <Input 
+                type="text" 
+                placeholder="Search knowledge..." 
+                value={knowledgeSearchQuery} 
+                onChange={e => setKnowledgeSearchQuery(e.target.value)} 
+                className="w-[280px]" 
+                icon={<Search size={14} />}
+              />
+              <select value={knowledgeCategoryFilter} onChange={e => setKnowledgeCategoryFilter(e.target.value)} className="h-[40px] px-3 rounded-[4px] border border-stone-200 bg-washi-white text-sumi-900 text-[13px] outline-none focus:border-sumi-900 transition-colors">
+                <option value="">All Types</option>
                 <option value="lesson_learned">Lessons Learned</option>
                 <option value="architecture">Architecture</option>
-                <option value="playbook">Playbook</option>
-                <option value="insight">Insight</option>
-                <option value="best_practice">Best Practice</option>
-                <option value="retrospective">Retrospective</option>
-                <option value="tip">Tip</option>
+                <option value="playbook">Playbooks</option>
+                <option value="insight">Insights</option>
+                <option value="best_practice">Best Practices</option>
+                <option value="documentation">Documentation</option>
+                <option value="retrospective">Retrospectives</option>
+                <option value="tip">Tips</option>
               </select>
-              <textarea placeholder="Summary" value={addKnowledgeForm.summary} onChange={e => setAddKnowledgeForm(f => ({ ...f, summary: e.target.value }))} rows={3}
-                className="plan-input" style={{ width: "100%", fontSize: "12px", fontFamily: "inherit" }} />
-              <textarea placeholder="Key points (one per line)" value={addKnowledgeForm.key_points} onChange={e => setAddKnowledgeForm(f => ({ ...f, key_points: e.target.value }))} rows={3}
-                className="plan-input" style={{ width: "100%", fontSize: "12px", fontFamily: "inherit" }} />
-              <input placeholder="Applies to" value={addKnowledgeForm.applicable_to} onChange={e => setAddKnowledgeForm(f => ({ ...f, applicable_to: e.target.value }))}
-                className="plan-input" style={{ width: "100%", fontSize: "12.5px" }} />
-              <div style={{ display: "flex", gap: 6 }}>
-                <button type="submit" className="btn-ember">Save</button>
-                <button type="button" onClick={() => setShowAddKnowledge(false)} className="btn-action-secondary">Cancel</button>
-              </div>
-            </form>
-          )}
+              <Button onClick={handleSyncKnowledge} disabled={syncingKnowledge} variant="secondary">
+                {syncingKnowledge ? "Syncing..." : "Sync Knowledge"}
+              </Button>
+              <Button onClick={() => setShowAddKnowledge(!showAddKnowledge)} variant="primary">
+                + Add Knowledge
+              </Button>
+            </Inline>
 
-          {knowledgeItems.length === 0 ? (
-            <div style={{ padding: 40, textAlign: "center", borderRadius: 12, border: "1px dashed var(--edge)", background: "rgba(255,255,255,0.02)" }}>
-              <p style={{ color: "var(--japandi-muted)", fontSize: 13, fontWeight: 600 }}>No knowledge items yet</p>
-            </div>
-          ) : (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 12 }}>
-              {knowledgeItems.map(k => {
-                const getKnowledgeTagClass = (type) => {
-                  const t = type || "";
-                  if (t === "best_practice" || t === "insight" || t === "tip") {
-                    return "tag tag-positive";
-                  }
-                  return "tag tag-graphite";
-                };
+            {showAddKnowledge && (
+              <Card padding="p-[24px]" className="mb-[24px] bg-washi-white shadow-sm">
+                <form onSubmit={handleAddKnowledge}>
+                  <Stack gap="gap-[16px]">
+                    <Input placeholder="Title" value={addKnowledgeForm.title} onChange={e => setAddKnowledgeForm(f => ({ ...f, title: e.target.value }))} required />
+                    <select value={addKnowledgeForm.knowledge_type} onChange={e => setAddKnowledgeForm(f => ({ ...f, knowledge_type: e.target.value }))} className="h-[40px] px-3 rounded-[4px] border border-stone-200 bg-washi-white text-sumi-900 text-[13px] outline-none focus:border-sumi-900 transition-colors">
+                      <option value="documentation">Documentation</option>
+                      <option value="lesson_learned">Lessons Learned</option>
+                      <option value="architecture">Architecture</option>
+                      <option value="playbook">Playbook</option>
+                      <option value="insight">Insight</option>
+                      <option value="best_practice">Best Practice</option>
+                      <option value="retrospective">Retrospective</option>
+                      <option value="tip">Tip</option>
+                    </select>
+                    <textarea placeholder="Summary" value={addKnowledgeForm.summary} onChange={e => setAddKnowledgeForm(f => ({ ...f, summary: e.target.value }))} rows={3} className="w-full p-3 rounded-[4px] border border-stone-200 bg-washi-white text-sumi-900 text-[13px] outline-none focus:border-sumi-900 font-sans resize-y" />
+                    <textarea placeholder="Key points (one per line)" value={addKnowledgeForm.key_points} onChange={e => setAddKnowledgeForm(f => ({ ...f, key_points: e.target.value }))} rows={3} className="w-full p-3 rounded-[4px] border border-stone-200 bg-washi-white text-sumi-900 text-[13px] outline-none focus:border-sumi-900 font-sans resize-y" />
+                    <Input placeholder="Applies to" value={addKnowledgeForm.applicable_to} onChange={e => setAddKnowledgeForm(f => ({ ...f, applicable_to: e.target.value }))} />
+                    <Inline gap="gap-[12px]">
+                      <Button type="submit" variant="primary">Save</Button>
+                      <Button type="button" variant="secondary" onClick={() => setShowAddKnowledge(false)}>Cancel</Button>
+                    </Inline>
+                  </Stack>
+                </form>
+              </Card>
+            )}
 
-                return (
-                  <div key={k.id} className="card-glass" style={{ padding: "16px !important", display: "flex", flexDirection: "column", gap: 10 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8, flexWrap: "wrap" }}>
-                      <span className={getKnowledgeTagClass(k.knowledge_type)}>
-                        {k.knowledge_type?.replace(/_/g, " ")}
-                      </span>
-                      <span style={{ fontSize: 10, color: "var(--japandi-muted)", fontFamily: "'JetBrains Mono', monospace" }}>{k.created_at?.split("T")[0] || ""}</span>
-                    </div>
-                    <div style={{ fontSize: 13.5, fontWeight: 700, color: "var(--japandi-text)", fontFamily: "'Clash Display', sans-serif" }}>{k.title}</div>
-                    <div style={{ fontSize: 11.5, color: "var(--japandi-muted)", lineHeight: 1.5 }}>{k.summary}</div>
-                    {k.key_points?.length > 0 && (
-                      <div style={{ fontSize: 11, color: "var(--japandi-muted)", lineHeight: 1.6, paddingLeft: 12 }}>
-                        {k.key_points.map((kp, i) => (
-                          <div key={i} style={{ position: "relative", paddingLeft: 10 }}>• {kp}</div>
-                        ))}
-                      </div>
-                    )}
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: "auto", paddingTop: 8, borderTop: "1px solid var(--japandi-border)", fontSize: 11 }}>
-                      {k.status === "auto_inferred" && (
-                        <button onClick={() => handleVerifyKnowledge(k.id)} className="btn-action-success">Verify</button>
+            {knowledgeItems.length === 0 ? (
+              <Card padding="p-[48px]" className="text-center bg-linen-100/50 border-dashed border-stone-200 mb-[48px]">
+                <p className="text-stone-400 text-[14px] font-medium m-0">No knowledge items yet</p>
+              </Card>
+            ) : (
+              <Grid cols="grid-cols-1 md:grid-cols-2 lg:grid-cols-3" gap="gap-[24px]" className="mb-[48px]">
+                {knowledgeItems.map(k => {
+                  const getKnowledgeTagClass = (type) => {
+                    const t = type || "";
+                    if (t === "best_practice" || t === "insight" || t === "tip") {
+                      return "bg-moss-600/10 text-moss-600 border border-moss-600/20";
+                    }
+                    return "bg-linen-100 text-stone-500 border border-stone-200";
+                  };
+
+                  return (
+                    <Card key={k.id} padding="p-[24px]" className="flex flex-col h-full bg-washi-white hover:border-stone-400 transition-colors">
+                      <Inline justify="justify-between" items="items-start" className="mb-[16px] flex-wrap">
+                        <span className={`px-[8px] py-[4px] rounded-[2px] text-[11px] font-bold tracking-wide uppercase ${getKnowledgeTagClass(k.knowledge_type)}`}>
+                          {k.knowledge_type?.replace(/_/g, " ")}
+                        </span>
+                        <span className="text-[11px] text-stone-400 font-mono tracking-wide">{k.created_at?.split("T")[0] || ""}</span>
+                      </Inline>
+                      <div className="text-[16px] font-medium text-sumi-900 mb-[12px] leading-snug">{k.title}</div>
+                      <div className="text-[13px] text-stone-500 leading-relaxed mb-[16px]">{k.summary}</div>
+                      {k.key_points?.length > 0 && (
+                        <Stack gap="gap-[8px]" className="mb-[24px]">
+                          {k.key_points.map((kp, i) => (
+                            <div key={i} className="text-[12px] text-stone-400 pl-3 relative">
+                              <span className="absolute left-0 text-stone-300">•</span>
+                              {kp}
+                            </div>
+                          ))}
+                        </Stack>
                       )}
-                      <button onClick={() => handleDeleteKnowledge(k.id)} className="btn-action-danger" style={{ marginLeft: "auto" }}>Delete</button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+                      <Inline align="center" gap="gap-[12px]" className="mt-auto pt-4 border-t border-stone-200 w-full">
+                        {k.status === "auto_inferred" && (
+                          <Button onClick={() => handleVerifyKnowledge(k.id)} variant="secondary" size="sm" className="text-moss-600 border-moss-600/30 hover:bg-moss-600/10 hover:text-moss-600">Verify</Button>
+                        )}
+                        <Button onClick={() => handleDeleteKnowledge(k.id)} variant="secondary" size="sm" className="ml-auto text-clay-500 border-clay-500/30 hover:bg-clay-500/10 hover:text-clay-500">Delete</Button>
+                      </Inline>
+                    </Card>
+                  );
+                })}
+              </Grid>
+            )}
 
-          {/* ── Handoff Packets ── */}
-          <div style={{ marginTop: 48, marginBottom: 16, display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{ flex: 1, height: 1, background: "var(--edge)" }} />
-            <span style={{ fontSize: 11, fontWeight: 700, color: "var(--japandi-muted)", letterSpacing: 1, textTransform: "uppercase" }}>Handoff Packets</span>
-            <div style={{ flex: 1, height: 1, background: "var(--edge)" }} />
-          </div>
+            <Inline align="center" gap="gap-[24px]" className="mb-[32px]">
+              <div className="flex-1 h-[1px] bg-stone-200" />
+              <span className="text-[12px] font-bold text-stone-400 tracking-widest uppercase">Handoff Packets</span>
+              <div className="flex-1 h-[1px] bg-stone-200" />
+            </Inline>
 
-          {pastPackets.length === 0 ? (
-            <div style={{ padding: 30, textAlign: "center", borderRadius: 12, border: "1px dashed var(--edge)", background: "rgba(255,255,255,0.02)" }}>
-              <p style={{ color: "var(--japandi-muted)", fontSize: 12, fontWeight: 600 }}>No handoff packets yet — generated automatically when team members join or leave</p>
-            </div>
-          ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              {pastPackets.map(p => (
-                <div key={p.id} className="card-glass" onClick={() => setSelectedPacket(p)}
-                  style={{ padding: "12px 16px !important", display: "flex", alignItems: "center", gap: 12, cursor: "pointer", width: "100%" }}>
-                  <div style={{ width: 32, height: 32, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, background: p.packet_type === "onboarding" ? "rgba(62, 207, 142, 0.15)" : "rgba(232, 67, 79, 0.12)", color: p.packet_type === "onboarding" ? "var(--japandi-green)" : "var(--japandi-red)" }}>
-                    {p.packet_type === "onboarding" ? "→" : "←"}
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 12.5, fontWeight: 700, color: "var(--japandi-text)", fontFamily: "'Clash Display', sans-serif" }}>
-                      {p.packet_type === "onboarding" ? "Onboarding" : "Offboarding"}: {p.user_name || "Unknown"}
+            {pastPackets.length === 0 ? (
+              <Card padding="p-[48px]" className="text-center bg-linen-100/50 border-dashed border-stone-200">
+                <p className="text-stone-400 text-[14px] font-medium m-0">No handoff packets yet — generated automatically when team members join or leave</p>
+              </Card>
+            ) : (
+              <Stack gap="gap-[16px]">
+                {pastPackets.map(p => (
+                  <Card key={p.id} padding="p-[16px]" onClick={() => setSelectedPacket(p)} className="flex items-center gap-[16px] cursor-pointer bg-washi-white hover:border-stone-400 transition-colors w-full group">
+                    <div className={`w-[40px] h-[40px] rounded-[4px] flex items-center justify-center text-[16px] font-bold ${p.packet_type === "onboarding" ? "bg-moss-600/10 text-moss-600" : "bg-clay-500/10 text-clay-500"}`}>
+                      {p.packet_type === "onboarding" ? "→" : "←"}
                     </div>
-                    <div style={{ fontSize: 10.5, color: "var(--japandi-muted)" }}>
-                      <span style={{ fontFamily: "'JetBrains Mono', monospace" }}>{p.created_at?.split("T")[0] || ""}</span>
-                      {p.reassign_to_name ? ` · Reassigned to ${p.reassign_to_name}` : ""}
-                      {p.reassigned_count ? ` · ${p.reassigned_count} tasks reassigned` : ""}
+                    <div className="flex-1">
+                      <div className="text-[15px] font-medium text-sumi-900 mb-[4px]">
+                        {p.packet_type === "onboarding" ? "Onboarding" : "Offboarding"}: {p.user_name || "Unknown"}
+                      </div>
+                      <div className="text-[12px] text-stone-400 flex items-center gap-2">
+                        <span className="font-mono">{p.created_at?.split("T")[0] || ""}</span>
+                        {p.reassign_to_name && <span>• Reassigned to {p.reassign_to_name}</span>}
+                        {p.reassigned_count > 0 && <span>• {p.reassigned_count} tasks reassigned</span>}
+                      </div>
                     </div>
-                  </div>
-                  <span style={{ color: "var(--japandi-muted)", fontSize: 16, fontWeight: 600 }}>›</span>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Packet detail modal */}
-          {selectedPacket && (
-            <div onClick={() => setSelectedPacket(null)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: 20 }}>
-              <div onClick={e => e.stopPropagation()} className="card-glass" style={{ maxWidth: 680, width: "100%", maxHeight: "80vh", overflow: "auto", padding: "28px !important" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
-                  <div>
-                    <span style={{ fontSize: 10, fontWeight: 800, padding: "3px 8px", borderRadius: 5, textTransform: "uppercase", background: selectedPacket.packet_type === "onboarding" ? "rgba(62, 207, 142, 0.15)" : "rgba(232, 67, 79, 0.12)", color: selectedPacket.packet_type === "onboarding" ? "var(--japandi-green)" : "var(--japandi-red)" }}>
-                      {selectedPacket.packet_type}
+                    <span className="text-stone-300 group-hover:text-stone-400 transition-colors">
+                      <Icon name="right" size={20} />
                     </span>
-                    <div style={{ fontSize: 16, fontWeight: 700, color: "var(--japandi-text)", fontFamily: "'Clash Display', sans-serif", marginTop: 8 }}>
-                      {selectedPacket.user_name}
-                    </div>
-                    <div style={{ fontSize: 11, color: "var(--japandi-muted)", marginTop: 2, fontFamily: "'JetBrains Mono', monospace" }}>{selectedPacket.created_at?.split("T")[0] || ""}</div>
-                  </div>
-                  <button onClick={() => setSelectedPacket(null)} className="btn-action-secondary" style={{ fontSize: 14, padding: "6px 12px" }}>✕</button>
-                </div>
-                <div style={{ fontSize: 12.5, color: "var(--japandi-muted)", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>
-                  {selectedPacket.markdown_content}
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
+                  </Card>
+                ))}
+              </Stack>
+            )}
 
-      {activeTab === "chronicle" && (
-        <div className="fade-in">
-          <div style={{ display: "flex", gap: 10, marginBottom: 20, flexWrap: "wrap", alignItems: "center" }}>
-            <div style={{ position: "relative", flex: 1, minWidth: 200, maxWidth: 320 }}>
-              <Search size={14} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--japandi-muted)" }} />
-              <input placeholder="Search timeline..." value={chronicleSearch} onChange={e => setChronicleSearch(e.target.value)}
-                className="plan-input" style={{ width: "100%", paddingLeft: "32px", fontSize: "12.5px" }} />
-            </div>
-            <select value={chronicleTypeFilter} onChange={e => setChronicleTypeFilter(e.target.value)}
-              className="plan-select" style={{ fontSize: "12.5px" }}>
-              <option value="">All Types</option>
-              <option value="decision">Decision</option>
-              <option value="meeting">Meeting</option>
-              <option value="task">Task</option>
-              <option value="integration">Integration</option>
-              <option value="milestone">Milestone</option>
-            </select>
-            <select value={chronicleStageFilter} onChange={e => setChronicleStageFilter(e.target.value)}
-              className="plan-select" style={{ fontSize: "12.5px" }}>
-              <option value="">All Stages</option>
-              <option value="Ideate">Ideate</option>
-              <option value="Build">Build</option>
-              <option value="Launch">Launch</option>
-              <option value="Grow">Grow</option>
-            </select>
-            <span style={{ fontSize: 11, color: "var(--japandi-muted)", fontWeight: 600 }}>{chronicleTotalCount} {chronicleTotalCount === 1 ? 'event' : 'events'}</span>
-          </div>
-
-          {chronicleLoading && chronicleEvents.length === 0 ? (
-            <div style={{ padding: "60px 0", textAlign: "center", color: "var(--japandi-muted)", fontSize: 13 }}>Loading...</div>
-          ) : chronicleEvents.length === 0 ? (
-            <div style={{ padding: 40, textAlign: "center", borderRadius: 12, border: "1px dashed var(--edge)", background: "rgba(255,255,255,0.02)" }}>
-              <p style={{ color: "var(--japandi-muted)", fontSize: 13, fontWeight: 600 }}>No timeline events yet</p>
-            </div>
-          ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-              <div className="card-glass" style={{ padding: "0 !important", display: "flex", flexDirection: "column", overflow: "hidden" }}>
-                {chronicleEvents.map((ev, i) => (
-                  <div
-                    key={ev.id || i}
-                    className="timeline-row-hover"
-                    style={{
-                      padding: "16px 20px",
-                      cursor: "pointer",
-                      borderBottom: i === chronicleEvents.length - 1 ? "none" : "1px solid var(--japandi-border)",
-                    }}
-                    onClick={() => {
-                      if (ev.source_url) {
-                        navigate(ev.source_url);
-                      } else {
-                        setExpandedEventId(expandedEventId === ev.id ? null : ev.id);
-                      }
-                    }}
-                  >
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, marginBottom: expandedEventId === ev.id ? 8 : 4 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                        <span style={{ fontSize: 10, color: "var(--japandi-muted)", fontFamily: "'JetBrains Mono', monospace", whiteSpace: "nowrap" }}>
-                          {ev.date || ""}
-                        </span>
-                        <span className="tag tag-graphite">
-                          {ev.type || "event"}
-                        </span>
+            {selectedPacket && (
+              <div onClick={() => setSelectedPacket(null)} className="fixed inset-0 bg-[#2B2A27]/20 backdrop-blur-sm flex items-center justify-center z-[1000] p-4">
+                <Card onClick={e => e.stopPropagation()} padding="p-[32px]" className="w-full max-w-[720px] max-h-[85vh] overflow-y-auto bg-washi-white shadow-xl">
+                  <Inline justify="justify-between" items="items-start" className="mb-[24px]">
+                    <div>
+                      <span className={`px-[8px] py-[4px] rounded-[2px] text-[11px] font-bold tracking-wide uppercase ${selectedPacket.packet_type === "onboarding" ? "bg-moss-600/10 text-moss-600" : "bg-clay-500/10 text-clay-500"}`}>
+                        {selectedPacket.packet_type}
+                      </span>
+                      <div className="text-[24px] font-heading text-sumi-900 mt-[12px] mb-[4px]">
+                        {selectedPacket.user_name}
                       </div>
-                      {ev.stage && (
-                        <span className="tag tag-graphite">{ev.stage}</span>
+                      <div className="text-[13px] text-stone-400 font-mono tracking-wide">{selectedPacket.created_at?.split("T")[0] || ""}</div>
+                    </div>
+                    <button onClick={() => setSelectedPacket(null)} className="bg-transparent border-none cursor-pointer text-stone-400 hover:text-sumi-900 outline-none p-1"><Icon name="x" size={24} /></button>
+                  </Inline>
+                  <div className="text-[14px] text-stone-500 leading-relaxed whitespace-pre-wrap font-sans bg-linen-100 p-6 rounded-[4px] border border-stone-200">
+                    {selectedPacket.markdown_content}
+                  </div>
+                </Card>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === "chronicle" && (
+          <div className="animate-in fade-in h-full overflow-y-auto pr-2 pb-8">
+            <Inline gap="gap-[16px]" className="mb-[24px] flex-wrap items-center">
+              <Input 
+                type="text" 
+                placeholder="Search timeline..." 
+                value={chronicleSearch} 
+                onChange={e => setChronicleSearch(e.target.value)} 
+                className="w-[280px]" 
+                icon={<Search size={14} />}
+              />
+              <select value={chronicleTypeFilter} onChange={e => setChronicleTypeFilter(e.target.value)} className="h-[40px] px-3 rounded-[4px] border border-stone-200 bg-washi-white text-sumi-900 text-[13px] outline-none focus:border-sumi-900 transition-colors">
+                <option value="">All Types</option>
+                <option value="decision">Decision</option>
+                <option value="meeting">Meeting</option>
+                <option value="task">Task</option>
+                <option value="integration">Integration</option>
+                <option value="milestone">Milestone</option>
+              </select>
+              <select value={chronicleStageFilter} onChange={e => setChronicleStageFilter(e.target.value)} className="h-[40px] px-3 rounded-[4px] border border-stone-200 bg-washi-white text-sumi-900 text-[13px] outline-none focus:border-sumi-900 transition-colors">
+                <option value="">All Stages</option>
+                <option value="Ideate">Ideate</option>
+                <option value="Build">Build</option>
+                <option value="Launch">Launch</option>
+                <option value="Grow">Grow</option>
+              </select>
+            </Inline>
+
+            {chronicleLoading && chronicleEvents.length === 0 ? (
+              <div className="py-[64px] text-center text-stone-400 text-[13px]">Loading...</div>
+            ) : chronicleEvents.length === 0 ? (
+              <Card padding="p-[48px]" className="text-center bg-linen-100/50 border-dashed border-stone-200">
+                <p className="text-stone-400 text-[14px] font-medium m-0">No timeline events yet</p>
+              </Card>
+            ) : (
+              <Stack gap="gap-[16px]">
+                <Card padding="p-0" className="flex flex-col overflow-hidden bg-washi-white">
+                  {chronicleEvents.map((ev, i) => (
+                    <div
+                      key={ev.id || i}
+                      className="p-[20px] cursor-pointer border-b border-stone-200 last:border-b-0 hover:bg-linen-100/50 transition-colors"
+                      onClick={() => {
+                        if (ev.source_url) {
+                          navigate(ev.source_url);
+                        } else {
+                          setExpandedEventId(expandedEventId === ev.id ? null : ev.id);
+                        }
+                      }}
+                    >
+                      <Inline justify="space-between" items="center" gap="gap-[12px]" className={`mb-${expandedEventId === ev.id ? '3' : '2'}`}>
+                        <Inline items="center" gap="gap-[12px]">
+                          <span className="text-[12px] text-stone-400 font-mono tracking-wide whitespace-nowrap">
+                            {ev.date || ""}
+                          </span>
+                          <span className="px-[8px] py-[4px] rounded-[2px] bg-stone-200 text-stone-500 text-[10px] font-bold tracking-wide uppercase">
+                            {ev.type || "event"}
+                          </span>
+                        </Inline>
+                        {ev.stage && (
+                          <span className="px-[8px] py-[4px] rounded-[2px] bg-linen-100 text-stone-500 border border-stone-200 text-[10px] font-bold tracking-wide uppercase">
+                            {ev.stage}
+                          </span>
+                        )}
+                      </Inline>
+                      <div className="text-[15px] font-medium text-sumi-900 leading-snug">{ev.title}</div>
+                      {expandedEventId === ev.id && ev.description && (
+                        <div className="mt-[12px] text-[13px] text-stone-500 leading-relaxed p-[16px] bg-linen-100 rounded-[4px]"
+                          dangerouslySetInnerHTML={{ __html: renderMarkdown(ev.description) }} />
                       )}
                     </div>
-                    <div style={{ fontSize: 12.5, fontWeight: 600, color: "var(--japandi-text)", fontFamily: "'Clash Display', sans-serif" }}>{ev.title}</div>
-                    {expandedEventId === ev.id && ev.description && (
-                      <div style={{ marginTop: 8, fontSize: 11.5, color: "var(--japandi-muted)", lineHeight: 1.6 }}
-                        dangerouslySetInnerHTML={{ __html: renderMarkdown(ev.description) }} />
-                    )}
+                  ))}
+                </Card>
+                {hasMoreChronicle && (
+                  <div className="text-center pt-[16px]">
+                    <Button onClick={() => fetchChronicleData(false)} disabled={chronicleLoading} variant="secondary">
+                      {chronicleLoading ? "Loading..." : "Load More"}
+                    </Button>
                   </div>
-                ))}
-              </div>
-              {hasMoreChronicle && (
-                <div style={{ textAlign: "center", padding: "8px 0" }}>
-                  <button onClick={() => fetchChronicleData(false)} disabled={chronicleLoading} className="btn-action-secondary"
-                    style={{ padding: "8px 24px", cursor: chronicleLoading ? "not-allowed" : "pointer", opacity: chronicleLoading ? 0.6 : 1 }}>
-                    {chronicleLoading ? "Loading..." : "Load More"}
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      )}
-    </div>
+                )}
+              </Stack>
+            )}
+          </div>
+        )}
+      </div>
+    </Section>
   );
 }
 

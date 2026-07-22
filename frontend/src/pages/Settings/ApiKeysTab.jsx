@@ -1,14 +1,17 @@
 import { useState, useEffect } from "react";
 import api from "../../utils/api";
 import { useToast } from "../../context/ToastContext";
-import { SETTINGS_STYLE as s } from "./SettingsConstants";
 import {
   Plus, Key, Copy, Edit, Zap, Ban, Trash2, FileText, X, Check,
   AlertCircle, Eye, EyeOff
 } from "lucide-react";
+import { Card } from "../../components/ui/card";
+import { Button } from "../../components/ui/button";
+import { Input } from "../../components/ui/input";
+import { Inline, Stack } from "../../components/layout";
 
 export default function ApiKeysTab() {
-  const toast = useToast();
+  const { toast } = useToast();
 
   const [apiKeys, setApiKeys] = useState([]);
   const [newKeyName, setNewKeyName] = useState("");
@@ -69,134 +72,144 @@ export default function ApiKeysTab() {
   };
 
   return (
-    <div>
+    <div className="animate-in fade-in">
       {newlyCreatedKey && (
-        <div className="card-glass" style={{ padding: "16px", border: "1px solid rgba(62,207,142,0.2)", backgroundColor: "rgba(62,207,142,0.05)", marginBottom: "16px" }}>
-          <div style={{ fontSize: "11px", color: "#4ade80", marginBottom: "4px", fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}>Key created — copy it now</div>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <code style={{ flex: 1, fontSize: "11px", color: "var(--japandi-text)", backgroundColor: "rgba(0,0,0,0.3)", padding: "6px 8px", borderRadius: "4px", wordBreak: "break-all" }}>{newlyCreatedKey}</code>
-            <button onClick={() => { copyToClipboard(newlyCreatedKey); toast("Copied!", "success"); }} className="btn-action-secondary" title="Copy"><Copy size={14} /></button>
-          </div>
-          <div style={{ fontSize: "10px", color: "#ef4444", marginTop: "6px" }}>This secret will only be shown once.</div>
-          <button onClick={() => setNewlyCreatedKey(null)} className="btn-action-secondary" style={{ marginTop: "8px", fontSize: "10px", padding: "4px 10px" }}>Dismiss</button>
-        </div>
+        <Card padding="p-[24px]" className="mb-[24px] bg-moss-600/5 border-moss-600/20">
+          <h3 className="text-[11px] font-bold text-moss-600 tracking-widest uppercase mb-[12px] m-0">Key created — copy it now</h3>
+          <Inline gap="gap-[12px]" items="items-center" className="mb-[12px]">
+            <code className="flex-1 font-mono text-[13px] bg-washi-white border border-stone-200 p-[12px] rounded-[4px] text-sumi-900 break-all shadow-inner">
+              {newlyCreatedKey}
+            </code>
+            <Button onClick={() => { copyToClipboard(newlyCreatedKey); toast("Copied!", "success"); }} variant="secondary" size="icon" title="Copy">
+              <Copy size={16} />
+            </Button>
+          </Inline>
+          <p className="text-[11px] text-clay-500 font-bold uppercase tracking-wide m-0 mb-[16px]">This secret will only be shown once.</p>
+          <Button onClick={() => setNewlyCreatedKey(null)} variant="secondary" size="sm">Dismiss</Button>
+        </Card>
       )}
 
-      <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>
-        <button onClick={() => { setShowNewKeyForm(!showNewKeyForm); setShowKeyPermissions(false); }} className="btn-ember">
-          <Plus size={14} /> {showNewKeyForm ? "Cancel" : "New API Key"}
-        </button>
+      <div className="mb-[24px]">
+        <Button onClick={() => { setShowNewKeyForm(!showNewKeyForm); setShowKeyPermissions(false); }} variant={showNewKeyForm ? "secondary" : "primary"}>
+          <Plus size={14} className={`mr-1 transition-transform ${showNewKeyForm ? "rotate-45" : ""}`} /> {showNewKeyForm ? "Cancel" : "New API Key"}
+        </Button>
       </div>
 
       {showNewKeyForm && (
-        <div className="card-glass" style={{ padding: "20px", marginBottom: "16px" }}>
-          <h4 style={{ fontSize: "14px", fontWeight: 700, color: "var(--japandi-text)", margin: "0 0 12px" }}>Create API Key</h4>
-          <div style={{ display: "flex", gap: "8px", alignItems: "center", marginBottom: "12px" }}>
-            <input type="text" placeholder="Key name (e.g., production, dev)" value={newKeyName} onChange={e => setNewKeyName(e.target.value)} className="plan-input" style={{ flex: 1 }} autoFocus />
+        <Card padding="p-[32px]" className="mb-[32px] bg-washi-white animate-in slide-in-from-top-2">
+          <h3 className="text-[16px] font-heading text-sumi-900 mb-[24px] m-0">Create API Key</h3>
+          <div className="mb-[24px]">
+            <label className="block text-[11px] font-bold text-stone-400 tracking-widest uppercase mb-[8px]">Key Name</label>
+            <Input type="text" placeholder="e.g., production, dev" value={newKeyName} onChange={e => setNewKeyName(e.target.value)} autoFocus />
           </div>
-          <div style={{ marginBottom: "12px" }}>
-            <div style={{ fontSize: "11px", fontWeight: 600, color: "var(--japandi-muted)", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.04em" }}>Permissions</div>
-            <div style={{ display: "flex", gap: "16px" }}>
+          <div className="mb-[32px]">
+            <label className="block text-[11px] font-bold text-stone-400 tracking-widest uppercase mb-[12px]">Permissions</label>
+            <Inline gap="gap-[24px]" className="flex-wrap">
               {[
                 { key: "read", label: "Read" },
                 { key: "write", label: "Write" },
                 { key: "admin", label: "Admin" },
               ].map(p => (
-                <label key={p.key} style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", color: "var(--japandi-text)", cursor: "pointer" }}>
-                  <input type="checkbox" checked={keyPermissions[p.key]} onChange={e => setKeyPermissions(k => ({ ...k, [p.key]: e.target.checked }))} style={{ accentColor: "var(--japandi-accent)" }} />
+                <label key={p.key} className="flex items-center gap-[8px] text-[13px] text-sumi-900 cursor-pointer group">
+                  <div className={`w-[16px] h-[16px] rounded-[4px] border flex items-center justify-center transition-colors ${keyPermissions[p.key] ? "bg-moss-600 border-moss-600 text-white" : "border-stone-300 bg-washi-white group-hover:border-stone-400"}`}>
+                    {keyPermissions[p.key] && <Check size={10} />}
+                  </div>
+                  <input type="checkbox" className="hidden" checked={keyPermissions[p.key]} onChange={e => setKeyPermissions(k => ({ ...k, [p.key]: e.target.checked }))} />
                   {p.label}
                 </label>
               ))}
-            </div>
+            </Inline>
           </div>
-          <button onClick={handleCreateApiKey} className="btn-ember"><Plus size={14} /> Create Key</button>
-        </div>
+          <Button onClick={handleCreateApiKey} variant="primary"><Plus size={14} className="mr-1" /> Create Key</Button>
+        </Card>
       )}
 
       {apiKeys.length === 0 ? (
-        <div style={{ textAlign: "center", padding: "40px 20px", color: "var(--japandi-muted)" }}>
-          <Key size={32} style={{ marginBottom: "12px", opacity: 0.3 }} />
-          <div style={{ fontSize: "14px", fontWeight: 600, color: "var(--japandi-text)", marginBottom: "4px" }}>No API keys yet</div>
-          <div style={{ fontSize: "12px" }}>Create an API key to access FounDesk programmatically.</div>
+        <div className="text-center py-[64px] px-[24px] text-stone-400 border border-dashed border-stone-200 rounded-[8px] bg-washi-white/50">
+          <Key size={32} className="mx-auto mb-[16px] opacity-30" />
+          <div className="text-[16px] font-medium text-sumi-900 mb-[8px]">No API keys yet</div>
+          <div className="text-[13px]">Create an API key to access FounDesk programmatically.</div>
         </div>
       ) : (
-        <div className="card-glass" style={{ overflow: "hidden" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px" }}>
+        <Card padding="p-0" className="overflow-x-auto bg-washi-white">
+          <table className="w-full text-left border-collapse">
             <thead>
-              <tr style={{ borderBottom: "1px solid rgba(107,107,111,0.08)" }}>
+              <tr className="border-b border-stone-200">
                 {["Name", "Prefix", "Permissions", "Created", "Last Used", "Status", "Actions"].map(h => (
-                  <th key={h} style={{ textAlign: "left", padding: "10px 14px", color: "var(--japandi-muted)", fontWeight: 600, textTransform: "uppercase", fontSize: "9px", letterSpacing: "1px" }}>{h}</th>
+                  <th key={h} className="py-[12px] px-[16px] text-[10px] font-bold text-stone-400 tracking-widest uppercase whitespace-nowrap">{h}</th>
                 ))}
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-stone-200">
               {apiKeys.map(key => (
-                <tr key={key.id} style={{ borderBottom: "1px solid rgba(107,107,111,0.06)" }}>
-                  <td style={{ padding: "10px 14px", fontWeight: 600, color: "var(--japandi-text)" }}>
+                <tr key={key.id} className="hover:bg-linen-100/50 transition-colors">
+                  <td className="py-[16px] px-[16px] font-medium text-sumi-900 text-[14px]">
                     {editingKeyId === key.id ? (
-                      <input type="text" value={editingKeyName} onChange={e => setEditingKeyName(e.target.value)}
+                      <Input type="text" value={editingKeyName} onChange={e => setEditingKeyName(e.target.value)}
                         onBlur={() => handleKeyRename(key.id)} onKeyDown={e => { if (e.key === "Enter") handleKeyRename(key.id); }}
-                        className="plan-input" style={{ width: "120px", fontSize: "11px", padding: "4px 6px" }} autoFocus />
+                        autoFocus className="w-[160px] h-[32px] text-[13px]" />
                     ) : (
                       key.name
                     )}
                   </td>
-                  <td style={{ padding: "10px 14px", fontFamily: "monospace", fontSize: "11px", color: "var(--japandi-muted)" }}>{key.prefix || (key.key ? key.key.substring(0, 8) + "..." : "—")}</td>
-                  <td style={{ padding: "10px 14px" }}>
-                    <div style={{ display: "flex", gap: "3px", flexWrap: "wrap" }}>
+                  <td className="py-[16px] px-[16px] font-mono text-[13px] text-stone-400 tracking-wide">{key.prefix || (key.key ? key.key.substring(0, 8) + "..." : "—")}</td>
+                  <td className="py-[16px] px-[16px]">
+                    <Inline gap="gap-[6px]" className="flex-wrap">
                       {(key.permissions ? Object.entries(key.permissions).filter(([, v]) => v).map(([k]) => k) : ["read"]).map(p => (
-                        <span key={p} className="tag" style={{ fontSize: "9px", padding: "1px 5px", backgroundColor: p === "admin" ? "#ef444422" : p === "write" ? "#f59e0b22" : "#3b82f622", color: p === "admin" ? "#ef4444" : p === "write" ? "#f59e0b" : "#3b82f6", border: "1px solid " + (p === "admin" ? "#ef444433" : p === "write" ? "#f59e0b33" : "#3b82f633") }}>
+                        <span key={p} className={`px-[6px] py-[2px] rounded-[2px] border text-[9px] font-bold tracking-widest uppercase ${p === "admin" ? "bg-clay-500/10 text-clay-500 border-clay-500/20" : p === "write" ? "bg-amber-600/10 text-amber-600 border-amber-600/20" : "bg-indigo-ink/10 text-indigo-ink border-indigo-ink/20"}`}>
                           {p}
                         </span>
                       ))}
-                    </div>
+                    </Inline>
                   </td>
-                  <td style={{ padding: "10px 14px", color: "var(--japandi-muted)" }}>{key.created_at ? new Date(key.created_at).toLocaleDateString() : "—"}</td>
-                  <td style={{ padding: "10px 14px", color: "var(--japandi-muted)" }}>{key.last_used_at ? new Date(key.last_used_at).toLocaleDateString() : "Never"}</td>
-                  <td style={{ padding: "10px 14px" }}>
-                    <span className="badge" style={{ backgroundColor: key.is_active !== false ? "rgba(62,207,142,0.12)" : "rgba(107,107,111,0.12)", color: key.is_active !== false ? "#4ade80" : "var(--japandi-muted)" }}>
+                  <td className="py-[16px] px-[16px] text-[13px] text-stone-500 font-mono tracking-wide">{key.created_at ? new Date(key.created_at).toLocaleDateString() : "—"}</td>
+                  <td className="py-[16px] px-[16px] text-[13px] text-stone-500 font-mono tracking-wide">{key.last_used_at ? new Date(key.last_used_at).toLocaleDateString() : "Never"}</td>
+                  <td className="py-[16px] px-[16px]">
+                    <span className={`px-[8px] py-[4px] rounded-[2px] border text-[10px] font-bold tracking-widest uppercase ${key.is_active !== false ? "bg-moss-600/10 text-moss-600 border-moss-600/20" : "bg-stone-100 text-stone-500 border-stone-200"}`}>
                       {key.is_active !== false ? "Active" : "Revoked"}
                     </span>
                   </td>
-                  <td style={{ padding: "10px 14px" }}>
-                    <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
-                      <button onClick={() => { setEditingKeyId(key.id); setEditingKeyName(key.name); }} className="btn-action-secondary" title="Edit"><Edit size={12} /></button>
+                  <td className="py-[16px] px-[16px]">
+                    <Inline gap="gap-[4px]" className="flex-wrap">
+                      <Button onClick={() => { setEditingKeyId(key.id); setEditingKeyName(key.name); }} variant="secondary" size="icon" title="Edit"><Edit size={14} /></Button>
                       {key.is_active !== false && (
                         <>
-                          <button onClick={() => handleTestKey(key.id)} className="btn-action-secondary" title="Test"><Zap size={12} /></button>
-                          <button onClick={() => handleRevokeKey(key.id)} className="btn-destructive-outline-sm" title="Revoke"><Ban size={12} /></button>
+                          <Button onClick={() => handleTestKey(key.id)} variant="secondary" size="icon" title="Test"><Zap size={14} /></Button>
+                          <Button onClick={() => handleRevokeKey(key.id)} variant="secondary" size="icon" title="Revoke" className="text-amber-600 border-amber-600/30 hover:bg-amber-600/10 hover:text-amber-600"><Ban size={14} /></Button>
                         </>
                       )}
-                      <button onClick={() => { setHardDeleteKeyId(key.id); setShowHardDeleteModal(true); }} className="btn-destructive-outline-sm" title="Delete Permanently"><Trash2 size={12} /></button>
-                      <button onClick={() => { setAuditLogKeyId(auditLogKeyId === key.id ? null : key.id); if (auditLogKeyId !== key.id) handleFetchAuditLog(key.id); else setAuditLogs([]); }} className="btn-action-secondary" title="Audit Log">
-                        <FileText size={12} />
-                      </button>
-                    </div>
+                      <Button onClick={() => { setHardDeleteKeyId(key.id); setShowHardDeleteModal(true); }} variant="secondary" size="icon" title="Delete Permanently" className="text-clay-500 border-clay-500/30 hover:bg-clay-500/10 hover:text-clay-500"><Trash2 size={14} /></Button>
+                      <Button onClick={() => { setAuditLogKeyId(auditLogKeyId === key.id ? null : key.id); if (auditLogKeyId !== key.id) handleFetchAuditLog(key.id); else setAuditLogs([]); }} variant={auditLogKeyId === key.id ? "primary" : "secondary"} size="icon" title="Audit Log">
+                        <FileText size={14} />
+                      </Button>
+                    </Inline>
                     {auditLogKeyId === key.id && (
-                      <div style={{ marginTop: "8px", backgroundColor: "rgba(0,0,0,0.2)", borderRadius: "6px", padding: "8px" }}>
-                        <div style={{ fontSize: "10px", color: "var(--japandi-muted)", fontWeight: 600, marginBottom: "4px", textTransform: "uppercase" }}>Audit Log</div>
+                      <div className="mt-[16px] bg-linen-100 border border-stone-200 rounded-[8px] p-[16px] animate-in slide-in-from-top-1">
+                        <h4 className="text-[10px] font-bold text-stone-400 tracking-widest uppercase mb-[12px] m-0">Audit Log</h4>
                         {auditLogs.length === 0 ? (
-                          <div style={{ fontSize: "10px", color: "var(--japandi-muted)" }}>No audit entries.</div>
+                          <div className="text-[12px] text-stone-400 italic">No audit entries.</div>
                         ) : (
-                          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "10px" }}>
-                            <thead>
-                              <tr style={{ borderBottom: "1px solid rgba(107,107,111,0.08)" }}>
-                                {["Action", "Details", "IP", "Date"].map(h => (
-                                  <th key={h} style={{ textAlign: "left", padding: "4px 6px", color: "var(--japandi-muted)", fontWeight: 600, fontSize: "8px", textTransform: "uppercase", letterSpacing: "0.5px" }}>{h}</th>
-                                ))}
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {auditLogs.map((log, i) => (
-                                <tr key={log.id || i} style={{ borderBottom: "1px solid rgba(107,107,111,0.06)" }}>
-                                  <td style={{ padding: "4px 6px", color: "var(--japandi-text)" }}>{log.action || "—"}</td>
-                                  <td style={{ padding: "4px 6px", color: "var(--japandi-muted)" }}>{log.details || "—"}</td>
-                                  <td style={{ padding: "4px 6px", color: "var(--japandi-muted)" }}>{log.ip_address || "—"}</td>
-                                  <td style={{ padding: "4px 6px", color: "var(--japandi-muted)" }}>{log.created_at ? new Date(log.created_at).toLocaleDateString() : log.date ? new Date(log.date).toLocaleDateString() : "—"}</td>
+                          <div className="overflow-x-auto">
+                            <table className="w-full text-left border-collapse">
+                              <thead>
+                                <tr className="border-b border-stone-200">
+                                  {["Action", "Details", "IP", "Date"].map(h => (
+                                    <th key={h} className="py-[8px] px-[12px] text-[9px] font-bold text-stone-400 tracking-widest uppercase whitespace-nowrap">{h}</th>
+                                  ))}
                                 </tr>
-                              ))}
-                            </tbody>
-                          </table>
+                              </thead>
+                              <tbody className="divide-y divide-stone-200">
+                                {auditLogs.map((log, i) => (
+                                  <tr key={log.id || i}>
+                                    <td className="py-[8px] px-[12px] text-[12px] font-medium text-sumi-900">{log.action || "—"}</td>
+                                    <td className="py-[8px] px-[12px] text-[12px] text-stone-500">{log.details || "—"}</td>
+                                    <td className="py-[8px] px-[12px] text-[12px] font-mono text-stone-400 tracking-wide">{log.ip_address || "—"}</td>
+                                    <td className="py-[8px] px-[12px] text-[12px] font-mono text-stone-400 tracking-wide">{log.created_at ? new Date(log.created_at).toLocaleDateString() : log.date ? new Date(log.date).toLocaleDateString() : "—"}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
                         )}
                       </div>
                     )}
@@ -205,19 +218,19 @@ export default function ApiKeysTab() {
               ))}
             </tbody>
           </table>
-        </div>
+        </Card>
       )}
 
       {showHardDeleteModal && (
-        <div style={s.overlay} onClick={() => { setShowHardDeleteModal(false); setHardDeleteKeyId(null); }}>
-          <div className="card-glass" style={{ border: "1px solid var(--japandi-border)", background: "rgba(20,20,23,0.95)", backdropFilter: "blur(22px)", padding: "28px", maxWidth: "460px", width: "100%" }} onClick={e => e.stopPropagation()}>
-            <h3 style={{ ...s.modalTitle, color: "#ef4444" }}>Delete API Key Permanently</h3>
-            <p style={{ fontSize: "13px", color: "var(--japandi-muted)", margin: "0 0 16px" }}>Delete this key permanently? This action cannot be undone.</p>
-            <div style={{ display: "flex", gap: "8px" }}>
-              <button onClick={handleHardDeleteKey} className="btn-destructive-outline">Delete Permanently</button>
-              <button onClick={() => { setShowHardDeleteModal(false); setHardDeleteKeyId(null); }} className="btn-action-secondary">Cancel</button>
-            </div>
-          </div>
+        <div className="fixed inset-0 bg-[#2B2A27]/20 backdrop-blur-sm flex items-center justify-center z-[1000] p-4" onClick={() => { setShowHardDeleteModal(false); setHardDeleteKeyId(null); }}>
+          <Card padding="p-[32px]" className="w-full max-w-[480px] bg-washi-white shadow-xl" onClick={e => e.stopPropagation()}>
+            <h3 className="text-[20px] font-heading text-clay-500 mb-[16px] m-0">Delete API Key</h3>
+            <p className="text-[14px] text-stone-500 leading-relaxed mb-[32px]">Delete this key permanently? This action cannot be undone and any integrations using it will immediately break.</p>
+            <Inline gap="gap-[12px]">
+              <Button onClick={handleHardDeleteKey} variant="primary" className="bg-clay-500 hover:bg-clay-600 text-white border-none">Delete Permanently</Button>
+              <Button onClick={() => { setShowHardDeleteModal(false); setHardDeleteKeyId(null); }} variant="secondary">Cancel</Button>
+            </Inline>
+          </Card>
         </div>
       )}
     </div>

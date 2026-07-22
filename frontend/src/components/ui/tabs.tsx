@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef } from "react";
 
 interface TabItem {
   id: string;
@@ -37,12 +37,7 @@ export function Tabs({ tabs, activeTab, onChange }: TabsProps) {
     <div
       ref={containerRef}
       role="tablist"
-      style={{
-        display: "flex",
-        borderBottom: "1.5px solid var(--edge)",
-        gap: "24px",
-        fontFamily: "'Satoshi', sans-serif",
-      }}
+      className="flex border-b border-[var(--stone-200)] gap-6 font-ui"
     >
       {tabs.map((tab, idx) => {
         const isActive = tab.id === activeTab;
@@ -56,34 +51,13 @@ export function Tabs({ tabs, activeTab, onChange }: TabsProps) {
             tabIndex={isActive ? 0 : -1}
             onClick={() => onChange(tab.id)}
             onKeyDown={(e) => handleKeyDown(e, idx)}
-            style={{
-              padding: "12px 4px",
-              background: "transparent",
-              border: "none",
-              cursor: "pointer",
-              fontSize: "14px",
-              fontWeight: isActive ? 700 : 500,
-              color: isActive ? "var(--japandi-accent)" : "var(--japandi-muted)",
-              position: "relative",
-              outline: "none",
-              transition: "color 0.2s ease",
-            }}
+            className={`relative py-3 px-1 bg-transparent border-none cursor-pointer text-[14px] font-medium outline-none transition-colors duration-200 ${isActive ? 'text-[var(--sumi-900)]' : 'text-[var(--stone-400)] hover:text-[var(--sumi-900)]'}`}
           >
             {tab.label}
-            {/* Orange underline indicator */}
+            {/* Active underline indicator */}
             {isActive && (
               <div
-                style={{
-                  position: "absolute",
-                  bottom: "-1.5px",
-                  left: 0,
-                  right: 0,
-                  height: "2.5px",
-                  backgroundColor: "var(--japandi-accent)",
-                  borderRadius: "9999px",
-                  boxShadow: "0 0 8px rgba(232, 80, 2, 0.4)",
-                  animation: "fadeIn 0.2s ease-out",
-                }}
+                className="absolute bottom-[-1px] left-0 right-0 h-[2px] bg-[var(--sumi-900)] rounded-t-[2px]"
               />
             )}
           </button>
@@ -94,4 +68,3 @@ export function Tabs({ tabs, activeTab, onChange }: TabsProps) {
 }
 
 export default Tabs;
-export { Tabs };

@@ -4,20 +4,18 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Base neutrals
         "washi-white": "#F7F4EF",
         "linen-100": "#EFEAE2",
+        "stone-100": "#EBE5DC",
         "stone-200": "#E3DDD2",
+        "stone-300": "#CEC6B8",
         "stone-400": "#B7AE9E",
+        "stone-600": "#706A60",
         "sumi-900": "#2B2A27",
-        
-        // Accents
         "indigo-ink": "#3C4A5E",
         "moss-600": "#6B7A5E",
         "clay-500": "#B5654A",
         "sand-400": "#C9A876",
-        
-        // Semantic overrides
         background: "#F7F4EF",
         foreground: "#2B2A27",
         primary: "#3C4A5E",
@@ -32,7 +30,8 @@ export default {
       },
       fontFamily: {
         heading: ["Fraunces", "serif"],
-        sans: ["Inter", "sans-serif"],
+        ui: ["Inter", "IBM Plex Sans", "system-ui", "sans-serif"],
+        sans: ["Inter", "IBM Plex Sans", "system-ui", "sans-serif"],
         mono: ["IBM Plex Mono", "monospace"],
       },
       spacing: {
@@ -42,10 +41,11 @@ export default {
         "4": "32px",
         "5": "48px",
         "6": "64px",
-        "8": "96px",
+        "7": "96px",
+        "8": "128px",
       },
       transitionTimingFunction: {
-        "ease-out-soft": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+        "ease-out-soft": "cubic-bezier(0.16, 1, 0.3, 1)",
       },
       transitionDuration: {
         "200": "200ms",

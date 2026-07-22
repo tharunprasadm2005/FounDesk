@@ -2,11 +2,10 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { CheckCircle, XCircle, RefreshCw, X, FileText, Download } from "lucide-react";
 import { useToast } from "../context/ToastContext";
+import { PageContainer, Stack, Inline, Card, Grid } from "../components/layout";
+import { Button } from "../components/ui/button";
 
 const RAZORPAY_SCRIPT = "https://checkout.razorpay.com/v1/checkout.js";
-
-const FONT_SANS = "'Clash Display', system-ui, sans-serif";
-const FONT_BODY = "'Satoshi', system-ui, sans-serif";
 
 const PLAN_FEATURES = {
   starter: ["Up to 5 workspaces", "Unlimited integrations", "AI-powered insights", "Calendar defense", "Knowledge transfer"],
@@ -16,7 +15,7 @@ const PLAN_FEATURES = {
 
 export default function Billing() {
   const navigate = useNavigate();
-  const toast = useToast();
+  const { toast } = useToast();
   const [plan, setPlan] = useState(null);
   const [config, setConfig] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -136,8 +135,8 @@ export default function Billing() {
   };
 
   if (loading) return (
-    <div style={{ padding: "80px 0", textAlign: "center", color: "var(--japandi-muted)", fontFamily: FONT_BODY }}>
-      <p>Loading billing info...</p>
+    <div className="flex items-center justify-center h-screen bg-washi-white">
+      <div className="text-stone-400 font-mono text-[13px] tracking-widest uppercase animate-pulse">Loading billing...</div>
     </div>
   );
 
@@ -149,177 +148,181 @@ export default function Billing() {
     { id: "enterprise", name: "Enterprise Plan", amount: 9999, features: PLAN_FEATURES.enterprise },
   ];
 
-  const badgeStyle = (status) => ({
-    display: "inline-block", padding: "4px 12px", borderRadius: 12, fontSize: 13, fontWeight: 600,
-    background: status === "active" ? "rgba(62,142,90,0.15)" : status === "trial" ? "rgba(241,96,1,0.15)" : "rgba(193,8,1,0.15)",
-    color: status === "active" ? "#4ade80" : status === "trial" ? "#f59e0b" : "#ef4444",
-  });
-
   return (
-    <div style={{ padding: 24, maxWidth: 800, margin: "0 auto", fontFamily: FONT_BODY }} className="fade-in">
-      <h1 style={{ fontSize: 24, marginBottom: 24, color: "var(--japandi-text)", fontFamily: FONT_SANS, fontWeight: 800 }}>Billing</h1>
+    <PageContainer>
+      <Stack gap="gap-[32px]" className="mb-[48px] animate-in fade-in">
+        <h1 className="font-heading text-[48px] text-sumi-900 leading-tight m-0 tracking-tight">Billing</h1>
+      </Stack>
 
-      {/* Plan Tiers */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 12, marginBottom: 24 }}>
+      <Grid columns={3} gap="gap-[24px]" className="mb-[32px] animate-in slide-in-from-bottom-4">
         {plans.map((p) => {
           const isCurrent = p.id === currentPlan;
           const isHigher = ["starter", "pro", "enterprise"].indexOf(p.id) > ["starter", "pro", "enterprise"].indexOf(currentPlan);
           const isLower = ["starter", "pro", "enterprise"].indexOf(p.id) < ["starter", "pro", "enterprise"].indexOf(currentPlan);
           return (
-            <div key={p.id} className="card-glass" style={{
-              padding: 20, border: isCurrent ? "1px solid rgba(255,90,0,0.3)" : "1px solid rgba(107,107,111,0.12)",
-              position: "relative",
-            }}>
-              {isCurrent && <span style={{ position: "absolute", top: 8, right: 8, fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "1px", color: "var(--japandi-accent)", background: "rgba(255,90,0,0.1)", padding: "2px 8px", borderRadius: 4 }}>Current</span>}
-              <h3 style={{ margin: "0 0 4px", fontSize: 15, fontWeight: 700, color: "var(--japandi-text)", fontFamily: FONT_SANS }}>{p.name}</h3>
-              <div style={{ fontSize: 22, fontWeight: 800, color: "var(--japandi-text)", marginBottom: 12 }}>
-                ₹{(p.amount || 999) / 100}<span style={{ fontSize: 12, fontWeight: 400, color: "var(--japandi-muted)" }}>/mo</span>
+            <Card key={p.id} padding="p-[32px]" className={`relative bg-washi-white flex flex-col transition-all duration-300 ${isCurrent ? "ring-2 ring-moss-600 shadow-md" : "hover:border-stone-400"}`}>
+              {isCurrent && (
+                <span className="absolute top-[16px] right-[16px] px-[8px] py-[4px] rounded-[2px] bg-moss-600/10 text-moss-600 border border-moss-600/20 text-[10px] font-bold tracking-widest uppercase">
+                  Current
+                </span>
+              )}
+              <h3 className="text-[20px] font-heading text-sumi-900 mb-[12px] m-0">{p.name}</h3>
+              <div className="text-[40px] font-medium text-sumi-900 mb-[32px] font-mono tracking-tight leading-none">
+                ₹{(p.amount || 999) / 100}<span className="text-[16px] text-stone-400 font-sans tracking-normal font-normal">/mo</span>
               </div>
-              <div style={{ marginBottom: 16 }}>
+              <Stack gap="gap-[16px]" className="mb-[32px] flex-1">
                 {(p.features || []).map((f) => (
-                  <div key={f} style={{ display: "flex", alignItems: "center", gap: 6, padding: "4px 0", fontSize: 12, color: "var(--japandi-text)" }}>
-                    <CheckCircle size={12} style={{ color: "#4ade80", flexShrink: 0 }} />
-                    {f}
-                  </div>
+                  <Inline key={f} items="items-start" gap="gap-[12px]" className="text-[14px] text-stone-500">
+                    <CheckCircle size={16} className="text-moss-600 mt-[2px] shrink-0" />
+                    <span className="leading-snug">{f}</span>
+                  </Inline>
                 ))}
-              </div>
-              {isCurrent && currentStatus === "active" && (
-                <span style={{ fontSize: 11, color: "#4ade80", fontWeight: 600 }}>✓ Active</span>
-              )}
-              {isCurrent && currentStatus !== "active" && isCurrent && (
-                <button onClick={() => handleUpgrade(p.id)} className="btn-ember" style={{ width: "100%", fontSize: 12 }}
-                  disabled={!razorpayLoaded || changingPlan}>
-                  {razorpayLoaded ? `Subscribe — ₹${(p.amount || 999) / 100}` : "Loading..."}
-                </button>
-              )}
-              {!isCurrent && isHigher && currentStatus === "active" && (
-                <button onClick={() => handleChangePlan(p.id)} className="btn-ember" style={{ width: "100%", fontSize: 12 }}>
-                  Upgrade
-                </button>
-              )}
-              {!isCurrent && isLower && currentStatus === "active" && (
-                <button onClick={() => handleChangePlan(p.id)} className="btn-outline-ember" style={{ width: "100%", fontSize: 12 }}>
-                  Downgrade
-                </button>
-              )}
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Status Banner */}
-      <div className="card-glass" style={{ padding: 16, marginBottom: 12 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div>
-            <span style={badgeStyle(currentStatus)}>{currentStatus.toUpperCase()}</span>
-            {currentStatus === "trial" && plan?.trial_remaining_days !== null && (
-              <span style={{ marginLeft: 12, fontSize: 12, color: "var(--japandi-muted)" }}>
-                Trial ends in <strong>{plan.trial_remaining_days}</strong> days
-              </span>
-            )}
-          </div>
-          <div style={{ display: "flex", gap: 8 }}>
-            {currentStatus === "active" && (
-              <button onClick={handleCancel} className="btn-destructive-outline-sm" style={{ fontSize: 11 }}>
-                <X size={12} /> Cancel
-              </button>
-            )}
-            {(currentStatus === "cancelled" || currentStatus === "past_due") && (
-              <button onClick={handleReactivate} className="btn-ember" style={{ fontSize: 11 }}>
-                <RefreshCw size={12} /> Reactivate
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Usage */}
-      {plan?.usage && (
-        <div className="card-glass" style={{ padding: 16, marginBottom: 12 }}>
-          <div className="card-label" style={{ marginBottom: 12 }}>Usage</div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {Object.entries(plan.usage).map(([key, val]) => (
-              <div key={key}>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, marginBottom: 4 }}>
-                  <span style={{ color: "var(--japandi-muted)", textTransform: "capitalize" }}>{key.replace(/_/g, " ")}</span>
-                  <span style={{ color: "var(--japandi-text)", fontWeight: 600 }}>
-                    {val.used || 0}{val.limit ? ` / ${val.limit}` : ""}
-                    {val.exceeded && <span style={{ color: "#ef4444", marginLeft: 4 }}>⚠</span>}
-                  </span>
-                </div>
-                {val.limit && (
-                  <div style={{ height: 3, backgroundColor: "rgba(107,107,111,0.1)", borderRadius: 2, overflow: "hidden" }}>
-                    <div style={{ height: "100%", width: `${Math.min(100, ((val.used || 0) / val.limit) * 100)}%`,
-                      backgroundColor: val.exceeded ? "#ef4444" : ((val.used || 0) / val.limit) > 0.8 ? "#f59e0b" : "var(--japandi-accent)", borderRadius: 2 }} />
-                  </div>
+              </Stack>
+              <div className="mt-auto pt-[24px] border-t border-stone-200">
+                {isCurrent && currentStatus === "active" && (
+                  <Inline items="items-center" gap="gap-[8px]" className="text-[12px] text-moss-600 font-bold tracking-wide uppercase justify-center py-[8px]">
+                    <CheckCircle size={14} /> Active Subscription
+                  </Inline>
+                )}
+                {isCurrent && currentStatus !== "active" && (
+                  <Button onClick={() => handleUpgrade(p.id)} variant="primary" className="w-full" disabled={!razorpayLoaded || changingPlan}>
+                    {razorpayLoaded ? `Subscribe — ₹${(p.amount || 999) / 100}` : "Loading..."}
+                  </Button>
+                )}
+                {!isCurrent && isHigher && currentStatus === "active" && (
+                  <Button onClick={() => handleChangePlan(p.id)} variant="primary" className="w-full">
+                    Upgrade
+                  </Button>
+                )}
+                {!isCurrent && isLower && currentStatus === "active" && (
+                  <Button onClick={() => handleChangePlan(p.id)} variant="secondary" className="w-full">
+                    Downgrade
+                  </Button>
                 )}
               </div>
-            ))}
-          </div>
-        </div>
-      )}
+            </Card>
+          );
+        })}
+      </Grid>
 
-      {/* Invoice History */}
-      <div className="card-glass" style={{ padding: 16, marginBottom: 12 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: showInvoices ? 12 : 0 }}>
-          <span className="card-label" style={{ margin: 0 }}>Invoice History</span>
-          <button onClick={fetchInvoices} className="btn-action-secondary" style={{ fontSize: 11 }}>
-            <FileText size={12} /> {showInvoices ? "Hide" : "View"}
-          </button>
-        </div>
-        {showInvoices && (
-          <div>
-            {invoices.length === 0 ? (
-              <div style={{ fontSize: 12, color: "var(--japandi-muted)", padding: "12px 0" }}>No invoices found.</div>
-            ) : (
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
-                <thead>
-                  <tr style={{ borderBottom: "1px solid rgba(107,107,111,0.08)" }}>
-                    {["Date", "Plan", "Amount", "Status", "Payment ID"].map(h => (
-                      <th key={h} style={{ textAlign: "left", padding: "8px 10px", color: "var(--japandi-muted)", fontWeight: 600, textTransform: "uppercase", fontSize: 9, letterSpacing: "1px" }}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {invoices.map((inv) => (
-                    <tr key={inv.id} style={{ borderBottom: "1px solid rgba(107,107,111,0.06)" }}>
-                      <td style={{ padding: "8px 10px", color: "var(--japandi-text)" }}>{inv.paid_at ? new Date(inv.paid_at).toLocaleDateString() : new Date(inv.created_at).toLocaleDateString()}</td>
-                      <td style={{ padding: "8px 10px", color: "var(--japandi-text)", textTransform: "capitalize" }}>{inv.plan_name || "starter"}</td>
-                      <td style={{ padding: "8px 10px", color: "var(--japandi-text)" }}>₹{(inv.amount || 0) / 100}</td>
-                      <td style={{ padding: "8px 10px" }}>
-                        <span className="badge" style={{
-                          backgroundColor: inv.status === "paid" ? "rgba(62,207,142,0.12)" : "rgba(239,68,68,0.12)",
-                          color: inv.status === "paid" ? "#4ade80" : "#ef4444",
-                        }}>{inv.status}</span>
-                      </td>
-                      <td style={{ padding: "8px 10px", fontFamily: "monospace", fontSize: 10, color: "var(--japandi-muted)" }}>{(inv.razorpay_payment_id || "").slice(0, 12)}...</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-[24px] mb-[32px] animate-in slide-in-from-bottom-6">
+        <Card padding="p-[32px]" className="bg-washi-white h-full flex flex-col justify-center">
+          <Inline justify="justify-between" items="items-center">
+            <div>
+              <h3 className="text-[12px] font-bold text-stone-400 tracking-widest uppercase m-0 mb-[8px]">Subscription Status</h3>
+              <Inline items="items-center" gap="gap-[12px]">
+                <span className={`px-[12px] py-[6px] rounded-[2px] border text-[11px] font-bold tracking-widest uppercase ${currentStatus === "active" ? "bg-moss-600/10 text-moss-600 border-moss-600/20" : currentStatus === "trial" ? "bg-amber-600/10 text-amber-600 border-amber-600/20" : "bg-clay-500/10 text-clay-500 border-clay-500/20"}`}>
+                  {currentStatus}
+                </span>
+                {currentStatus === "trial" && plan?.trial_remaining_days !== null && (
+                  <span className="text-[13px] text-stone-500 font-mono tracking-wide">
+                    Trial ends in <strong className="text-sumi-900">{plan.trial_remaining_days}</strong> days
+                  </span>
+                )}
+              </Inline>
+            </div>
+            <Inline gap="gap-[12px]">
+              {currentStatus === "active" && (
+                <Button onClick={handleCancel} variant="secondary" className="text-clay-500 border-clay-500/30 hover:bg-clay-500/10 hover:text-clay-500">
+                  <X size={14} className="mr-1" /> Cancel
+                </Button>
+              )}
+              {(currentStatus === "cancelled" || currentStatus === "past_due") && (
+                <Button onClick={handleReactivate} variant="primary">
+                  <RefreshCw size={14} className="mr-1" /> Reactivate
+                </Button>
+              )}
+            </Inline>
+          </Inline>
+        </Card>
+
+        {plan?.usage && (
+          <Card padding="p-[32px]" className="bg-washi-white h-full">
+            <h3 className="text-[12px] font-bold text-stone-400 tracking-widest uppercase mb-[24px] m-0">Usage Overview</h3>
+            <Stack gap="gap-[16px]">
+              {Object.entries(plan.usage).map(([key, val]) => (
+                <div key={key}>
+                  <Inline justify="justify-between" className="text-[13px] mb-[8px]">
+                    <span className="text-stone-500 capitalize">{key.replace(/_/g, " ")}</span>
+                    <span className="font-mono font-medium text-sumi-900 flex items-center">
+                      {val.used || 0}{val.limit ? <span className="text-stone-400"> / {val.limit}</span> : ""}
+                      {val.exceeded && <span className="text-clay-500 ml-[8px]">⚠</span>}
+                    </span>
+                  </Inline>
+                  {val.limit && (
+                    <div className="h-[6px] bg-stone-200 rounded-full overflow-hidden">
+                      <div className={`h-full rounded-full transition-all duration-500 ${val.exceeded ? "bg-clay-500" : ((val.used || 0) / val.limit) > 0.8 ? "bg-amber-600" : "bg-moss-600"}`} style={{ width: `${Math.min(100, ((val.used || 0) / val.limit) * 100)}%` }} />
+                    </div>
+                  )}
+                </div>
+              ))}
+            </Stack>
+          </Card>
         )}
       </div>
 
-      {/* Plan Features */}
-      <div className="card-glass" style={{ padding: 16 }}>
-        <div className="card-label" style={{ marginBottom: 12 }}>All Plan Features</div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 8 }}>
-          {[
-            { name: "Unlimited Tasks", included: true }, { name: "Unlimited Goals", included: true },
-            { name: "AI Pattern Engine", included: true }, { name: "CRM Integrations", included: true },
-            { name: "Team Collaboration", included: true }, { name: "API Access", included: true },
-            { name: "Priority Support", included: currentPlan !== "starter" }, { name: "Custom Branding", included: currentPlan === "enterprise" },
-            { name: "SSO/SAML", included: currentPlan === "enterprise" }, { name: "Audit Logs", included: currentPlan === "enterprise" },
-          ].map(f => (
-            <div key={f.name} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: f.included ? "var(--japandi-text)" : "var(--japandi-muted)" }}>
-              {f.included ? <CheckCircle size={12} style={{ color: "#4ade80" }} /> : <XCircle size={12} style={{ color: "#6b6b6f" }} />}
-              {f.name}
+      <Grid columns={2} gap="gap-[24px]" className="mb-[48px] animate-in slide-in-from-bottom-8">
+        <Card padding="p-[32px]" className="bg-washi-white">
+          <Inline justify="justify-between" items="items-center" className="mb-[24px]">
+            <h3 className="text-[12px] font-bold text-stone-400 tracking-widest uppercase m-0">Invoice History</h3>
+            <Button onClick={fetchInvoices} variant="secondary" size="sm">
+              <FileText size={14} className="mr-1" /> {showInvoices ? "Hide" : "View"}
+            </Button>
+          </Inline>
+          
+          {showInvoices && (
+            <div className="animate-in fade-in">
+              {invoices.length === 0 ? (
+                <div className="text-[13px] text-stone-400 italic text-center py-[24px] border border-dashed border-stone-200 rounded-[8px]">No invoices found.</div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="border-b border-stone-200">
+                        {["Date", "Plan", "Amount", "Status"].map(h => (
+                          <th key={h} className="py-[12px] px-[12px] text-[10px] font-bold text-stone-400 tracking-widest uppercase whitespace-nowrap">{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-stone-200">
+                      {invoices.map((inv) => (
+                        <tr key={inv.id} className="hover:bg-linen-100/50 transition-colors">
+                          <td className="py-[12px] px-[12px] text-[12px] font-mono text-stone-500 tracking-wide">{inv.paid_at ? new Date(inv.paid_at).toLocaleDateString() : new Date(inv.created_at).toLocaleDateString()}</td>
+                          <td className="py-[12px] px-[12px] text-[13px] text-sumi-900 capitalize font-medium">{inv.plan_name || "starter"}</td>
+                          <td className="py-[12px] px-[12px] text-[13px] font-mono text-sumi-900">₹{(inv.amount || 0) / 100}</td>
+                          <td className="py-[12px] px-[12px]">
+                            <span className={`px-[6px] py-[2px] rounded-[2px] border text-[9px] font-bold tracking-widest uppercase ${inv.status === "paid" ? "bg-moss-600/10 text-moss-600 border-moss-600/20" : "bg-clay-500/10 text-clay-500 border-clay-500/20"}`}>
+                              {inv.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
-          ))}
-        </div>
-      </div>
-    </div>
+          )}
+        </Card>
+
+        <Card padding="p-[32px]" className="bg-washi-white">
+          <h3 className="text-[12px] font-bold text-stone-400 tracking-widest uppercase mb-[24px] m-0">All Plan Features</h3>
+          <Grid columns={2} gap="gap-[16px]">
+            {[
+              { name: "Unlimited Tasks", included: true }, { name: "Unlimited Goals", included: true },
+              { name: "AI Pattern Engine", included: true }, { name: "CRM Integrations", included: true },
+              { name: "Team Collaboration", included: true }, { name: "API Access", included: true },
+              { name: "Priority Support", included: currentPlan !== "starter" }, { name: "Custom Branding", included: currentPlan === "enterprise" },
+              { name: "SSO/SAML", included: currentPlan === "enterprise" }, { name: "Audit Logs", included: currentPlan === "enterprise" },
+            ].map(f => (
+              <Inline key={f.name} items="items-center" gap="gap-[12px]" className={`text-[13px] ${f.included ? "text-sumi-900" : "text-stone-400"}`}>
+                {f.included ? <CheckCircle size={14} className="text-moss-600 shrink-0" /> : <XCircle size={14} className="text-stone-300 shrink-0" />}
+                <span className={!f.included ? "line-through opacity-70" : ""}>{f.name}</span>
+              </Inline>
+            ))}
+          </Grid>
+        </Card>
+      </Grid>
+    </PageContainer>
   );
 }

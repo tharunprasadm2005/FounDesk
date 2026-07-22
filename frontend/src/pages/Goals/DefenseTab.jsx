@@ -3,6 +3,7 @@ import api from "../../utils/api";
 import { useToast } from "../../context/ToastContext";
 import { Icon, orangePill } from "./GoalsConstants";
 import HeroNumber from "../../components/ui/HeroNumber";
+import { Stack, Grid, Inline, Card } from "../../components/layout";
 
 export default function DefenseTab({ activeTab }) {
   const toast = useToast();
@@ -102,105 +103,105 @@ export default function DefenseTab({ activeTab }) {
   };
 
   return (
-    <div className="fade-in" style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+    <Stack gap="gap-4" className="fade-in">
       {defenseLoading ? (
-        <div className="card-glass" style={{ textAlign: "center" }}>
-          <p style={{ fontSize: "13px", color: "var(--japandi-muted)", margin: 0 }}>Analyzing schedule defense configurations...</p>
-        </div>
+        <Card padding="p-8" className="text-center">
+          <p className="text-sm text-[var(--stone-400)] m-0">Analyzing schedule defense configurations...</p>
+        </Card>
       ) : (
         <>
           {/* Calendar connection banner */}
-          <div className="card-glass" style={{
-            display: "flex", alignItems: "center", justifyContent: "space-between",
-          }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-              <Icon name="calendar" size={14} style={{ color: "var(--muted-gold)" }} />
-              <div>
-                <span style={{ fontSize: "13.5px", fontWeight: "700", color: "var(--japandi-text)" }}>Google Calendar</span>
+          <Card padding="p-6">
+            <Inline justify="justify-between" items="items-center">
+              <Inline gap="gap-3" items="items-center">
+                <Icon name="calendar" size={14} style={{ color: "var(--muted-gold)" }} />
+                <Stack gap="gap-0.5">
+                  <span className="text-sm font-semibold text-[var(--sumi-900)]">Google Calendar</span>
                 <span className={`badge ${calendarConnected ? 'badge-positive' : 'badge-warning'}`} style={{ marginLeft: "12px" }}>
                   {calendarConnected ? "Connected" : "Not connected"}
                 </span>
-              </div>
-            </div>
-            {!calendarConnected && (
-              <span style={{ fontSize: "11px", color: "var(--japandi-muted)", fontWeight: "600" }}>
-                Connect in Settings → Integrations
-              </span>
-            )}
-          </div>
+                </Stack>
+              </Inline>
+              {!calendarConnected && (
+                <span className="text-xs font-semibold text-[var(--stone-400)]">
+                  Connect in Settings → Integrations
+                </span>
+              )}
+            </Inline>
+          </Card>
 
           {/* Two-column layout: Left=Config, Right=Stats+Timeline */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "22px" }}>
+          <Grid cols="grid-cols-1 md:grid-cols-2" gap="gap-6">
 
             {/* Left: Rules & Configuration */}
-            <div className="card-glass" style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-              <div>
-                <p className="card-label">Working Hours</p>
-                <div style={{ display: "flex", gap: "10px", alignItems: "flex-end", marginTop: "12px" }}>
-                  <div style={{ flex: 1 }}>
-                    <label style={{ fontSize: "10px", color: "var(--japandi-muted)", fontWeight: "700", marginBottom: "4px", display: "block" }}>Start</label>
+            <Stack gap="gap-6">
+              <Card padding="p-6">
+                <span className="text-xs font-mono text-[var(--stone-400)] uppercase tracking-widest block mb-3">Working Hours</span>
+                <Inline gap="gap-3" items="items-end">
+                  <Stack gap="gap-1" className="flex-1">
+                    <label className="text-[10px] font-bold text-[var(--stone-400)] block">Start</label>
                     <input type="time" className="plan-input" value={`${String(wsCalendarRules.start_hour).padStart(2, "0")}:00`}
                       onChange={(e) => setWsCalendarRules(p => ({ ...p, start_hour: parseInt(e.target.value.split(":")[0]) }))}
                       style={{ width: "100%" }} />
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <label style={{ fontSize: "10px", color: "var(--japandi-muted)", fontWeight: "700", marginBottom: "4px", display: "block" }}>End</label>
+                  </Stack>
+                  <Stack gap="gap-1" className="flex-1">
+                    <label className="text-[10px] font-bold text-[var(--stone-400)] block">End</label>
                     <input type="time" className="plan-input" value={`${String(wsCalendarRules.end_hour).padStart(2, "0")}:00`}
                       onChange={(e) => setWsCalendarRules(p => ({ ...p, end_hour: parseInt(e.target.value.split(":")[0]) }))}
                       style={{ width: "100%" }} />
-                  </div>
+                  </Stack>
                   <button onClick={handleSaveHours} disabled={savingHours}
-                    style={{ padding: "10px 16px", borderRadius: "10px", border: "none", background: "var(--japandi-accent)", color: "var(--japandi-bg)", fontWeight: "700", cursor: "pointer", fontSize: "11px" }}>
+                    style={{ padding: "10px 16px", borderRadius: "8px", border: "none", background: "var(--japandi-accent)", color: "var(--washi-white)", fontWeight: "700", cursor: "pointer", fontSize: "11px" }}>
                     {savingHours ? "Saving..." : "Save"}
                   </button>
-                </div>
-              </div>
+                </Inline>
+              </Card>
 
-              <div>
-                <p className="card-label">Active Shields ({rulesData.rules?.length || 0})</p>
-                <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginTop: "12px" }}>
+              <Card padding="p-6">
+                <span className="text-xs font-mono text-[var(--stone-400)] uppercase tracking-widest block mb-3">Active Shields ({rulesData.rules?.length || 0})</span>
+                <Stack gap="gap-2">
                   {rulesData.rules?.length > 0 ? rulesData.rules.map((r, i) => (
-                    <div key={i} style={{
-                      display: "flex", alignItems: "center", gap: "8px",
-                      padding: "8px 12px", borderRadius: "8px",
-                      background: "rgba(255,255,255,0.01)"
-                    }}>
+                    <Inline key={i} gap="gap-2" items="items-center" className="p-2 rounded-lg bg-[rgba(255,255,255,0.01)]">
                       <Icon name="shield" size={13} stroke={2} style={{ color: "var(--japandi-accent)" }} />
-                      <span style={{ fontSize: "12px", color: "var(--japandi-text)", fontWeight: "600" }}>{r.label}</span>
-                    </div>
+                      <span className="text-xs font-semibold text-[var(--japandi-text)]">{r.label}</span>
+                    </Inline>
                   )) : (
-                    <p style={{ fontSize: "12px", color: "var(--japandi-muted)", margin: 0 }}>No shields active. Set working hours and connect a calendar.</p>
+                    <p className="text-xs text-[var(--stone-400)] m-0">No shields active. Set working hours and connect a calendar.</p>
                   )}
-                </div>
-              </div>
-            </div>
+                </Stack>
+              </Card>
+            </Stack>
 
             {/* Right: Stats + Day Timeline */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+            <Stack gap="gap-6">
               {/* Stats cards */}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "22px" }}>
-                <div className="card-glass" style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-                  <span className="card-label">Protected / day</span>
-                  <HeroNumber
-                    value={`${wsCalendarRules.end_hour - wsCalendarRules.start_hour}h`}
-                    variant="neutral"
-                  />
-                  <span className="card-hero-support">Shielded time slot</span>
-                </div>
-                <div className="card-glass" style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-                  <span className="card-label">Conflicts</span>
-                  <HeroNumber
-                    value={rulesData.suggestions?.length || 0}
-                    variant={rulesData.suggestions?.length > 0 ? "warning" : "positive"}
-                  />
-                  <span className="card-hero-support">Overlapping meetings</span>
-                </div>
-              </div>
+              <Grid cols="grid-cols-2">
+                <Card padding="p-6">
+                  <Stack gap="gap-1">
+                    <span className="text-xs font-mono text-[var(--stone-400)] uppercase tracking-widest block">Protected / day</span>
+                    <HeroNumber
+                      value={`${wsCalendarRules.end_hour - wsCalendarRules.start_hour}h`}
+                      variant="neutral"
+                    />
+                    <span className="text-xs text-[var(--stone-400)]">Shielded time slot</span>
+                  </Stack>
+                </Card>
+                <Card padding="p-6">
+                  <Stack gap="gap-1">
+                    <span className="text-xs font-mono text-[var(--stone-400)] uppercase tracking-widest block">Conflicts</span>
+                    <HeroNumber
+                      value={rulesData.suggestions?.length || 0}
+                      variant={rulesData.suggestions?.length > 0 ? "warning" : "positive"}
+                    />
+                    <span className="text-xs text-[var(--stone-400)]">Overlapping meetings</span>
+                  </Stack>
+                </Card>
+              </Grid>
 
               {/* Visual Day Timeline */}
-              <div className="card-glass" style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-                <p className="card-label" style={{ marginBottom: "16px" }}>Today's Schedule</p>
-                <div style={{ display: "flex", flexDirection: "column", gap: "4px", flex: 1 }}>
+              <Card padding="p-6" className="flex-1 flex flex-col">
+                <span className="text-xs font-mono text-[var(--stone-400)] uppercase tracking-widest block mb-4">Today's Schedule</span>
+                <Stack gap="gap-1" className="flex-1">
                   {Array.from({ length: 14 }, (_, i) => {
                     const hour = i + 7; // 7:00 - 20:00
                     const isProtected = hour >= wsCalendarRules.start_hour && hour < wsCalendarRules.end_hour;
@@ -209,87 +210,81 @@ export default function DefenseTab({ activeTab }) {
                       return st === hour;
                     });
                     return (
-                      <div key={hour} style={{ display: "flex", alignItems: "center", gap: "6px", opacity: hour < 8 || hour > 19 ? 0.3 : 1 }}>
-                        <span style={{ fontSize: "8.5px", color: "var(--japandi-muted)", fontWeight: "700", width: "22px", textAlign: "right", flexShrink: 0 }}>
+                      <Inline key={hour} gap="gap-2" items="items-center" className={hour < 8 || hour > 19 ? "opacity-30" : ""}>
+                        <span className="text-[8.5px] font-bold text-[var(--stone-400)] w-6 text-right shrink-0">
                           {hour}:00
                         </span>
                         <div style={{
                           flex: 1, height: "10px", borderRadius: "3px",
                           backgroundColor: hasMeeting ? "rgba(232,67,79,0.12)" : isProtected ? "rgba(62,207,142,0.12)" : "rgba(255,255,255,0.02)",
-                          border: "none",
                           position: "relative"
                         }}>
                           {(hasMeeting || isProtected) && (
                             <div style={{
-                              height: "100%", borderRadius: "2px",
-                              width: "100%",
+                              height: "100%", borderRadius: "2px", width: "100%",
                               background: hasMeeting
                                 ? "linear-gradient(90deg, var(--japandi-red), transparent)"
                                 : "linear-gradient(90deg, var(--japandi-green), transparent)"
                             }} />
                           )}
                         </div>
-                      </div>
+                      </Inline>
                     );
                   })}
-                </div>
-                <div style={{ display: "flex", gap: "14px", marginTop: "12px", fontSize: "9px", color: "var(--japandi-muted)" }}>
+                </Stack>
+                <Inline gap="gap-3" className="mt-4 text-[9px] text-[var(--stone-400)]">
                   <span><span style={{ color: "var(--japandi-green)", marginRight: "4px" }}>■</span> Protected</span>
                   <span><span style={{ color: "var(--japandi-red)", marginRight: "4px" }}>■</span> Meeting</span>
                   <span><span style={{ color: "rgba(255, 255, 255, 0.05)", marginRight: "4px" }}>■</span> Available</span>
-                </div>
-              </div>
-            </div>
-          </div>
+                </Inline>
+              </Card>
+            </Stack>
+          </Grid>
 
           {/* Suggestions section */}
-          <div className="card-glass">
-            <p className="card-label" style={{ marginBottom: "16px" }}>
+          <Card padding="p-6">
+            <span className="text-xs font-mono text-[var(--stone-400)] uppercase tracking-widest block mb-4">
               Move Suggestions {rulesData.suggestions?.length > 0 ? `(${rulesData.suggestions.length})` : ""}
-            </p>
+            </span>
             {rulesData.suggestions?.length > 0 ? (
-              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+              <Stack gap="gap-3">
                 {rulesData.suggestions.map((s, i) => (
-                  <div key={i} style={{
-                    display: "flex", alignItems: "center", justifyContent: "space-between",
-                    padding: "14px 16px", background: `rgba(232,80,2,0.03)`, borderRadius: "12px",
-                    border: "none",
-                  }}>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: "13.5px", fontWeight: "700", color: "var(--japandi-text)", marginBottom: "4px" }}>
+                  <Inline key={i} justify="justify-between" items="items-center" className="p-4 bg-[rgba(232,80,2,0.03)] rounded-xl">
+                    <Stack gap="gap-1" className="flex-1">
+                      <span className="text-[13.5px] font-bold text-[var(--sumi-900)]">
                         📅 {s.meeting_title}
-                      </div>
-                      <div style={{ fontSize: "11px", color: "var(--japandi-muted)", display: "flex", gap: "12px", flexWrap: "wrap" }}>
+                      </span>
+                      <Inline gap="gap-3" className="text-[11px] text-[var(--stone-400)] flex-wrap">
                         {s.start_time && <span>Cur: {formatTime(s.start_time)}–{formatTime(s.end_time)} ({calcDuration(s.start_time, s.end_time)})</span>}
-                        {s.action && <span style={{ color: "var(--japandi-accent)", fontWeight: "600" }}>→ {s.action}</span>}
-                      </div>
-                    </div>
-                    <div style={{ display: "flex", gap: "12px", flexShrink: 0 }}>
+                        {s.action && <span className="font-semibold text-[var(--japandi-accent)]">→ {s.action}</span>}
+                      </Inline>
+                    </Stack>
+                    <Inline gap="gap-3" className="shrink-0">
                       <button onClick={() => handleApproveSuggestion(s)}
-                        style={{ fontSize: "11.5px", color: "var(--japandi-bg)", background: "var(--japandi-accent)", padding: "8px 14px", borderRadius: "8px", cursor: "pointer", fontWeight: "750", border: "none" }}>
+                        style={{ fontSize: "11.5px", color: "var(--washi-white)", background: "var(--japandi-accent)", padding: "8px 14px", borderRadius: "8px", cursor: "pointer", fontWeight: "750", border: "none" }}>
                         Approve Move
                       </button>
                       <button onClick={() => handleDismissSuggestion(s)}
-                        style={{ fontSize: "11.5px", color: "var(--japandi-muted)", background: "transparent", cursor: "pointer", border: "none", fontWeight: "600" }}>
+                        style={{ fontSize: "11.5px", color: "var(--stone-400)", background: "transparent", cursor: "pointer", border: "none", fontWeight: "600" }}>
                         Dismiss
                       </button>
-                    </div>
-                  </div>
+                    </Inline>
+                  </Inline>
                 ))}
-              </div>
+              </Stack>
             ) : (
-              <div style={{ textAlign: "center", padding: "20px 0" }}>
-                <p style={{ fontSize: "13px", color: "var(--japandi-muted)", margin: "0 0 4px" }}>
+              <Stack gap="gap-1" items="items-center" className="py-6 text-center">
+                <p className="text-[13px] text-[var(--stone-400)] m-0">
                   No meeting alerts or overlaps today.
                 </p>
-                <p style={{ fontSize: "11px", color: "var(--japandi-muted)", margin: 0 }}>
+                <p className="text-[11px] text-[var(--stone-400)] m-0">
                   All scheduled events respect your protected hours.
                 </p>
-              </div>
+              </Stack>
             )}
-          </div>
+          </Card>
         </>
       )}
-    </div>
+    </Stack>
   );
 }

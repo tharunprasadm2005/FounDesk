@@ -11,6 +11,7 @@ import TeamTab from "./Settings/TeamTab";
 import AccountTab from "./Settings/AccountTab";
 import BillingTab from "./Settings/BillingTab";
 import ApiKeysTab from "./Settings/ApiKeysTab";
+import { Section, Stack, Inline } from "../components/layout";
 
 export default function Settings() {
   const navigate = useNavigate();
@@ -103,21 +104,37 @@ export default function Settings() {
   };
 
   return (
-    <div className="settings-page" style={{ padding: "24px 32px", fontFamily: "'Satoshi', sans-serif" }}>
-      <div style={{ marginBottom: 24 }}>
-        <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: "var(--japandi-text)", fontFamily: "'Clash Display', sans-serif" }}>Settings</h1>
-        <p style={{ margin: "4px 0 0", fontSize: 12, color: "var(--japandi-muted)", fontWeight: 500 }}>{SUBTITLE_MAP[activeTab]}</p>
+    <Section padding="p-0" className="max-w-7xl mx-auto w-full font-ui">
+      <header className="mb-[64px]">
+        <Inline justify="justify-between" items="items-start">
+          <Stack gap="gap-[8px]">
+            <h1 className="text-[32px] md:text-[40px] font-heading text-sumi-900 m-0">Settings</h1>
+            <p className="text-[12px] font-mono text-stone-400 m-0 uppercase tracking-widest">{SUBTITLE_MAP[activeTab]}</p>
+          </Stack>
+        </Inline>
+      </header>
+      
+      <div className="mb-[48px]">
+        <Inline gap="gap-[8px]" className="p-[4px] bg-linen-100 rounded-[4px] border border-stone-200 w-fit flex-wrap">
+          {TABS.map(tab => (
+            <button 
+              key={tab.key} 
+              className={`flex items-center gap-[8px] px-[16px] py-[8px] rounded-[2px] text-[13px] font-medium transition-colors cursor-pointer outline-none ${
+                activeTab === tab.key 
+                  ? "bg-washi-white text-sumi-900 shadow-sm border border-stone-200" 
+                  : "text-stone-400 hover:text-sumi-900 border border-transparent bg-transparent"
+              }`}
+              onClick={() => setActiveTab(tab.key)}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </Inline>
       </div>
-      <div className="view-tabs" style={{ marginBottom: 24 }}>
-        {TABS.map(tab => (
-          <button key={tab.key} className={`view-tab ${activeTab === tab.key ? "active" : ""}`}
-            onClick={() => setActiveTab(tab.key)}
-            style={{ cursor: "pointer", border: "none", background: "transparent" }}>
-            {tab.label}
-          </button>
-        ))}
+      
+      <div className="max-w-5xl">
+        {renderContent()}
       </div>
-      <div className="fade-in">{renderContent()}</div>
-    </div>
+    </Section>
   );
 }

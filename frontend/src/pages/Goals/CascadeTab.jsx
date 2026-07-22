@@ -6,6 +6,7 @@ import { useToast } from "../../context/ToastContext";
 import { Icon, PRIORITY_COLORS, renderProgressBar, renderSourceBadge, getGoalHealth, orangePill } from "./GoalsConstants";
 import { ExternalLink, AlertTriangle } from "lucide-react";
 import HeroNumber from "../../components/ui/HeroNumber";
+import { Stack, Grid, Inline, Card } from "../../components/layout";
 
 export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinkedTasks, teamMembers, setTeamMembers, onGoalsChange }) {
   const monthlyGoals = goals.filter(g => g.goal_type === "monthly");
@@ -101,39 +102,45 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
 
   return (
     <>
-      <div className="fade-in" style={{ display: "flex", flexDirection: "column", gap: "22px" }}>
+      <Stack gap="gap-6" className="fade-in">
         {/* Stats Summary Row */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "22px", marginBottom: "8px" }}>
-          <div className="card-glass" style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-            <span className="card-label">Roadmap Goals</span>
-            <HeroNumber value={goals.length} variant="neutral" />
-            <span className="card-hero-support">{goals.length === 1 ? "Goal" : "Goals"} mapped</span>
-          </div>
-          <div className="card-glass" style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-            <span className="card-label">Active Milestones</span>
-            <HeroNumber
-              value={goals.filter(g => g.goal_type === "monthly" && g.status === "in_progress").length}
-              variant={goals.filter(g => g.goal_type === "monthly" && g.status === "in_progress").length > 0 ? "positive" : "neutral"}
-            />
-            <span className="card-hero-support">In progress</span>
-          </div>
-          <div className="card-glass" style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-            <span className="card-label">Unlinked Tasks</span>
-            <HeroNumber value={unlinkedTasks.length} variant="warning" />
-            <span className="card-hero-support">Not connected to goals</span>
-          </div>
-        </div>
+        <Grid cols="grid-cols-1 md:grid-cols-3">
+          <Card padding="p-6">
+            <Stack gap="gap-1">
+              <span className="text-xs font-mono text-[var(--stone-400)] uppercase tracking-widest">Roadmap Goals</span>
+              <HeroNumber value={goals.length} variant="neutral" />
+              <span className="text-sm text-[var(--stone-400)]">{goals.length === 1 ? "Goal" : "Goals"} mapped</span>
+            </Stack>
+          </Card>
+          <Card padding="p-6">
+            <Stack gap="gap-1">
+              <span className="text-xs font-mono text-[var(--stone-400)] uppercase tracking-widest">Active Milestones</span>
+              <HeroNumber
+                value={goals.filter(g => g.goal_type === "monthly" && g.status === "in_progress").length}
+                variant={goals.filter(g => g.goal_type === "monthly" && g.status === "in_progress").length > 0 ? "positive" : "neutral"}
+              />
+              <span className="text-sm text-[var(--stone-400)]">In progress</span>
+            </Stack>
+          </Card>
+          <Card padding="p-6">
+            <Stack gap="gap-1">
+              <span className="text-xs font-mono text-[var(--stone-400)] uppercase tracking-widest">Unlinked Tasks</span>
+              <HeroNumber value={unlinkedTasks.length} variant="warning" />
+              <span className="text-sm text-[var(--stone-400)]">Not connected to goals</span>
+            </Stack>
+          </Card>
+        </Grid>
 
         {/* Add Milestone Button */}
-          <div style={{ display: "flex", justifyContent: "flex-end" }}>
+          <Inline justify="justify-end">
             <button style={orangePill} className="orange-btn-hover" onClick={() => { setGoalForm({ title: "", description: "", goal_type: "weekly", parent_id: "", due_date: "", assignee_id: "" }); setShowGoalForm(true); }}>
               + Add Milestone
             </button>
-          </div>
+          </Inline>
 
         {/* Filter/Sort Toolbar */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+          <Inline justify="justify-between" items="items-center">
+          <Inline gap="gap-2" items="items-center">
             <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}
               className="plan-select"
               style={{ fontSize: "11px", padding: "6px 28px 6px 12px" }}>
@@ -150,11 +157,11 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
               <option value="oldest" style={{ background: "var(--dark-gray)" }}>Oldest</option>
               <option value="deadline" style={{ background: "var(--dark-gray)" }}>By Deadline</option>
             </select>
-          </div>
-          <div style={{ fontSize: "11px", color: "var(--japandi-muted)", fontWeight: "600" }}>
+          </Inline>
+          <div className="text-sm font-semibold text-[var(--stone-400)]">
             {goals.length} goal{goals.length !== 1 ? "s" : ""}
           </div>
-        </div>
+        </Inline>
 
         {goalsLoading ? (
           <div style={{ padding: "40px 0", textAlign: "center", color: "var(--japandi-muted)" }}>
@@ -162,14 +169,16 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
           </div>
         ) : monthlyGoals.filter(mg => filterStatus === "all" || mg.status === filterStatus).length === 0 &&
           weeklyGoals.filter(w => !w.parent_id).filter(w => filterStatus === "all" || w.status === filterStatus).length === 0 ? (
-          <div className="card-glass" style={{ textAlign: "center" }}>
-            <p style={{ margin: "0 0 16px", color: "var(--japandi-muted)", fontSize: "14px" }}>
-              No milestones mapped for this phase.
-            </p>
-            <button style={orangePill} className="orange-btn-hover" onClick={() => setShowGoalForm(true)}>
-              Create First Goal
-            </button>
-          </div>
+          <Card padding="p-8" className="text-center">
+            <Stack gap="gap-4" items="items-center">
+              <p className="text-base text-[var(--stone-400)] m-0">
+                No milestones mapped for this phase.
+              </p>
+              <button style={orangePill} className="orange-btn-hover" onClick={() => setShowGoalForm(true)}>
+                Create First Goal
+              </button>
+            </Stack>
+          </Card>
         ) : (
           <>
             {monthlyGoals
@@ -188,10 +197,10 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
                 const progressVal = mg.progress !== undefined ? mg.progress : 0;
 
                 return (
-                  <div key={mg.id} className="card-glass">
+                  <Card key={mg.id} padding="p-6">
                     {/* Milestone Header */}
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "14px" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <Inline justify="justify-between" items="items-center" className="mb-4">
+                      <Inline gap="gap-2" items="items-center">
                         <span onClick={() => {
                           const next = new Set(expandedMilestones);
                           isExpanded ? next.delete(mg.id) : next.add(mg.id);
@@ -203,8 +212,8 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
                           Monthly
                         </span>
                         {health && <span style={{ fontSize: "9.5px", fontWeight: "700", color: health.color }}>{health.label}</span>}
-                      </div>
-                      <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                      </Inline>
+                      <Inline gap="gap-2" items="items-center">
                         <select value={mg.status} onChange={(e) => handleStatusChange(mg.id, e.target.value)}
                           className="neu-control select-custom" style={{ cursor: "pointer", fontSize: "11px", padding: "6px 12px", border: "none", color: "var(--japandi-text)", outline: "none" }}>
                           <option value="pending" style={{ background: "var(--dark-gray)", color: "#8a8a85" }}>Pending</option>
@@ -215,10 +224,10 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
                         <span onClick={() => handleDeleteGoal(mg.id)}
                           className="glass-card-hover"
                           style={{ width: "24px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "6px", fontSize: "11px", color: "#ef4444", cursor: "pointer", border: "none" }}>✕</span>
-                      </div>
-                    </div>
+                      </Inline>
+                    </Inline>
 
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <Inline justify="justify-between" items="items-center">
                       <h3 onClick={() => fetchGoalDetail(mg.id)}
                         style={{ fontSize: "18px", fontWeight: "750", color: "var(--japandi-text)", margin: 0, letterSpacing: "-0.015em", fontFamily: "'Clash Display', sans-serif", cursor: "pointer", display: "flex", alignItems: "center", gap: "8px" }}>
                         {mg.title}
@@ -229,16 +238,16 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
                           Due {new Date(mg.due_date).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
                         </span>
                       )}
-                    </div>
+                    </Inline>
 
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "4px" }}>
+                    <Inline gap="gap-2" items="items-center" className="mt-1">
                       {assignee && (
                         <span style={{ fontSize: "10px", color: "var(--japandi-muted)" }}>
                           Owner: <span style={{ color: "var(--japandi-accent)", fontWeight: "600" }}>{assignee.user_name || assignee.name || assignee.email}</span>
                         </span>
                       )}
                       {renderSourceBadge(mg)}
-                    </div>
+                    </Inline>
 
                     {/* At-risk banner */}
                     {mg.at_risk && mg.risk_reason && (
@@ -472,16 +481,16 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
                         </div>
                       </>
                     )}
-                  </div>
+                  </Card>
                 );
               })}
 
             {/* Standalone weekly goals */}
             {weeklyGoals.filter(w => !w.parent_id).filter(w => filterStatus === "all" || w.status === filterStatus).length > 0 && (
-              <div className="card-glass">
-                <p className="card-label">
+              <Card padding="p-6">
+                <span className="text-xs font-mono text-[var(--stone-400)] uppercase tracking-widest mb-4 block">
                   Standalone Weekly Action Steps
-                </p>
+                </span>
                 {weeklyGoals.filter(w => !w.parent_id).filter(w => filterStatus === "all" || w.status === filterStatus).map(wk => {
                   const wkHealth = getGoalHealth(wk);
                   const wkAssignee = teamMembers.find(m => (m.user_id?.toString() || m.id?.toString()) === wk.assignee_id?.toString());
@@ -570,14 +579,15 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
                     </div>
                   );
                 })}
-              </div>
+              </Card>
             )}
 
             {/* Unlinked tasks alert */}
             {unlinkedTasks.length > 0 && (
-              <div className="card-glass" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                <Icon name="link" size={14} stroke={2} style={{ color: "var(--japandi-accent)" }} />
-                <p style={{ fontSize: "12.5px", color: "var(--japandi-muted)", margin: 0 }}>
+              <Card padding="p-4">
+                <Inline gap="gap-2" items="items-center">
+                  <Icon name="link" size={14} stroke={2} style={{ color: "var(--japandi-accent)" }} />
+                  <p style={{ fontSize: "12.5px", color: "var(--japandi-muted)", margin: 0 }}>
                   {unlinkedTasks.length} task{unlinkedTasks.length === 1 ? " is" : "s are"} not connected to any milestone.{" "}
                   <span
                     onClick={() => navigate("/execute")}
@@ -587,11 +597,12 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
                     Review on execution board →
                   </span>
                 </p>
-              </div>
+              </Inline>
+            </Card>
             )}
           </>
         )}
-      </div>
+      </Stack>
 
       {/* ─── New Goal Modal ───────────────────── */}
       {showGoalForm && (
@@ -600,7 +611,7 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
           background: "rgba(5,5,4,0.75)", backdropFilter: "blur(18px)",
           display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1000,
         }}>
-          <div className="card-glass" style={{ width: "90%", maxWidth: "480px" }}>
+          <Card padding="p-6" style={{ width: "90%", maxWidth: "480px" }}>
             <h3 style={{ fontSize: "18px", fontWeight: "750", color: "var(--japandi-text)", margin: "0 0 20px", letterSpacing: "-0.015em", fontFamily: "'Clash Display', sans-serif" }}>Add Roadmap Item</h3>
             <form onSubmit={handleCreateGoal}>
               <div style={{ marginBottom: "16px", display: "flex", flexDirection: "column", gap: "6px" }}>
@@ -701,7 +712,7 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
                 </button>
               </div>
             </form>
-          </div>
+          </Card>
         </div>
       )}
 
@@ -748,9 +759,9 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
           {goalDetail.source_meeting && (
             <div style={{ marginTop: "16px" }}>
               <h3 style={{ fontSize: "13px", fontWeight: "700", color: "var(--japandi-text)", marginBottom: "8px" }}>Source Meeting</h3>
-              <div className="card-glass" style={{ padding: "10px 12px", fontSize: "12px", color: "var(--japandi-text)" }}>
+              <Card padding="p-3" style={{ fontSize: "12px", color: "var(--japandi-text)" }}>
                 {goalDetail.source_meeting.title} &mdash; {goalDetail.source_meeting.date}
-              </div>
+              </Card>
             </div>
           )}
 

@@ -1,11 +1,15 @@
 import { useState, useEffect } from "react";
 import api from "../../utils/api";
 import { useToast } from "../../context/ToastContext";
-import { WORKSPACE_COLORS, WORKSPACE_STAGES, NOTIFICATION_TYPES, NOTIF_ICONS, SETTINGS_STYLE as s } from "./SettingsConstants";
+import { WORKSPACE_COLORS, WORKSPACE_STAGES, NOTIFICATION_TYPES, NOTIF_ICONS } from "./SettingsConstants";
 import {
   Globe, Users, Puzzle, Activity, Plus, Check, Copy, ArrowRight, Archive, RefreshCw,
-  Trash2, X, Save, Bell, ChevronRight, Search, FileText, Mail, Moon, Send, Tag
+  Trash2, X, Save, Bell
 } from "lucide-react";
+import { Card } from "../../components/ui/card";
+import { Button } from "../../components/ui/button";
+import { Input } from "../../components/ui/input";
+import { Inline, Stack } from "../../components/layout";
 
 export default function WorkspacesTab({ workspaces, currentWorkspace, onWorkspacesChange, integrations }) {
   const toast = useToast();
@@ -162,225 +166,292 @@ export default function WorkspacesTab({ workspaces, currentWorkspace, onWorkspac
   const ws = currentWorkspace;
 
   return (
-    <div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: "12px", marginBottom: "20px" }}>
+    <div className="animate-in fade-in">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-[16px] mb-[32px]">
         {[
           { label: "Workspaces", value: stats.total, icon: Globe },
           { label: "Members", value: stats.members, icon: Users },
           { label: "Integrations", value: stats.integrations || "—", icon: Puzzle },
           { label: "Health", value: ws?.active_health || "Good", icon: Activity },
         ].map(stat => (
-          <div key={stat.label} className="card-glass" style={{ padding: "16px", textAlign: "center" }}>
-            <stat.icon size={16} style={{ color: "var(--japandi-muted)", marginBottom: "6px" }} />
-            <div className="card-hero-value" style={{ color: "var(--japandi-text)", marginTop: 0, fontSize: "20px" }}>{stat.value}</div>
-            <div className="card-hero-support" style={{ textTransform: "uppercase", fontSize: "9px", letterSpacing: "1.5px" }}>{stat.label}</div>
-          </div>
+          <Card key={stat.label} padding="p-[20px]" className="text-center bg-washi-white">
+            <stat.icon size={16} className="text-stone-400 mx-auto mb-[12px]" />
+            <div className="text-[24px] font-heading text-sumi-900 mb-[4px]">{stat.value}</div>
+            <div className="text-[10px] font-bold text-stone-400 tracking-widest uppercase">{stat.label}</div>
+          </Card>
         ))}
       </div>
 
-      <div style={{ display: "flex", gap: "8px", marginBottom: "16px", flexWrap: "wrap" }}>
-        <button onClick={() => setShowCreateWS(true)} className="btn-ember"><Plus size={14} /> Create Workspace</button>
-        <button onClick={() => { setSelectMode(!selectMode); setSelectedWorkspaceIds(new Set()); }} className={`btn-action-secondary ${selectMode ? "active" : ""}`}>
-          <Check size={14} /> {selectMode ? "Exit Select Mode" : "Select Mode"}
-        </button>
-      </div>
+      <Inline gap="gap-[12px]" className="mb-[24px] flex-wrap">
+        <Button onClick={() => setShowCreateWS(true)} variant="primary">
+          <Plus size={14} className="mr-1" /> Create Workspace
+        </Button>
+        <Button onClick={() => { setSelectMode(!selectMode); setSelectedWorkspaceIds(new Set()); }} variant={selectMode ? "primary" : "secondary"}>
+          <Check size={14} className="mr-1" /> {selectMode ? "Exit Select Mode" : "Select Mode"}
+        </Button>
+      </Inline>
 
-      {workspaces.map(ws => (
-        <div key={ws.id} className="card-glass"
-          style={{ padding: "16px", marginBottom: "8px", cursor: "pointer", transition: "border-color 0.15s", border: "1px solid transparent" }}
-          onClick={() => { if (!selectMode) openWsDrawer(ws); }}
-          onMouseEnter={e => { if (wsDrawer?.id !== ws.id) e.currentTarget.style.borderColor = "rgba(255,90,0,0.2)"; }}
-          onMouseLeave={e => e.currentTarget.style.borderColor = "transparent"}>
-          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-            {selectMode && (
-              <input type="checkbox" checked={selectedWorkspaceIds.has(ws.id)}
-                onChange={e => { const s = new Set(selectedWorkspaceIds); if (e.target.checked) s.add(ws.id); else s.delete(ws.id); setSelectedWorkspaceIds(s); }}
-                style={{ accentColor: "var(--japandi-accent)", width: "16px", height: "16px" }} onClick={e => e.stopPropagation()} />
-            )}
-            <div style={{ width: "40px", height: "40px", borderRadius: "10px", backgroundColor: ws.color || "#ff751f", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 700, fontSize: "16px", flexShrink: 0 }}>
-              {(ws.name || "W")[0].toUpperCase()}
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <span style={{ fontSize: "14px", fontWeight: 700, color: "var(--japandi-text)" }}>{ws.name}</span>
-                <span className="tag tag-ember" style={{ fontSize: "9px" }}>{ws.role || "member"}</span>
-                {ws.is_archived && <span className="badge badge-neutral">ARCHIVED</span>}
-              </div>
-              <div style={{ fontSize: "11px", color: "var(--japandi-muted)", marginTop: "2px", display: "flex", gap: "12px", flexWrap: "wrap" }}>
-                <span>{ws.stage} stage</span>
-                <span>{ws.members?.filter(m => m.status === "active")?.length || 0} members</span>
-                {ws.active_phase && <span>Phase: {ws.active_phase}</span>}
-                {ws.created_at && <span>Created {new Date(ws.created_at).toLocaleDateString()}</span>}
-              </div>
-              {(wsTags[ws.id] || []).length > 0 && (
-                <div style={{ display: "flex", gap: "4px", marginTop: "4px", flexWrap: "wrap" }}>
-                  {(wsTags[ws.id] || []).map((tag, i) => (
-                    <span key={i} className="tag" style={{ fontSize: "9px", padding: "1px 6px" }}>{tag}</span>
-                  ))}
+      <Stack gap="gap-[12px]">
+        {workspaces.map(ws => (
+          <Card 
+            key={ws.id} 
+            padding="p-[20px]"
+            className={`cursor-pointer transition-colors bg-washi-white ${wsDrawer?.id === ws.id ? 'border-moss-600/30' : 'hover:border-stone-400'}`}
+            onClick={() => { if (!selectMode) openWsDrawer(ws); }}
+          >
+            <Inline justify="justify-between" items="items-center" gap="gap-[16px]">
+              <Inline items="items-center" gap="gap-[16px]">
+                {selectMode && (
+                  <input type="checkbox" checked={selectedWorkspaceIds.has(ws.id)}
+                    onChange={e => { const s = new Set(selectedWorkspaceIds); if (e.target.checked) s.add(ws.id); else s.delete(ws.id); setSelectedWorkspaceIds(s); }}
+                    className="w-[16px] h-[16px] rounded-[2px] border-stone-300 text-sumi-900 focus:ring-sumi-900" onClick={e => e.stopPropagation()} />
+                )}
+                <div style={{ backgroundColor: ws.color || "#ff751f" }} className="w-[48px] h-[48px] rounded-[4px] flex items-center justify-center text-washi-white font-bold text-[20px] shrink-0 font-heading">
+                  {(ws.name || "W")[0].toUpperCase()}
                 </div>
-              )}
-            </div>
-            <div style={{ display: "flex", gap: "4px" }} onClick={e => e.stopPropagation()}>
-              {ws.is_archived ? (
-                <button onClick={() => handleRestoreWorkspace(ws.id)} className="btn-action-secondary" title="Restore"><RefreshCw size={14} /></button>
-              ) : (
-                <>
-                  <button onClick={() => handleUpdateWorkspace(ws.id, { is_archived: !ws.is_archived })} className="btn-action-secondary" title="Archive"><Archive size={14} /></button>
-                  <button onClick={() => { handleDuplicateWorkspace(ws.id); }} className="btn-action-secondary" title="Duplicate"><Copy size={14} /></button>
-                  <button onClick={() => { setTransferWs(ws); setShowTransferModal(true); }} className="btn-action-secondary" title="Transfer"><ArrowRight size={14} /></button>
-                </>
-              )}
-              <button onClick={() => handleDeleteWorkspace(ws.id)} className="btn-destructive-outline-sm" title="Delete"><Trash2 size={14} /></button>
-            </div>
-          </div>
-        </div>
-      ))}
+                <div>
+                  <Inline items="items-center" gap="gap-[12px]" className="mb-[4px]">
+                    <span className="text-[16px] font-medium text-sumi-900">{ws.name}</span>
+                    <span className="px-[8px] py-[4px] rounded-[2px] bg-stone-100 text-stone-500 text-[10px] font-bold tracking-wide uppercase">
+                      {ws.role || "member"}
+                    </span>
+                    {ws.is_archived && (
+                      <span className="px-[8px] py-[4px] rounded-[2px] bg-clay-500/10 text-clay-500 text-[10px] font-bold tracking-wide uppercase">
+                        Archived
+                      </span>
+                    )}
+                  </Inline>
+                  <Inline items="items-center" gap="gap-[16px]" className="text-[12px] text-stone-400 font-mono tracking-wide flex-wrap">
+                    <span>{ws.stage} stage</span>
+                    <span>{ws.members?.filter(m => m.status === "active")?.length || 0} members</span>
+                    {ws.active_phase && <span>Phase: {ws.active_phase}</span>}
+                    {ws.created_at && <span>Created {new Date(ws.created_at).toLocaleDateString()}</span>}
+                  </Inline>
+                  {(wsTags[ws.id] || []).length > 0 && (
+                    <Inline gap="gap-[8px]" className="mt-[8px] flex-wrap">
+                      {(wsTags[ws.id] || []).map((tag, i) => (
+                        <span key={i} className="px-[8px] py-[4px] rounded-[2px] bg-linen-100 border border-stone-200 text-stone-500 text-[10px] font-bold tracking-wide uppercase">
+                          {tag}
+                        </span>
+                      ))}
+                    </Inline>
+                  )}
+                </div>
+              </Inline>
+              
+              <Inline gap="gap-[8px]" onClick={e => e.stopPropagation()}>
+                {ws.is_archived ? (
+                  <Button onClick={() => handleRestoreWorkspace(ws.id)} variant="secondary" size="icon" title="Restore"><RefreshCw size={14} /></Button>
+                ) : (
+                  <>
+                    <Button onClick={() => handleUpdateWorkspace(ws.id, { is_archived: !ws.is_archived })} variant="secondary" size="icon" title="Archive"><Archive size={14} /></Button>
+                    <Button onClick={() => handleDuplicateWorkspace(ws.id)} variant="secondary" size="icon" title="Duplicate"><Copy size={14} /></Button>
+                    <Button onClick={() => { setTransferWs(ws); setShowTransferModal(true); }} variant="secondary" size="icon" title="Transfer"><ArrowRight size={14} /></Button>
+                  </>
+                )}
+                <Button onClick={() => handleDeleteWorkspace(ws.id)} variant="secondary" size="icon" title="Delete" className="text-clay-500 border-clay-500/30 hover:bg-clay-500/10 hover:text-clay-500">
+                  <Trash2 size={14} />
+                </Button>
+              </Inline>
+            </Inline>
+          </Card>
+        ))}
+      </Stack>
 
       {selectMode && selectedWorkspaceIds.size > 0 && (
-        <div style={{ position: "fixed", bottom: "24px", left: "50%", transform: "translateX(-50%)", zIndex: 999, padding: "12px 20px", borderRadius: "12px", backgroundColor: "rgba(20,20,23,0.95)", backdropFilter: "blur(22px)", border: "1px solid rgba(107,107,111,0.12)", display: "flex", alignItems: "center", gap: "12px", boxShadow: "0 4px 24px rgba(0,0,0,0.3)" }}>
-          <span style={{ fontSize: "12px", color: "var(--japandi-text)", fontWeight: 600 }}>{selectedWorkspaceIds.size} selected</span>
-          <button onClick={handleBulkArchive} className="btn-destructive-outline-sm"><Archive size={14} /> Archive Selected ({selectedWorkspaceIds.size})</button>
-          <button onClick={() => setSelectedWorkspaceIds(new Set())} className="btn-action-secondary">Clear</button>
+        <div className="fixed bottom-[32px] left-1/2 -translate-x-1/2 z-[999] p-[16px] rounded-[4px] bg-sumi-900 border border-stone-400/20 shadow-xl flex items-center gap-[24px]">
+          <span className="text-[13px] text-washi-white font-medium">{selectedWorkspaceIds.size} selected</span>
+          <Inline gap="gap-[12px]">
+            <Button onClick={handleBulkArchive} className="bg-clay-500 text-washi-white hover:bg-clay-500/90 border-transparent">
+              <Archive size={14} className="mr-1" /> Archive Selected
+            </Button>
+            <Button onClick={() => setSelectedWorkspaceIds(new Set())} variant="secondary" className="border-stone-400 text-washi-white hover:bg-washi-white/10 hover:text-washi-white">
+              Clear
+            </Button>
+          </Inline>
         </div>
       )}
 
       {showTransferModal && transferWs && (
-        <div style={s.overlay} onClick={() => { setShowTransferModal(false); setTransferWs(null); }}>
-          <div className="card-glass" style={{ border: "1px solid var(--japandi-border)", background: "rgba(20,20,23,0.95)", backdropFilter: "blur(22px)", padding: "28px", maxWidth: "460px", width: "100%" }} onClick={e => e.stopPropagation()}>
-            <h3 style={s.modalTitle}>Transfer Workspace</h3>
-            <p style={{ fontSize: "13px", color: "var(--japandi-muted)", margin: "0 0 16px" }}>Transfer ownership of <strong>{transferWs.name}</strong> to another member.</p>
-            <select value={transferNewOwner} onChange={e => setTransferNewOwner(e.target.value)} className="plan-select" style={{ width: "100%", height: "40px" }}>
+        <div className="fixed inset-0 bg-[#2B2A27]/20 backdrop-blur-sm flex items-center justify-center z-[1000] p-4" onClick={() => { setShowTransferModal(false); setTransferWs(null); }}>
+          <Card padding="p-[32px]" className="w-full max-w-[480px] bg-washi-white shadow-xl" onClick={e => e.stopPropagation()}>
+            <h3 className="text-[20px] font-heading text-sumi-900 mb-[8px] m-0">Transfer Workspace</h3>
+            <p className="text-[13px] text-stone-500 mb-[24px]">Transfer ownership of <strong>{transferWs.name}</strong> to another member.</p>
+            
+            <select value={transferNewOwner} onChange={e => setTransferNewOwner(e.target.value)} className="w-full h-[40px] px-[12px] rounded-[4px] border border-stone-200 bg-washi-white text-[13px] text-sumi-900 outline-none focus:border-sumi-900 transition-colors">
               <option value="">Select new owner...</option>
               {(teamMembers || []).map(m => (
                 <option key={m.id} value={m.user_id || m.id}>{m.user_name || m.email}</option>
               ))}
             </select>
-            <div style={{ display: "flex", gap: "8px", marginTop: "16px" }}>
-              <button onClick={handleTransferWorkspace} className="btn-ember"><ArrowRight size={14} /> Transfer</button>
-              <button onClick={() => { setShowTransferModal(false); setTransferWs(null); }} className="btn-action-secondary">Cancel</button>
-            </div>
-          </div>
+            
+            <Inline gap="gap-[12px]" className="mt-[24px]">
+              <Button onClick={handleTransferWorkspace} variant="primary">
+                <ArrowRight size={14} className="mr-1" /> Transfer
+              </Button>
+              <Button onClick={() => { setShowTransferModal(false); setTransferWs(null); }} variant="secondary">
+                Cancel
+              </Button>
+            </Inline>
+          </Card>
         </div>
       )}
 
       {wsActivity.length > 0 && (
-        <div className="card-glass" style={{ padding: "16px", marginTop: "16px" }}>
-          <div className="card-label" style={{ marginBottom: "12px" }}>Recent Activity</div>
-          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+        <Card padding="p-[24px]" className="mt-[32px] bg-washi-white">
+          <h3 className="text-[12px] font-bold text-stone-400 tracking-widest uppercase mb-[16px]">Recent Activity</h3>
+          <Stack gap="gap-[12px]">
             {wsActivity.map((ev, i) => (
-              <div key={ev.id || i} style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "12px", color: "var(--japandi-muted)" }}>
-                <div style={{ width: "6px", height: "6px", borderRadius: "50%", backgroundColor: "var(--japandi-accent)", flexShrink: 0 }} />
-                <span style={{ flex: 1, color: "var(--japandi-text)" }}>{ev.title || ev.event_type || "Event"}</span>
-                <span style={{ fontSize: "10px", whiteSpace: "nowrap" }}>{ev.created_at ? new Date(ev.created_at).toLocaleDateString() : ""}</span>
-              </div>
+              <Inline key={ev.id || i} items="items-center" gap="gap-[12px]" className="text-[13px] text-stone-500">
+                <div className="w-[6px] h-[6px] rounded-full bg-sumi-900 shrink-0" />
+                <span className="flex-1 text-sumi-900">{ev.title || ev.event_type || "Event"}</span>
+                <span className="text-[11px] font-mono text-stone-400 whitespace-nowrap">{ev.created_at ? new Date(ev.created_at).toLocaleDateString() : ""}</span>
+              </Inline>
             ))}
-          </div>
-        </div>
+          </Stack>
+        </Card>
       )}
 
       {showCreateWS && (
-        <div style={s.overlay} onClick={() => setShowCreateWS(false)}>
-          <div className="card-glass" style={{ border: "1px solid var(--japandi-border)", background: "rgba(20,20,23,0.95)", backdropFilter: "blur(22px)", padding: "28px", maxWidth: "520px", width: "100%" }} onClick={e => e.stopPropagation()}>
-            <h3 style={s.modalTitle}>Create Workspace</h3>
+        <div className="fixed inset-0 bg-[#2B2A27]/20 backdrop-blur-sm flex items-center justify-center z-[1000] p-4" onClick={() => setShowCreateWS(false)}>
+          <Card padding="p-[32px]" className="w-full max-w-[560px] bg-washi-white shadow-xl" onClick={e => e.stopPropagation()}>
+            <h3 className="text-[24px] font-heading text-sumi-900 mb-[24px] m-0">Create Workspace</h3>
             <form onSubmit={handleCreateWorkspace}>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-                <div style={s.field}><label style={s.label}>Name</label><input type="text" value={wsForm.name} onChange={e => setWsForm(p => ({ ...p, name: e.target.value }))} className="plan-input" required /></div>
-                <div style={s.field}><label style={s.label}>Stage</label>
-                  <select value={wsForm.stage} onChange={e => setWsForm(p => ({ ...p, stage: e.target.value }))} className="plan-select" style={{ width: "100%", height: "40px" }}>
-                    {WORKSPACE_STAGES.map(s => <option key={s} value={s}>{s}</option>)}
-                  </select>
+              <Stack gap="gap-[20px]">
+                <div className="grid grid-cols-2 gap-[16px]">
+                  <div>
+                    <label className="block text-[11px] font-bold text-stone-400 tracking-widest uppercase mb-[8px]">Name</label>
+                    <Input type="text" value={wsForm.name} onChange={e => setWsForm(p => ({ ...p, name: e.target.value }))} required />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-stone-400 tracking-widest uppercase mb-[8px]">Stage</label>
+                    <select value={wsForm.stage} onChange={e => setWsForm(p => ({ ...p, stage: e.target.value }))} className="w-full h-[40px] px-[12px] rounded-[4px] border border-stone-200 bg-washi-white text-[13px] text-sumi-900 outline-none focus:border-sumi-900 transition-colors">
+                      {WORKSPACE_STAGES.map(s => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                  </div>
                 </div>
-              </div>
-              <div style={s.field}><label style={s.label}>Description</label><textarea value={wsForm.description} onChange={e => setWsForm(p => ({ ...p, description: e.target.value }))} className="plan-input" style={{ minHeight: "60px", resize: "vertical" }} /></div>
-              <div style={s.field}>
-                <label style={s.label}>Color</label>
-                <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-                  {WORKSPACE_COLORS.map(c => (
-                    <div key={c} onClick={() => setWsForm(p => ({ ...p, color: c }))}
-                      style={{ width: "28px", height: "28px", borderRadius: "50%", backgroundColor: c, cursor: "pointer", border: wsForm.color === c ? "2px solid #fff" : "2px solid transparent", transition: "border 0.15s" }} />
-                  ))}
+                
+                <div>
+                  <label className="block text-[11px] font-bold text-stone-400 tracking-widest uppercase mb-[8px]">Description</label>
+                  <textarea value={wsForm.description} onChange={e => setWsForm(p => ({ ...p, description: e.target.value }))} className="w-full p-3 rounded-[4px] border border-stone-200 bg-washi-white text-sumi-900 text-[13px] outline-none focus:border-sumi-900 font-sans min-h-[80px] resize-y" />
                 </div>
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-                <div style={s.field}><label style={s.label}>Website</label><input type="text" value={wsForm.website} onChange={e => setWsForm(p => ({ ...p, website: e.target.value }))} className="plan-input" placeholder="https://" /></div>
-                <div style={s.field}><label style={s.label}>Logo URL</label><input type="text" value={wsForm.logo_url} onChange={e => setWsForm(p => ({ ...p, logo_url: e.target.value }))} className="plan-input" placeholder="https://" /></div>
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-                <div style={s.field}><label style={s.label}>Industry</label><input type="text" value={wsForm.industry} onChange={e => setWsForm(p => ({ ...p, industry: e.target.value }))} className="plan-input" placeholder="e.g. SaaS" /></div>
-                <div style={s.field}><label style={s.label}>Size</label>
-                  <select value={wsForm.size} onChange={e => setWsForm(p => ({ ...p, size: e.target.value }))} className="plan-select" style={{ width: "100%", height: "40px" }}>
-                    <option value="">Select size</option>
-                    <option value="1-10">1-10</option>
-                    <option value="11-50">11-50</option>
-                    <option value="51-200">51-200</option>
-                    <option value="201-1000">201-1000</option>
-                    <option value="1000+">1000+</option>
-                  </select>
+                
+                <div>
+                  <label className="block text-[11px] font-bold text-stone-400 tracking-widest uppercase mb-[8px]">Color</label>
+                  <Inline gap="gap-[12px]" className="flex-wrap">
+                    {WORKSPACE_COLORS.map(c => (
+                      <div key={c} onClick={() => setWsForm(p => ({ ...p, color: c }))}
+                        className="w-[32px] h-[32px] rounded-full cursor-pointer transition-all"
+                        style={{ backgroundColor: c, border: wsForm.color === c ? "2px solid var(--sumi-900)" : "2px solid transparent", outline: wsForm.color === c ? "2px solid #fff" : "none" }} />
+                    ))}
+                  </Inline>
                 </div>
-              </div>
-              <div style={{ display: "flex", gap: "8px", marginTop: "16px" }}>
-                <button type="submit" className="btn-ember">Create</button>
-                <button type="button" onClick={() => setShowCreateWS(false)} className="btn-action-secondary">Cancel</button>
-              </div>
+                
+                <div className="grid grid-cols-2 gap-[16px]">
+                  <div>
+                    <label className="block text-[11px] font-bold text-stone-400 tracking-widest uppercase mb-[8px]">Website</label>
+                    <Input type="text" value={wsForm.website} onChange={e => setWsForm(p => ({ ...p, website: e.target.value }))} placeholder="https://" />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-stone-400 tracking-widest uppercase mb-[8px]">Logo URL</label>
+                    <Input type="text" value={wsForm.logo_url} onChange={e => setWsForm(p => ({ ...p, logo_url: e.target.value }))} placeholder="https://" />
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-[16px]">
+                  <div>
+                    <label className="block text-[11px] font-bold text-stone-400 tracking-widest uppercase mb-[8px]">Industry</label>
+                    <Input type="text" value={wsForm.industry} onChange={e => setWsForm(p => ({ ...p, industry: e.target.value }))} placeholder="e.g. SaaS" />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-stone-400 tracking-widest uppercase mb-[8px]">Size</label>
+                    <select value={wsForm.size} onChange={e => setWsForm(p => ({ ...p, size: e.target.value }))} className="w-full h-[40px] px-[12px] rounded-[4px] border border-stone-200 bg-washi-white text-[13px] text-sumi-900 outline-none focus:border-sumi-900 transition-colors">
+                      <option value="">Select size</option>
+                      <option value="1-10">1-10</option>
+                      <option value="11-50">11-50</option>
+                      <option value="51-200">51-200</option>
+                      <option value="201-1000">201-1000</option>
+                      <option value="1000+">1000+</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <Inline gap="gap-[12px]" className="mt-[8px]">
+                  <Button type="submit" variant="primary">Create</Button>
+                  <Button type="button" onClick={() => setShowCreateWS(false)} variant="secondary">Cancel</Button>
+                </Inline>
+              </Stack>
             </form>
-          </div>
+          </Card>
         </div>
       )}
 
       {wsDrawer && (
-        <div style={{
-          position: "fixed", top: 0, right: 0, bottom: 0, width: "480px", maxWidth: "100vw",
-          backgroundColor: "rgba(20,20,23,0.98)", backdropFilter: "blur(22px)",
-          borderLeft: "1px solid rgba(107,107,111,0.12)", zIndex: 999,
-          display: "flex", flexDirection: "column", overflow: "hidden",
-          boxShadow: "-8px 0 40px rgba(0,0,0,0.4)"
-        }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "20px 24px", borderBottom: "1px solid rgba(107,107,111,0.08)" }}>
-            <div style={{ width: "36px", height: "36px", borderRadius: "10px", backgroundColor: wsDrawer.color || "#ff751f", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 700, fontSize: "14px", flexShrink: 0 }}>
+        <div className="fixed top-0 right-0 bottom-0 w-[520px] max-w-[100vw] bg-washi-white border-l border-stone-200 z-[999] flex flex-col shadow-2xl animate-in slide-in-from-right">
+          <div className="flex items-center gap-[16px] p-[24px] border-b border-stone-200 shrink-0">
+            <div style={{ backgroundColor: wsDrawer.color || "#ff751f" }} className="w-[48px] h-[48px] rounded-[4px] flex items-center justify-center text-washi-white font-bold text-[20px] shrink-0 font-heading">
               {(wsDrawer.name || "W")[0].toUpperCase()}
             </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: "15px", fontWeight: 700, color: "var(--japandi-text)" }}>{wsDrawer.name}</div>
-              <div style={{ fontSize: "11px", color: "var(--japandi-muted)" }}>{wsDrawer.stage} stage · {wsDrawer.members?.filter(m => m.status === "active")?.length || 0} members</div>
+            <div className="flex-1 min-w-0">
+              <div className="text-[20px] font-heading text-sumi-900 mb-[4px]">{wsDrawer.name}</div>
+              <div className="text-[12px] font-mono text-stone-400">{wsDrawer.stage} stage · {wsDrawer.members?.filter(m => m.status === "active")?.length || 0} members</div>
             </div>
             <button onClick={() => { setWsDrawer(null); setWsDrawerForm({ name: "", description: "", stage: "Build", color: "#ff751f", logo_url: "", website: "", industry: "", size: "" }); }}
-              className="btn-action-secondary" style={{ padding: "6px" }}><X size={14} /></button>
+              className="p-[8px] bg-transparent border-none text-stone-400 hover:text-sumi-900 cursor-pointer outline-none"><X size={20} /></button>
           </div>
 
-          <div style={{ flex: 1, overflowY: "auto", padding: "20px 24px" }}>
-            <div style={{ marginBottom: "20px" }}>
-              <div className="card-label" style={{ marginBottom: "12px" }}>Details</div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
-                <div><label style={s.label}>Name</label><input type="text" value={wsDrawerForm.name} onChange={e => setWsDrawerForm(p => ({ ...p, name: e.target.value }))} className="plan-input" style={{ width: "100%", boxSizing: "border-box" }} /></div>
-                <div><label style={s.label}>Stage</label>
-                  <select value={wsDrawerForm.stage} onChange={e => setWsDrawerForm(p => ({ ...p, stage: e.target.value }))} className="plan-select" style={{ width: "100%", height: "40px" }}>
+          <div className="flex-1 overflow-y-auto p-[24px]">
+            <div className="mb-[32px]">
+              <h3 className="text-[12px] font-bold text-stone-400 tracking-widest uppercase mb-[16px]">Details</h3>
+              <div className="grid grid-cols-2 gap-[16px] mb-[16px]">
+                <div>
+                  <label className="block text-[11px] font-bold text-stone-400 tracking-widest uppercase mb-[8px]">Name</label>
+                  <Input type="text" value={wsDrawerForm.name} onChange={e => setWsDrawerForm(p => ({ ...p, name: e.target.value }))} />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-stone-400 tracking-widest uppercase mb-[8px]">Stage</label>
+                  <select value={wsDrawerForm.stage} onChange={e => setWsDrawerForm(p => ({ ...p, stage: e.target.value }))} className="w-full h-[40px] px-[12px] rounded-[4px] border border-stone-200 bg-washi-white text-[13px] text-sumi-900 outline-none focus:border-sumi-900 transition-colors">
                     {WORKSPACE_STAGES.map(s => <option key={s} value={s}>{s}</option>)}
                   </select>
                 </div>
               </div>
-              <div style={{ marginTop: "10px" }}><label style={s.label}>Description</label><textarea value={wsDrawerForm.description} onChange={e => setWsDrawerForm(p => ({ ...p, description: e.target.value }))} className="plan-input" style={{ width: "100%", boxSizing: "border-box", minHeight: "60px", resize: "vertical" }} /></div>
+              <div>
+                <label className="block text-[11px] font-bold text-stone-400 tracking-widest uppercase mb-[8px]">Description</label>
+                <textarea value={wsDrawerForm.description} onChange={e => setWsDrawerForm(p => ({ ...p, description: e.target.value }))} className="w-full p-3 rounded-[4px] border border-stone-200 bg-washi-white text-sumi-900 text-[13px] outline-none focus:border-sumi-900 font-sans min-h-[80px] resize-y" />
+              </div>
             </div>
 
-            <div style={{ marginBottom: "20px" }}>
-              <div className="card-label" style={{ marginBottom: "8px" }}>Color</div>
-              <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+            <div className="mb-[32px]">
+              <h3 className="text-[12px] font-bold text-stone-400 tracking-widest uppercase mb-[16px]">Color</h3>
+              <Inline gap="gap-[12px]" className="flex-wrap">
                 {WORKSPACE_COLORS.map(c => (
                   <div key={c} onClick={() => setWsDrawerForm(p => ({ ...p, color: c }))}
-                    style={{ width: "28px", height: "28px", borderRadius: "50%", backgroundColor: c, cursor: "pointer", border: wsDrawerForm.color === c ? "2px solid #fff" : "2px solid transparent", transition: "border 0.15s" }} />
+                    className="w-[32px] h-[32px] rounded-full cursor-pointer transition-all"
+                    style={{ backgroundColor: c, border: wsDrawerForm.color === c ? "2px solid var(--sumi-900)" : "2px solid transparent", outline: wsDrawerForm.color === c ? "2px solid #fff" : "none" }} />
                 ))}
-              </div>
+              </Inline>
             </div>
 
-            <div style={{ marginBottom: "20px" }}>
-              <div className="card-label" style={{ marginBottom: "8px" }}>Extended Info</div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
-                <div><label style={s.label}>Website</label><input type="text" value={wsDrawerForm.website} onChange={e => setWsDrawerForm(p => ({ ...p, website: e.target.value }))} className="plan-input" style={{ width: "100%", boxSizing: "border-box" }} placeholder="https://" /></div>
-                <div><label style={s.label}>Logo URL</label><input type="text" value={wsDrawerForm.logo_url} onChange={e => setWsDrawerForm(p => ({ ...p, logo_url: e.target.value }))} className="plan-input" style={{ width: "100%", boxSizing: "border-box" }} placeholder="https://" /></div>
+            <div className="mb-[32px]">
+              <h3 className="text-[12px] font-bold text-stone-400 tracking-widest uppercase mb-[16px]">Extended Info</h3>
+              <div className="grid grid-cols-2 gap-[16px] mb-[16px]">
+                <div>
+                  <label className="block text-[11px] font-bold text-stone-400 tracking-widest uppercase mb-[8px]">Website</label>
+                  <Input type="text" value={wsDrawerForm.website} onChange={e => setWsDrawerForm(p => ({ ...p, website: e.target.value }))} placeholder="https://" />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-stone-400 tracking-widest uppercase mb-[8px]">Logo URL</label>
+                  <Input type="text" value={wsDrawerForm.logo_url} onChange={e => setWsDrawerForm(p => ({ ...p, logo_url: e.target.value }))} placeholder="https://" />
+                </div>
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginTop: "10px" }}>
-                <div><label style={s.label}>Industry</label><input type="text" value={wsDrawerForm.industry} onChange={e => setWsDrawerForm(p => ({ ...p, industry: e.target.value }))} className="plan-input" style={{ width: "100%", boxSizing: "border-box" }} placeholder="e.g. SaaS" /></div>
-                <div><label style={s.label}>Size</label>
-                  <select value={wsDrawerForm.size} onChange={e => setWsDrawerForm(p => ({ ...p, size: e.target.value }))} className="plan-select" style={{ width: "100%", height: "40px" }}>
+              <div className="grid grid-cols-2 gap-[16px]">
+                <div>
+                  <label className="block text-[11px] font-bold text-stone-400 tracking-widest uppercase mb-[8px]">Industry</label>
+                  <Input type="text" value={wsDrawerForm.industry} onChange={e => setWsDrawerForm(p => ({ ...p, industry: e.target.value }))} placeholder="e.g. SaaS" />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-stone-400 tracking-widest uppercase mb-[8px]">Size</label>
+                  <select value={wsDrawerForm.size} onChange={e => setWsDrawerForm(p => ({ ...p, size: e.target.value }))} className="w-full h-[40px] px-[12px] rounded-[4px] border border-stone-200 bg-washi-white text-[13px] text-sumi-900 outline-none focus:border-sumi-900 transition-colors">
                     <option value="">Select</option>
                     <option value="1-10">1-10</option>
                     <option value="11-50">11-50</option>
@@ -392,79 +463,81 @@ export default function WorkspacesTab({ workspaces, currentWorkspace, onWorkspac
               </div>
             </div>
 
-            <div style={{ marginBottom: "20px" }}>
-              <div className="card-label" style={{ marginBottom: "8px" }}>Tags</div>
-              <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "8px" }}>
+            <div className="mb-[32px]">
+              <h3 className="text-[12px] font-bold text-stone-400 tracking-widest uppercase mb-[16px]">Tags</h3>
+              <Inline gap="gap-[8px]" className="flex-wrap mb-[12px]">
                 {(wsTags[wsDrawer.id] || []).map((tag, i) => (
-                  <span key={i} className="tag" style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "11px" }}>
+                  <span key={i} className="px-[8px] py-[4px] rounded-[2px] bg-linen-100 border border-stone-200 text-stone-500 text-[10px] font-bold tracking-wide uppercase flex items-center gap-[6px]">
                     {tag}
-                    <button onClick={() => handleRemoveTag(wsDrawer.id, i)} style={{ background: "none", border: "none", color: "var(--japandi-muted)", cursor: "pointer", padding: 0, fontSize: "12px", lineHeight: 1 }}><X size={10} /></button>
+                    <button onClick={() => handleRemoveTag(wsDrawer.id, i)} className="bg-transparent border-none text-stone-400 hover:text-sumi-900 cursor-pointer p-0 leading-none outline-none"><X size={10} /></button>
                   </span>
                 ))}
-              </div>
-              <div style={{ display: "flex", gap: "6px" }}>
-                <input type="text" placeholder="Add a tag..." value={newTagInput} onChange={e => setNewTagInput(e.target.value)} onKeyDown={e => handleKeyDown(e, wsDrawer.id)}
-                  className="plan-input" style={{ flex: 1, fontSize: "11px" }} />
-                <button onClick={() => handleAddTag(wsDrawer.id)} className="btn-action-secondary" style={{ padding: "6px 10px" }}><Plus size={12} /></button>
-              </div>
+              </Inline>
+              <Inline gap="gap-[8px]">
+                <Input type="text" placeholder="Add a tag..." value={newTagInput} onChange={e => setNewTagInput(e.target.value)} onKeyDown={e => handleKeyDown(e, wsDrawer.id)} className="flex-1" />
+                <Button onClick={() => handleAddTag(wsDrawer.id)} variant="secondary" size="icon"><Plus size={14} /></Button>
+              </Inline>
             </div>
 
-            <div style={{ marginBottom: "20px" }}>
-              <div className="card-label" style={{ marginBottom: "8px" }}>Integrations</div>
-              <div style={{ fontSize: "12px", color: "var(--japandi-muted)", marginBottom: "8px" }}>
+            <div className="mb-[32px]">
+              <h3 className="text-[12px] font-bold text-stone-400 tracking-widest uppercase mb-[8px]">Integrations</h3>
+              <p className="text-[12px] text-stone-400 mb-[16px]">
                 {(integrations || []).filter(i => i.connected).length > 0
                   ? `${(integrations || []).filter(i => i.connected).length} integration(s) connected to your account. Scope them to this workspace in Connected Apps.`
                   : "No integrations connected yet."}
-              </div>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+              </p>
+              <Inline gap="gap-[8px]" className="flex-wrap">
                 {(integrations || []).filter(i => i.connected).map(i => (
-                  <span key={i.provider} className="tag" style={{ backgroundColor: "rgba(62,207,142,0.1)", color: "#4ade80", border: "1px solid rgba(62,207,142,0.2)", fontSize: "10px" }}>
+                  <span key={i.provider} className="px-[8px] py-[4px] rounded-[2px] bg-moss-600/10 text-moss-600 border border-moss-600/20 text-[10px] font-bold tracking-wide uppercase">
                     {i.provider}
                   </span>
                 ))}
-              </div>
+              </Inline>
               {(integrations || []).filter(i => i.connected).length === 0 && (
-                <div style={{ fontSize: "11px", color: "var(--japandi-muted)", fontStyle: "italic" }}>
+                <p className="text-[11px] text-stone-400 italic">
                   Go to <strong>Connected Apps</strong> tab to add integrations.
-                </div>
+                </p>
               )}
             </div>
 
-            <div style={{ marginBottom: "20px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
-                <div className="card-label" style={{ margin: 0 }}>Notifications</div>
-                <button onClick={() => handleMarkAllRead(wsDrawer.id)} className="btn-action-secondary" style={{ fontSize: "10px", padding: "4px 8px" }}><Check size={10} /> Mark All Read</button>
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+            <div className="mb-[32px]">
+              <Inline justify="justify-between" items="items-center" className="mb-[16px]">
+                <h3 className="text-[12px] font-bold text-stone-400 tracking-widest uppercase m-0">Notifications</h3>
+                <Button onClick={() => handleMarkAllRead(wsDrawer.id)} variant="secondary" size="sm"><Check size={10} className="mr-1" /> Mark All Read</Button>
+              </Inline>
+              <Stack gap="gap-[0]" className="divide-y divide-stone-200">
                 {NOTIFICATION_TYPES.slice(0, 6).map(n => {
                   const pref = wsNotifPrefs[n.key];
                   const enabled = pref ? pref.enabled !== false : true;
                   const NotifIcon = NOTIF_ICONS[n.category === "alerts" ? "alert" : n.category === "reports" ? "clock" : n.category === "team" ? "users" : n.category === "tasks" ? "check-square" : n.category === "ai" ? "cpu" : n.category === "social" ? "message-circle" : n.category === "security" ? "shield" : n.category === "billing" ? "credit-card" : n.category === "system" ? "alert" : "calendar"] || Bell;
                   return (
-                    <div key={n.key} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 0", borderBottom: "1px solid rgba(107,107,111,0.06)" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: "var(--japandi-text)" }}>
-                        <NotifIcon size={12} style={{ color: "var(--japandi-muted)" }} />
+                    <Inline key={n.key} justify="justify-between" items="items-center" className="py-[12px]">
+                      <Inline gap="gap-[12px]" items="items-center" className="text-[13px] text-sumi-900">
+                        <NotifIcon size={14} className="text-stone-400" />
                         {n.label}
-                      </div>
+                      </Inline>
                       <button onClick={() => handleWsNotifToggle(n.key, !enabled)}
-                        className={`neu-toggle ${enabled ? "on" : ""}`}><div className="thumb" /></button>
-                    </div>
+                        className={`relative w-[36px] h-[20px] rounded-full transition-colors outline-none cursor-pointer border-none ${enabled ? "bg-moss-600" : "bg-stone-200"}`}>
+                        <div className={`absolute top-[2px] left-[2px] w-[16px] h-[16px] rounded-full bg-washi-white transition-transform ${enabled ? "translate-x-[16px]" : "translate-x-0"}`} />
+                      </button>
+                    </Inline>
                   );
                 })}
-              </div>
+              </Stack>
             </div>
           </div>
 
-          <div style={{ padding: "16px 24px", borderTop: "1px solid rgba(107,107,111,0.08)", display: "flex", gap: "8px" }}>
-            <button onClick={handleWsDrawerSave} className="btn-ember"><Save size={14} /> Save Changes</button>
-            <button onClick={() => { setWsDrawer(null); setWsDrawerForm({ name: "", description: "", stage: "Build", color: "#ff751f", logo_url: "", website: "", industry: "", size: "" }); }}
-              className="btn-action-secondary">Cancel</button>
+          <div className="p-[24px] border-t border-stone-200 shrink-0">
+            <Inline gap="gap-[12px]">
+              <Button onClick={handleWsDrawerSave} variant="primary"><Save size={14} className="mr-1" /> Save Changes</Button>
+              <Button onClick={() => { setWsDrawer(null); setWsDrawerForm({ name: "", description: "", stage: "Build", color: "#ff751f", logo_url: "", website: "", industry: "", size: "" }); }} variant="secondary">Cancel</Button>
+            </Inline>
           </div>
         </div>
       )}
 
       {wsDrawer && (
-        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.3)", zIndex: 998 }}
+        <div className="fixed inset-0 bg-[#2B2A27]/20 backdrop-blur-sm z-[998]"
           onClick={() => { setWsDrawer(null); setWsDrawerForm({ name: "", description: "", stage: "Build", color: "#ff751f", logo_url: "", website: "", industry: "", size: "" }); }} />
       )}
     </div>
