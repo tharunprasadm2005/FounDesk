@@ -18,6 +18,7 @@ def _llm_morning_brief(signals, connected_count):
     """Best-effort LLM-authored founder briefing. Returns (summary, focus) or (None, None)
     if no API key is configured or the single-shot call fails — callers fall back to rules."""
     if not (os.environ.get("OPENAI_API_KEY") or os.environ.get("OPENROUTER_API_KEY")):
+        print(f"[BRIEFING] no LLM key in env: OPENAI={bool(os.environ.get('OPENAI_API_KEY'))} OPENROUTER={bool(os.environ.get('OPENROUTER_API_KEY'))} DATABASE_URL={bool(os.environ.get('DATABASE_URL'))} SMTP={bool(os.environ.get('SMTP_HOST'))}")
         return None, None
     try:
         from pattern_engine.llm_client import call_llm_quick
@@ -42,7 +43,9 @@ def _llm_morning_brief(signals, connected_count):
             "You are the AI chief of staff for a solo startup founder. Today's compiled signals "
             "(meetings, messages, tasks, blockers, follow-ups, decisions, risks) are below as JSON. "
             "Write a concise morning briefing from the founder's own voice. Never invent facts not in "
-            "the input. Keep the summary under 90 words."
+            "the input. Keep the summary under 90 words. "
+            "Respond with a SINGLE JSON object matching the requested schema: no markdown, no code "
+            "fences, no commentary before or after."
         )
         payload = dict(signals)
         payload["connected_integrations"] = connected_count

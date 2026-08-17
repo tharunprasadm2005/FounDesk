@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence, animate, useInView, useScroll, useTransform } from "framer-motion";
 import { ArrowRight, Check, Menu, X } from "lucide-react";
 import Brand from "../components/Brand";
@@ -575,10 +575,10 @@ export default function Landing() {
 
           <div style={{ display: "flex", justifyContent: "space-between", gap: 30, flexWrap: "wrap", paddingBottom: 40 }}>
             <div className="fd-body" style={{ display: "flex", gap: 26, order: 2 }}>
-              {["Privacy", "Terms", "Contact", "Status"].map((l) => (
-                <a key={l} href="#top" onClick={(e) => e.preventDefault()} style={{ textDecoration: "none", fontSize: 13, fontWeight: 600, color: "var(--fd-ink-2)", transition: "color 160ms ease", cursor: "pointer" }}>
+              {[["Privacy", "/privacy"], ["Terms", "/terms"], ["Contact", "/contact"], ["Status", "/status"]].map(([l, to]) => (
+                <Link key={l} to={to} style={{ textDecoration: "none", fontSize: 13, fontWeight: 600, color: "var(--fd-ink-2)", transition: "color 160ms ease" }}>
                   {l}
-                </a>
+                </Link>
               ))}
             </div>
             <div className="fd-body" style={{ fontSize: 13, color: "var(--fd-ink-3)", fontWeight: 500, order: 1 }}>

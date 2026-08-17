@@ -26,7 +26,8 @@ STRATEGY_MODELS = {
         "fallback": "qwen2.5:7b",
     },
     "production": {
-        "primary": "llama-3.1-8b-instant",
+        "primary": "openai/gpt-oss-120b",
+        "secondary": "qwen/qwen3.6-27b",
         "fallback": "openrouter/free",
     },
 }

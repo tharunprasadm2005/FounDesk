@@ -2,7 +2,9 @@ import os
 from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv
 
-load_dotenv()
+# Load .env from the backend dir explicitly — find_dotenv() silently fails when
+# the process is launched with an unexpected CWD, leaving the app with no config.
+load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".env"))
 
 db = SQLAlchemy()
 

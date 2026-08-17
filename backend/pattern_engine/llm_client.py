@@ -73,6 +73,39 @@ def _ensure_client():
     return _client, _models
 
 
+def _extract_json(raw):
+    """Robustly parse JSON out of an LLM response (handles code fences,
+    prose around the JSON, failed strict-mode output, and qwen-style
+    thinking blocks)."""
+    raw = (raw or "").strip()
+    if raw.startswith("```"):
+        raw = re.sub(r"^```(?:json)?\n?", "", raw)
+        raw = re.sub(r"\n?```$", "", raw).strip()
+    m = re.search(r"\n\s*thinking\s*\n.*?\n\s*response\s*\n", raw, flags=re.S)
+    if m:
+        raw = raw[m.end():].strip()
+    try:
+        return json.loads(raw)
+    except (json.JSONDecodeError, ValueError):
+        pass
+    for opener, closer in (("{", "}"), ("[", "]")):
+        start = raw.find(opener)
+        if start == -1:
+            continue
+        depth = 0
+        for i in range(start, len(raw)):
+            if raw[i] == opener:
+                depth += 1
+            elif raw[i] == closer:
+                depth -= 1
+                if depth == 0:
+                    try:
+                        return json.loads(raw[start:i + 1])
+                    except (json.JSONDecodeError, ValueError):
+                        break
+    raise ValueError(f"Could not extract JSON from LLM response: {raw[:200]}")
+
+
 def _call(client, messages, json_schema, model, temperature=0):
     url = str(client.base_url)
     provider = _get_provider(url)
@@ -98,7 +131,20 @@ def _call(client, messages, json_schema, model, temperature=0):
         kwargs["response_format"] = {"type": "json_object"}
 
     elif provider == "groq":
-        kwargs["response_format"] = {"type": "json_object"}
+        # Groq's strict json_object mode returns 400 json_validate_failed when a
+        # model wraps output in prose/markdown. Skip strict mode, but inject the
+        # schema into the prompt so the model emits the exact field names; the
+        # raw text is then parsed robustly with _extract_json.
+        schema_str = json.dumps(json_schema, indent=2)
+        instruction = (
+            "\n\nReturn ONLY a single JSON object matching EXACTLY this schema "
+            f"(use these exact field names):\n{schema_str}\n"
+            "No markdown, no code fences, no commentary before or after."
+        )
+        augmented = list(messages)
+        last = augmented[-1]
+        augmented[-1] = {"role": last["role"], "content": last["content"] + "\n" + instruction}
+        kwargs["messages"] = augmented
 
     elif provider == "openrouter":
         kwargs["response_format"] = {
@@ -119,11 +165,7 @@ def _call(client, messages, json_schema, model, temperature=0):
     raw = api_response.choices[0].message.content
     if not raw:
         raise ValueError("LLM returned empty response")
-    raw = raw.strip()
-    if raw.startswith("```"):
-        raw = re.sub(r"^```(?:json)?\n?", "", raw)
-        raw = re.sub(r"\n?```$", "", raw)
-    return json.loads(raw), api_response
+    return _extract_json(raw), api_response
 
 
 def _log_usage(model, response, elapsed_ms, provider=None):
@@ -323,6 +365,21 @@ def call_llm_quick(messages, json_schema, temperature=0.3, timeout=12.0):
     candidates = []
     primary = models.get("primary") or "openrouter/free"
     candidates.append((primary, str(client.base_url), client.api_key))
+
+    # If the strategy routes to Groq, add the secondary Groq model before the
+    # OpenRouter fallback so briefing survives exhausted OpenRouter free quota.
+    _strat = os.environ.get("LLM_ROUTING_STRATEGY", "structured_fast")
+    groq_strategies = {"groq_fast", "qwen_dev", "production"}
+    if _strat in groq_strategies and os.environ.get("OPENAI_API_KEY"):
+        secondary = models.get("secondary")
+        if secondary and secondary != primary:
+            candidates.append((secondary, "https://api.groq.com/openai/v1", os.environ["OPENAI_API_KEY"]))
+    else:
+        secondary = models.get("secondary")
+        custom_base = os.environ.get("OPENAI_BASE_URL")
+        if secondary and secondary != primary and custom_base:
+            candidates.append((secondary, custom_base, os.environ.get("OPENAI_API_KEY") or os.environ.get("OPENROUTER_API_KEY")))
+
     fallback = models.get("fallback")
     if fallback and fallback != primary and os.environ.get("OPENROUTER_API_KEY"):
         candidates.append((fallback, "https://openrouter.ai/api/v1", os.environ["OPENROUTER_API_KEY"]))

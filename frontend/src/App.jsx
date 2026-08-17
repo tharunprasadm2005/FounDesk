@@ -11,10 +11,13 @@ const Login = lazy(() => import("./pages/Login"));
 const VerifyEmail = lazy(() => import("./pages/VerifyEmail"));
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const Privacy = lazy(() => import("./pages/Privacy"));
+const Terms = lazy(() => import("./pages/Terms"));
+const Contact = lazy(() => import("./pages/Contact"));
+const Status = lazy(() => import("./pages/Status"));
 const GoogleCallback = lazy(() => import("./pages/GoogleCallback"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Goals = lazy(() => import("./pages/Goals"));
-const Billing = lazy(() => import("./pages/Billing"));
 const Execute = lazy(() => import("./pages/Execute"));
 const Memory = lazy(() => import("./pages/Memory"));
 const Settings = lazy(() => import("./pages/Settings"));
@@ -142,16 +145,6 @@ function App() {
         }
       />
       <Route
-        path="/billing"
-        element={
-          <ProtectedRoute>
-            <Layout>
-              <Billing />
-            </Layout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
         path="/execute"
         element={
           <ProtectedRoute>
@@ -184,6 +177,10 @@ function App() {
       <Route path="/verify-email" element={<VerifyEmail />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/privacy" element={<Privacy />} />
+      <Route path="/terms" element={<Terms />} />
+      <Route path="/contact" element={<Contact />} />
+      <Route path="/status" element={<Status />} />
       <Route path="/auth/callback" element={<GoogleCallback />} />
       {/* Catch-all redirect to landing */}
       <Route path="*" element={<Navigate to="/" replace />} />

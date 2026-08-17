@@ -36,7 +36,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-load_dotenv()
+load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
 
 REQUIRED_ENV_VARS = ["DATABASE_URL", "SECRET_KEY"]
 missing = [v for v in REQUIRED_ENV_VARS if not os.environ.get(v)]
