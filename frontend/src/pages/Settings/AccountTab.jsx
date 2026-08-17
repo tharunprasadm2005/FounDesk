@@ -31,11 +31,11 @@ export default function AccountTab() {
   const avatarFileRef = useRef(null);
 
   const fetchSessions = async () => {
-    try { const res = await api.get("/api/users/me/sessions"); setSessions(Array.isArray(res.data) ? res.data : []); } catch (err) { console.error("[Settings] Failed to fetch sessions:", err); }
+    try { const res = await api.get("/api/users/me/sessions"); setSessions(Array.isArray(res.data?.sessions) ? res.data.sessions : []); } catch (err) { console.error("[Settings] Failed to fetch sessions:", err); }
   };
 
   const fetchConnectedAccounts = async () => {
-    try { const res = await api.get("/api/users/me/connected-accounts"); setConnectedAccounts(Array.isArray(res.data) ? res.data : []); } catch (err) { console.error("[Settings] Failed to fetch connected accounts:", err); }
+    try { const res = await api.get("/api/users/me/connected-accounts"); setConnectedAccounts(Array.isArray(res.data?.accounts) ? res.data.accounts : []); } catch (err) { console.error("[Settings] Failed to fetch connected accounts:", err); }
   };
 
   const handleSaveProfile = async () => {
@@ -49,7 +49,12 @@ export default function AccountTab() {
 
   const handleChangePassword = async () => {
     if (!passwordForm.current_password || !passwordForm.new_password) { toast("Please fill in both fields.", "error"); return; }
-    if (passwordForm.new_password.length < 6) { toast("New password must be at least 6 characters.", "error"); return; }
+    const pw = passwordForm.new_password;
+    if (pw.length < 12) { toast("New password must be at least 12 characters.", "error"); return; }
+    if (!/[A-Z]/.test(pw)) { toast("New password must contain an uppercase letter.", "error"); return; }
+    if (!/[a-z]/.test(pw)) { toast("New password must contain a lowercase letter.", "error"); return; }
+    if (!/[0-9]/.test(pw)) { toast("New password must contain a digit.", "error"); return; }
+    if (!/[^a-zA-Z0-9]/.test(pw)) { toast("New password must contain a special character.", "error"); return; }
     if (passwordForm.new_password !== passwordForm.confirm) { toast("Passwords do not match.", "error"); return; }
     try {
       await api.put("/api/users/me/password", { current_password: passwordForm.current_password, new_password: passwordForm.new_password });
@@ -135,7 +140,7 @@ export default function AccountTab() {
       <div className="card-glass" style={{ padding: "24px", marginBottom: "12px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "20px" }}>
           <div style={{ position: "relative" }}>
-            <div style={{ width: "56px", height: "56px", borderRadius: "14px", backgroundColor: "rgba(255,90,0,0.15)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--japandi-accent)", fontWeight: 700, fontSize: "20px", border: "1px solid rgba(255,90,0,0.2)" }}>
+            <div style={{ width: "56px", height: "56px", borderRadius: "14px", backgroundColor: "rgba(214,130,79,0.15)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--japandi-accent)", fontWeight: 700, fontSize: "20px", border: "1px solid rgba(214,130,79,0.2)" }}>
               {(currentUser.name || currentUser.email || "U")[0].toUpperCase()}
             </div>
             <input type="file" accept="image/*" ref={avatarFileRef} onChange={handleAvatarUpload} style={{ display: "none" }} />
@@ -270,7 +275,7 @@ export default function AccountTab() {
             <div style={{ fontSize: "12px", color: "var(--japandi-muted)" }}>No connected accounts. Link Google, GitHub, or Slack from Connected Apps.</div>
           ) : connectedAccounts.map(a => (
             <div key={a.provider || a.id} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "8px 0", borderBottom: "1px solid rgba(107,107,111,0.06)", fontSize: "12px" }}>
-              <div style={{ width: "28px", height: "28px", borderRadius: "6px", backgroundColor: "rgba(255,90,0,0.1)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--japandi-accent)", fontSize: "10px", fontWeight: 700, textTransform: "uppercase" }}>
+              <div style={{ width: "28px", height: "28px", borderRadius: "6px", backgroundColor: "rgba(214,130,79,0.1)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--japandi-accent)", fontSize: "10px", fontWeight: 700, textTransform: "uppercase" }}>
                 {(a.provider || "?")[0]}
               </div>
               <div style={{ flex: 1 }}>

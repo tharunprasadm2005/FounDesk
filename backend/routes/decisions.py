@@ -66,7 +66,7 @@ def create_decision(current_user_id):
     if not workspace_id:
         return jsonify({"error": "No active workspace context"}), 400
 
-    data = request.get_json()
+    data = request.get_json(silent=True)
     if not data or not data.get('decision'):
         return jsonify({"error": "Decision text is required"}), 400
         
@@ -103,7 +103,7 @@ def update_decision(current_user_id, decision_id):
     if not decision:
         return jsonify({"error": "Decision log not found in this workspace"}), 404
 
-    data = request.get_json()
+    data = request.get_json(silent=True)
     if not data:
         return jsonify({"error": "No data provided"}), 400
 

@@ -18,7 +18,7 @@ def list_api_keys(current_user_id):
 @developer_bp.route('/developer/api-keys', methods=['POST'])
 @token_required
 def create_api_key(current_user_id):
-    data = request.get_json()
+    data = request.get_json(silent=True) or {}
     name = (data or {}).get('name', '').strip()
     if not name:
         return jsonify({"error": "API key name is required"}), 400

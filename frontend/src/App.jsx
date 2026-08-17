@@ -8,6 +8,9 @@ import Layout from "./components/Layout";
 
 const Landing = lazy(() => import("./pages/Landing"));
 const Login = lazy(() => import("./pages/Login"));
+const VerifyEmail = lazy(() => import("./pages/VerifyEmail"));
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const GoogleCallback = lazy(() => import("./pages/GoogleCallback"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Goals = lazy(() => import("./pages/Goals"));
@@ -18,14 +21,29 @@ const Settings = lazy(() => import("./pages/Settings"));
 
 function LoadingFallback() {
   return (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", background: "#030303" }}>
-      <div style={{ display: "inline-flex", flexDirection: "column", alignItems: "center", gap: "14px" }}>
-        <div className="relative flex items-center justify-center" style={{ width: "40px", height: "40px" }}>
-          <span style={{ fontFamily: "'Clash Display', sans-serif", fontSize: "36px", fontWeight: "950", color: "var(--japandi-accent)", lineHeight: 1, letterSpacing: "-0.04em" }}>F</span>
-          <span style={{ fontFamily: "'Clash Display', sans-serif", fontSize: "36px", fontWeight: "950", color: "transparent", WebkitTextStroke: "1.5px var(--japandi-accent)", lineHeight: 1, marginLeft: "1.5px" }}>d</span>
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", background: "#F8F5F2" }}>
+      <div style={{ display: "inline-flex", flexDirection: "column", alignItems: "center", gap: "18px" }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: "46px",
+            height: "46px",
+            borderRadius: "16px",
+            background: "#2D2D2D",
+            color: "#F8F5F2",
+            fontFamily: "'Cormorant Garamond', serif",
+            fontSize: "26px",
+            fontStyle: "italic",
+            fontWeight: "600",
+            boxShadow: "0 14px 30px -12px rgba(45,45,45,0.45)",
+          }}
+        >
+          f
         </div>
-        <p style={{ fontSize: "12px", color: "var(--japandi-muted)", fontFamily: "'JetBrains Mono', monospace", letterSpacing: "1.5px", textTransform: "uppercase" }} className="animate-pulse">
-          Loading...
+        <p style={{ fontSize: "11px", color: "#8F897F", fontFamily: "'Manrope', sans-serif", fontWeight: "700", letterSpacing: "2.5px", textTransform: "uppercase" }} className="animate-pulse">
+          FounDesk
         </p>
       </div>
     </div>
@@ -163,6 +181,9 @@ function App() {
           </ProtectedRoute>
         }
       />
+      <Route path="/verify-email" element={<VerifyEmail />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/auth/callback" element={<GoogleCallback />} />
       {/* Catch-all redirect to landing */}
       <Route path="*" element={<Navigate to="/" replace />} />

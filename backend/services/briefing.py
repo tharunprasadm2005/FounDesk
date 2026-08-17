@@ -1,4 +1,4 @@
-import datetime
+﻿import datetime
 import requests
 import os
 import json
@@ -10,15 +10,65 @@ from models.task import Task
 from models.decision_log import DecisionLog
 from models.meeting_notes import MeetingNotes
 from models.follow_up import FollowUp
+from models.activity_event import ActivityEvent
 from utils.workspace_auth import get_current_workspace_id
+from utils.mock_mode import mock_visibility_clause
+
+def _llm_morning_brief(signals, connected_count):
+    """Best-effort LLM-authored founder briefing. Returns (summary, focus) or (None, None)
+    if no API key is configured or the single-shot call fails — callers fall back to rules."""
+    if not (os.environ.get("OPENAI_API_KEY") or os.environ.get("OPENROUTER_API_KEY")):
+        return None, None
+    try:
+        from pattern_engine.llm_client import call_llm_quick
+        schema = {
+            "title": "morning_briefing",
+            "type": "object",
+            "additionalProperties": False,
+            "properties": {
+                "summary": {
+                    "type": "string",
+                    "description": "2-4 sharp sentences in the founder's first-person voice. Direct, concrete, names the top opportunity and top risk. No markdown, no bullets.",
+                },
+                "focus": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Exactly 3 short today-priorities, one phrase each.",
+                },
+            },
+            "required": ["summary", "focus"],
+        }
+        system = (
+            "You are the AI chief of staff for a solo startup founder. Today's compiled signals "
+            "(meetings, messages, tasks, blockers, follow-ups, decisions, risks) are below as JSON. "
+            "Write a concise morning briefing from the founder's own voice. Never invent facts not in "
+            "the input. Keep the summary under 90 words."
+        )
+        payload = dict(signals)
+        payload["connected_integrations"] = connected_count
+        result = call_llm_quick(
+            [{"role": "system", "content": system}, {"role": "user", "content": json.dumps(payload, default=str)[:6000]}],
+            schema,
+            temperature=0.4,
+        )
+        summary = ((result or {}).get("summary") or "").strip()
+        focus = [(f or "").strip() for f in (result or {}).get("focus") or [] if (f or "").strip()][:3]
+        if not summary:
+            return None, None
+        print(f"[BRIEFING] LLM summary generated ({len(summary)} chars, {len(focus)} focus items)")
+        return summary, focus
+    except Exception as e:
+        print(f"[BRIEFING] LLM summary unavailable ({type(e).__name__}), using rule-based brief")
+        return None, None
+
 
 def refresh_google_token(integration):
     client_id = os.getenv("GOOGLE_INTEGRATION_CLIENT_ID") or os.getenv("GOOGLE_CLIENT_ID")
     client_secret = os.getenv("GOOGLE_INTEGRATION_CLIENT_SECRET") or os.getenv("GOOGLE_CLIENT_SECRET")
-    
+
     if not integration.refresh_token or not client_id or not client_secret:
         return False
-        
+
     try:
         from config.database import db
         res = requests.post("https://oauth2.googleapis.com/token", data={
@@ -27,17 +77,17 @@ def refresh_google_token(integration):
             "refresh_token": integration.refresh_token,
             "grant_type": "refresh_token"
         }, timeout=5)
-        
+
         token_data = res.json()
         if "access_token" in token_data:
             integration.access_token = token_data["access_token"]
             if "refresh_token" in token_data:
                 integration.refresh_token = token_data["refresh_token"]
-            
+
             if "expires_in" in token_data:
                 expires_in = token_data["expires_in"]
                 integration.expires_at = datetime.datetime.utcnow() + datetime.timedelta(seconds=expires_in)
-                
+
             db.session.commit()
             return True
     except Exception as e:
@@ -214,10 +264,10 @@ def refresh_linear_token(integration):
 def compile_morning_briefing(user_id):
     # Auto-trigger recurring task generation on autopilot
     workspace_id = get_current_workspace_id(user_id)
+    # Mock events are only visible in sandbox workspaces (mock_ tokens)
+    _visible = mock_visibility_clause(workspace_id)
     
     # Track daily counts and ephemeral focus lists
-    goals_created_today = 0
-    tasks_created_today = 0
     today_focus = []
 
     if workspace_id:
@@ -260,7 +310,7 @@ def compile_morning_briefing(user_id):
         calendar_events = ActivityEvent.query.filter(
             ActivityEvent.workspace_id == workspace_id,
             ActivityEvent.provider.in_(["google_calendar", "calendly"]),
-            ActivityEvent.is_mock == False,
+            _visible,
             ActivityEvent.external_timestamp >= today_start,
             ActivityEvent.external_timestamp < today_end
         ).order_by(ActivityEvent.external_timestamp.asc()).limit(20).all()
@@ -287,7 +337,7 @@ def compile_morning_briefing(user_id):
         gmail_events = ActivityEvent.query.filter(
             ActivityEvent.workspace_id == workspace_id,
             ActivityEvent.provider == "gmail",
-            ActivityEvent.is_mock == False,
+            _visible,
             ActivityEvent.external_timestamp >= today_start
         ).order_by(ActivityEvent.external_timestamp.desc()).limit(5).all()
         for ev in gmail_events:
@@ -302,7 +352,7 @@ def compile_morning_briefing(user_id):
         slack_events = ActivityEvent.query.filter(
             ActivityEvent.workspace_id == workspace_id,
             ActivityEvent.provider == "slack",
-            ActivityEvent.is_mock == False
+            _visible
         ).order_by(ActivityEvent.external_timestamp.desc()).limit(5).all()
         for evt in slack_events:
             channel_str = "Slack"
@@ -322,7 +372,7 @@ def compile_morning_briefing(user_id):
         task_events = ActivityEvent.query.filter(
             ActivityEvent.workspace_id == workspace_id,
             ActivityEvent.provider.in_(["trello", "asana", "linear", "monday"]),
-            ActivityEvent.is_mock == False
+            _visible
         ).order_by(ActivityEvent.external_timestamp.desc()).limit(10).all()
         for ev in task_events:
             tasks_feed.append({
@@ -340,7 +390,7 @@ def compile_morning_briefing(user_id):
         github_events = ActivityEvent.query.filter(
             ActivityEvent.workspace_id == workspace_id,
             ActivityEvent.provider == "github",
-            ActivityEvent.is_mock == False
+            _visible
         ).order_by(ActivityEvent.external_timestamp.desc()).limit(5).all()
         for ev in github_events:
             repo = ""
@@ -368,7 +418,7 @@ def compile_morning_briefing(user_id):
         doc_events = ActivityEvent.query.filter(
             ActivityEvent.workspace_id == workspace_id,
             ActivityEvent.provider.in_(["notion", "google_docs"]),
-            ActivityEvent.is_mock == False
+            _visible
         ).order_by(ActivityEvent.external_timestamp.desc()).limit(6).all()
         for ev in doc_events:
             ts_str = ev.external_timestamp.strftime("%Y-%m-%d") if ev.external_timestamp else "Recently"
@@ -387,7 +437,7 @@ def compile_morning_briefing(user_id):
             crm_events = ActivityEvent.query.filter(
                 ActivityEvent.workspace_id == workspace_id,
                 ActivityEvent.provider == provider_name,
-                ActivityEvent.is_mock == False
+                _visible
             ).order_by(ActivityEvent.external_timestamp.desc()).limit(5).all()
             source_label = {"hubspot": "HubSpot", "zoho_crm": "Zoho CRM", "pipedrive": "Pipedrive"}[provider_name]
             for ev in crm_events:
@@ -405,7 +455,7 @@ def compile_morning_briefing(user_id):
             analytics_events = ActivityEvent.query.filter(
                 ActivityEvent.workspace_id == workspace_id,
                 ActivityEvent.provider == provider_name,
-                ActivityEvent.is_mock == False
+                _visible
             ).order_by(ActivityEvent.external_timestamp.desc()).limit(3).all()
             for ev in analytics_events:
                 analytics.append({
@@ -437,8 +487,8 @@ def compile_morning_briefing(user_id):
     # Query meeting stubs for follow-ups
     meeting_follow_ups = MeetingNotes.query.filter_by(workspace_id=workspace_id).filter(MeetingNotes.follow_up_at.isnot(None)).all()
 
-    # Determine weekly focus
-    weekly_goal_text = "Milestone: Launch v2 Beta and validate cohort conversion."
+    # Determine weekly focus (real goals only; no fabricated default)
+    weekly_goal_text = ""
     weekly_goal_items = [g.title for g in active_goals if g.goal_type == 'weekly']
     monthly_goal_items = [g.title for g in active_goals if g.goal_type == 'monthly']
     if weekly_goal_items:
@@ -463,8 +513,8 @@ def compile_morning_briefing(user_id):
             if hours_blocked >= 24:
                 is_urgent = True
         
-        prefix = "🔥 URGENT [Blocked >24h]: " if is_urgent else ""
-        blocked_items_list.append(f"{prefix}{t.title} (Blocked: {t.blocker_description or 'Waiting on review'})")
+        prefix = "[URGENT] Blocked >24h: " if is_urgent else ""
+        blocked_items_list.append(f"{prefix}{t.title} (Blocked: {t.blocker_description or 'unspecified'})")
     
     # Slack alerts if Slack connected
     slack_blockers = [s for s in communications if 'blocker' in s['snippet'].lower() or 'cors' in s['snippet'].lower()]
@@ -489,13 +539,12 @@ def compile_morning_briefing(user_id):
         
         is_blocklisted = any(domain in sender for domain in ['substack.com', 'medium.com', 'newsletters', 'promo', 'no-reply', 'noreply'])
         has_keyword = any(kw in subject for kw in ['seed', 'pitch', 'capital', 'deck'])
-        is_sequoia = 'sequoia' in sender or 'partner' in sender
         
-        if (has_keyword and not is_blocklisted) or is_sequoia:
+        if has_keyword and not is_blocklisted:
             investor_leads.append(e)
 
     for il in investor_leads:
-        follow_ups_list.append(f"Send investor follow-up to Sequoia Capital ({il['sender']})")
+        follow_ups_list.append(f"Send investor follow-up to {il['sender']}")
         
 
 
@@ -534,14 +583,11 @@ def compile_morning_briefing(user_id):
     if active_follow_ups:
         today_recs.append(f"Send follow-up to {active_follow_ups[0].person_name}")
     elif investor_leads:
-        today_recs.append(f"Send investor follow-up to Sequoia Capital ({investor_leads[0]['sender']})")
+        today_recs.append(f"Send investor follow-up to {investor_leads[0]['sender']}")
         
     # 3. Handle decision review
     if recent_decisions:
         today_recs.append(f"Review '{recent_decisions[0].decision}' context before tomorrow's meetings")
-        
-    # 4. Deep work time block
-    today_recs.append("Protect 2 PM–4 PM for deep work")
 
     ai_synthesis = {
         "weekly_goal": weekly_goal_text,
@@ -554,26 +600,33 @@ def compile_morning_briefing(user_id):
         "today_recommendations": today_recs
     }
 
+    # AI-authored briefing (best-effort, rule-based fallback)
+    llm_summary, llm_focus = _llm_morning_brief(
+        {
+            "meetings_today": schedule[:8],
+            "inbox": [{"sender": c.get("sender"), "subject": c.get("subject")} for c in communications[:8]],
+            "tasks": [{"title": t["title"], "status": t.get("status")} for t in tasks_feed[:10]],
+            "dev_activity": [{"title": d.get("title") or d} for d in dev_activity[:6]],
+            "docs_knowledge": [{"title": d.get("title") or d} for d in docs_knowledge[:6]],
+            "sales_pipeline": [{"title": s.get("event") or s.get("title") or str(s)[:80]} for s in sales_pipeline[:6]],
+            "analytics": [{"title": a.get("metric") or str(a)[:60]} for a in analytics[:4]],
+            "blocked_items": blocked_items_list,
+            "follow_ups": follow_ups_list,
+            "recent_decisions": decisions_list,
+            "upcoming_risks": risks_list,
+            "weekly_goal": weekly_goal_text,
+            "recommendations": today_recs,
+        },
+        len(connected_providers),
+    )
+    ai_wrote_brief = llm_summary is not None
+
     # General greeting compilation
     summary = "Welcome to FounDesk! "
     if len(connected_providers) == 0:
         summary += "You haven't connected any external integrations yet. Visit the Settings tab to connect Gmail, Calendar, Slack, or Jira and build a unified Morning Briefing."
     else:
-        display_names = []
-        for key in connected_providers.keys():
-            if key == 'google':
-                continue
-            name = key.replace("_", " ").title()
-            if name == "Gmail":
-                display_names.append("Gmail")
-            elif name == "Google Calendar":
-                display_names.append("Google Calendar")
-            else:
-                display_names.append(name)
-        if not display_names and 'google' in connected_providers:
-            display_names.append("Google Workspace")
-        display_names = list(sorted(set(display_names)))
-        summary += f"Connected integrations: {', '.join(display_names)}. "
+        summary += f"Signals are flowing from {len(connected_providers)} connected integrations. "
         
         insights = []
         if len(schedule) > 0:
@@ -583,7 +636,7 @@ def compile_morning_briefing(user_id):
             insights.append(f"You have {len(communications)} unread messages in your inbox, starting with a message from '{communications[0]['sender']}'.")
         
         if len(investor_leads) > 0:
-            insights.append("CRITICAL: You received an email from an investor regarding your Pitch Deck follow-up.")
+            insights.append(f"You have {len(investor_leads)} investor-related email(s) matching your focus keywords (e.g. from {investor_leads[0]['sender']}).")
             
         if len(slack_blockers) > 0:
             insights.append("SLACK ALERTS: The engineering team has reported blocker items in Slack channels.")
@@ -593,7 +646,7 @@ def compile_morning_briefing(user_id):
             
         summary += " ".join(insights)
         
-        strategy = "\n\n💡 Focus Strategy: "
+        strategy = "\n\nFocus Strategy: "
         if len(slack_blockers) > 0 or len(blocked_tasks) > 0:
             strategy += "Review engineering blockers and PRs first thing to unblock the team, then prepare for your investor meetings."
         elif len(sales_pipeline) > 0:
@@ -602,7 +655,32 @@ def compile_morning_briefing(user_id):
             strategy += "Keep driving progress on your cascaded goals. Make sure to log critical decisions to build your founder workspace memory."
         summary += strategy
 
+    # Prefer the AI-authored brief when available
+    if llm_summary:
+        summary = llm_summary
+    if llm_focus:
+        today_focus = llm_focus
+
     sync_errors = []
+
+    # Real counts of goals/tasks created today (from DB, not fabrications)
+    goals_created_today = 0
+    tasks_created_today = 0
+    if workspace_id:
+        try:
+            goals_created_today = Goal.query.filter(
+                Goal.workspace_id == workspace_id,
+                Goal.created_at >= today_start
+            ).count()
+        except Exception:
+            goals_created_today = 0
+        try:
+            tasks_created_today = Task.query.filter(
+                Task.workspace_id == workspace_id,
+                Task.created_at >= today_start
+            ).count()
+        except Exception:
+            tasks_created_today = 0
 
     return {
         "summary": summary,
@@ -623,5 +701,7 @@ def compile_morning_briefing(user_id):
         "goals_created_today": goals_created_today,
         "tasks_created_today": tasks_created_today,
         "today_focus": today_focus,
-        "ai_chief_of_staff_summary": f"🤖 AI Chief of Staff: {goals_created_today + tasks_created_today} new items ({goals_created_today} goals, {tasks_created_today} tasks) generated from recent feeds." if (goals_created_today + tasks_created_today > 0) else None
+        "ai_wrote_brief": ai_wrote_brief,
+        "focus_priorities": llm_focus,
+        "ai_chief_of_staff_summary": f"AI Chief of Staff: {goals_created_today + tasks_created_today} new items ({goals_created_today} goals, {tasks_created_today} tasks) generated from recent feeds." if (goals_created_today + tasks_created_today > 0) else None
     }

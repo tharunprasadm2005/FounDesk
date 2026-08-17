@@ -2,10 +2,11 @@ import os
 import sys
 import io
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
-from datetime import datetime
+from datetime import datetime, timedelta
 from config.database import db
 from models.user_integration import UserIntegration
 from models.workspace import Workspace
+from models.activity_event import ActivityEvent
 from pattern_engine.models import RawEvent
 from sqlalchemy.exc import OperationalError
 
@@ -58,11 +59,15 @@ def run_for_integration(integration_id):
         return {"processed": 0, "created": 0, "updated": 0, "skipped": 0, "errors": 0}
 
     try:
+        ws_ae_ids = ActivityEvent.query.filter_by(workspace_id=workspace_id).with_entities(ActivityEvent.id).all()
+        ws_ae_id_strs = {str(r[0]) for r in ws_ae_ids}
         unprocessed = RawEvent.query.filter(
             RawEvent.source.in_(event_providers),
             RawEvent.processed_at.is_(None),
             ~RawEvent.id.in_([r.id for r in raw_events if r.id]),
         ).all()
+        if ws_ae_id_strs:
+            unprocessed = [r for r in unprocessed if r.source_id in ws_ae_id_strs]
         raw_events.extend(unprocessed)
     except Exception:
         db.session.rollback()
@@ -121,6 +126,66 @@ def _safe_run(fn, label, *args, on_quota="skip"):
         return False
 
 
+def _unprocessed_events_for_workspace(workspace_id):
+    """Unprocessed raw events scoped to a workspace (via their activity_event ids),
+    plus reset stale 'processing' events (from crashed runs) back to pending."""
+    from pattern_engine.models import RawEvent as _RawEvent
+    lock_ttl = int(os.environ.get("PIPELINE_LOCK_TTL_MINUTES", "15"))
+    stale_cutoff = datetime.utcnow() - timedelta(minutes=lock_ttl)
+    # Reset stuck 'processing' events older than the lock TTL so they get reprocessed
+    stale = _RawEvent.query.filter(
+        _RawEvent.processing_status == 'processing',
+        _RawEvent.processed_at.is_(None),
+        _RawEvent.created_at < stale_cutoff,
+    ).all()
+    if stale:
+        for ev in stale:
+            ev.processing_status = 'pending'
+            ev.pipeline_name = None
+            ev.last_error = None
+        db.session.flush()
+
+    ws_ae_ids = ActivityEvent.query.filter_by(workspace_id=workspace_id).with_entities(ActivityEvent.id).all()
+    ws_ae_id_strs = {str(r[0]) for r in ws_ae_ids}
+    if not ws_ae_id_strs:
+        return []
+    events = _RawEvent.query.filter(_RawEvent.processed_at.is_(None)).order_by(_RawEvent.created_at.asc()).all()
+    return [e for e in events if e.source_id in ws_ae_id_strs]
+
+
+def _drain_noise_events(workspace_id):
+    """Finalize events that have completed their pass through the pipeline.
+    Terminal statuses (done/skipped/failed) mean every job-specific stage already
+    evaluated them, so mark processed_at to stop them from being re-polled each cycle."""
+    from pattern_engine.models import RawEvent as _RawEvent
+    ws_ae_ids = ActivityEvent.query.filter_by(workspace_id=workspace_id).with_entities(ActivityEvent.id).all()
+    ws_ae_id_strs = {str(r[0]) for r in ws_ae_ids}
+    lock_ttl = int(os.environ.get("PIPELINE_LOCK_TTL_MINUTES", "15"))
+    stale_cutoff = datetime.utcnow() - timedelta(minutes=lock_ttl)
+    terminal_statuses = ('done', 'skipped', 'failed')
+    analytics_sources = {"mixpanel", "amplitude", "posthog"}
+    drained = 0
+    events = _RawEvent.query.filter(
+        _RawEvent.processed_at.is_(None),
+    ).all()
+    for ev in events:
+        if ev.source_id not in ws_ae_id_strs:
+            continue
+        # Events from analytics providers are never consumed by AI stages —
+        # finalize them once they're old enough so they stop being re-polled.
+        if ev.created_at < stale_cutoff and (ev.source or "").lower() in analytics_sources:
+            ev.pipeline_name = None
+            ev.processed_at = datetime.utcnow()
+            drained += 1
+            continue
+        if ev.created_at < stale_cutoff and ev.processing_status in terminal_statuses:
+            ev.pipeline_name = None
+            ev.processed_at = datetime.utcnow()
+            drained += 1
+    if drained:
+        print(f"[PIPELINE] Finalized {drained} terminal/noise events for ws {workspace_id}")
+
+
 def run_for_workspace(user_id, workspace_id):
     integrations = UserIntegration.query.filter_by(user_id=user_id).all()
     total = {"processed": 0, "created": 0, "updated": 0, "skipped": 0, "errors": 0}
@@ -129,8 +194,7 @@ def run_for_workspace(user_id, workspace_id):
         if isinstance(result, dict):
             for k in total:
                 total[k] += result.get(k, 0)
-    from pattern_engine.models import RawEvent as _RawEvent
-    all_events = _RawEvent.query.filter(_RawEvent.processed_at.is_(None)).all()
+    all_events = _unprocessed_events_for_workspace(workspace_id)
     _process_task_tool_events(workspace_id, all_events)
     db.session.commit()
     _safe_run(_llm_infer_decisions, "decisions", workspace_id, all_events)
@@ -157,6 +221,7 @@ def run_for_workspace(user_id, workspace_id):
     _safe_run(_detect_knowledge_staleness, "knowledge_stale", workspace_id)
     _safe_run(_link_knowledge_to_decisions, "knowledge_link", workspace_id)
     _safe_run(_create_chronicle_for_blocker_resolve, "chronicle_blockers", workspace_id)
+    _drain_noise_events(workspace_id)
     _compute_active_phase(workspace_id)
     db.session.commit()
     return total

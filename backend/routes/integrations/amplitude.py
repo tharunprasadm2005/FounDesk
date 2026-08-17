@@ -4,21 +4,23 @@ from models.user_integration import UserIntegration
 from models.activity_event import ActivityEvent
 from utils.auth import token_required
 from utils.workspace_auth import get_current_workspace_id
+from utils.mock_mode import user_in_mock_mode
 from routes.integrations.main import integrations_bp
 
 
 @integrations_bp.route('/integrations/connect/amplitude', methods=['POST'])
 @token_required
 def connect_amplitude(current_user_id):
-    data = request.get_json()
+    data = request.get_json(silent=True) or {}
     token = data.get('token')
     connected_email = data.get('connected_email', 'Amplitude User')
     if not token:
         return jsonify({"error": "Amplitude API key is required"}), 400
-    if token.startswith("mock_"):
+    if token.startswith("mock_") and not user_in_mock_mode(current_user_id):
         return jsonify({"error": "Mock tokens are disabled. Provide a real Amplitude API key."}), 400
     from services.amplitude_service import validate_amplitude_token
-    is_valid, msg = validate_amplitude_token(token)
+    is_mock_ok = token.startswith("mock_")
+    is_valid, msg = (True, None) if is_mock_ok else validate_amplitude_token(token)
     if not is_valid:
         return jsonify({"error": msg}), 400
     from datetime import datetime, timedelta
@@ -60,8 +62,9 @@ def connect_amplitude(current_user_id):
         db.session.add(mirror_event)
         db.session.commit()
     from services.amplitude_service import capture_event
-    capture_event(token, "foundesk_integration_connected", current_user_id, {
-        "provider": "amplitude",
-        "email": connected_email
-    })
+    if not token.startswith("mock_"):
+        capture_event(token, "foundesk_integration_connected", current_user_id, {
+            "provider": "amplitude",
+            "email": connected_email
+        })
     return jsonify({"message": "Amplitude connected successfully", "email": connected_email})

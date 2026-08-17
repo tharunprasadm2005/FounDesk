@@ -24,6 +24,60 @@ def parse_time_to_minutes(dt_str):
         pass
     return None
 
+
+def _local_calendar_events(workspace_id, current_user_id):
+    """Fall back to locally-synced calendar events (mock/sandbox or cached) today.
+
+    Live Google Calendar is skipped when the integration token starts with
+    ``mock_``, so sandbox workspaces would otherwise show an empty defense view.
+    These events are already stored as ActivityEvents by the pattern engine.
+    Returns Google-API-shaped items so callers can reuse the same parsing.
+    """
+    from models.activity_event import ActivityEvent
+    from utils.mock_mode import mock_visibility_clause
+
+    today = datetime.datetime.utcnow().date()
+    items = []
+    seen = set()
+    rows = ActivityEvent.query.filter(
+        ActivityEvent.workspace_id == workspace_id,
+        ActivityEvent.provider.in_(['google_calendar', 'calendly']),
+        mock_visibility_clause(workspace_id),
+    ).all()
+    for ev in rows:
+        ts = ev.external_timestamp
+        if not ts or ts.date() != today:
+            continue
+        if ev.raw_ref in seen:
+            continue
+        seen.add(ev.raw_ref)
+        start_iso = ts.strftime('%Y-%m-%dT%H:%M:%S')
+        end_iso = (ts + datetime.timedelta(minutes=60)).strftime('%Y-%m-%dT%H:%M:%S')
+        items.append({
+            "summary": ev.title,
+            "start": {"dateTime": start_iso},
+            "end": {"dateTime": end_iso},
+            "id": ev.raw_ref,
+        })
+    return items
+
+
+def _build_events_list(items):
+    """Convert Google-API event items into the internal display shape."""
+    events_list = []
+    for ev in items:
+        start_dt = ev.get('start', {}).get('dateTime') or ev.get('start', {}).get('date')
+        end_dt = ev.get('end', {}).get('dateTime') or ev.get('end', {}).get('date')
+        events_list.append({
+            "title": ev.get('summary', 'Untitled Event'),
+            "start": start_dt,
+            "end": end_dt,
+            "is_all_day": ev.get('start', {}).get('date') is not None,
+            "is_recurring": ev.get('recurringEventId') is not None or ev.get('recurrence') is not None,
+            "event_id": ev.get('id', ''),
+        })
+    return events_list
+
 @calendar_defense_bp.route('/calendar/defense', methods=['GET'])
 @token_required
 def get_calendar_defense(current_user_id):
@@ -49,12 +103,10 @@ def get_calendar_defense(current_user_id):
         connected_providers['google_calendar'] = google_integration
 
     events_list = []
-    is_mock = True
 
     if 'google_calendar' in connected_providers:
         integration = connected_providers['google_calendar']
         if not integration.access_token.startswith("mock_"):
-            is_mock = False
             try:
                 headers = {"Authorization": f"Bearer {integration.access_token}"}
                 now = datetime.datetime.utcnow()
@@ -69,27 +121,19 @@ def get_calendar_defense(current_user_id):
                         headers = {"Authorization": f"Bearer {integration.access_token}"}
                         cal_res = requests.get(cal_url, headers=headers, timeout=5)
                 
-                if cal_res.status_code == 200:
-                    items = cal_res.json().get('items', [])
-                    for ev in items:
-                        start_dt = ev.get('start', {}).get('dateTime') or ev.get('start', {}).get('date')
-                        end_dt = ev.get('end', {}).get('dateTime') or ev.get('end', {}).get('date')
-                        is_all_day = ev.get('start', {}).get('date') is not None
-                        is_recurring = ev.get('recurringEventId') is not None or ev.get('recurrence') is not None
-                        events_list.append({
-                            "title": ev.get('summary', 'Untitled Event'),
-                            "start": start_dt,
-                            "end": end_dt,
-                            "is_all_day": is_all_day,
-                            "is_recurring": is_recurring,
-                            "event_id": ev.get('id', ''),
-                        })
-            except Exception as e:
-                print("Failed to fetch real Google Calendar events, falling back to mock:", e)
-                is_mock = True
+                if cal_res.status_code != 200:
+                    print(f"Google Calendar API returned status {cal_res.status_code}")
+                    return jsonify({"error": "Failed to fetch Google Calendar events", "status": cal_res.status_code}), 502
 
-    if is_mock:
-        events_list = []
+                items = cal_res.json().get('items', [])
+                events_list = _build_events_list(items)
+            except Exception as e:
+                print("Failed to fetch real Google Calendar events:", e)
+                return jsonify({"error": "Failed to fetch Google Calendar events", "message": str(e)}), 502
+
+    # Fall back to locally-synced calendar events (mock sandbox / cached)
+    if not events_list:
+        events_list = _build_events_list(_local_calendar_events(workspace_id, current_user_id))
 
     # Filter out all-day events (OOO, holidays)
     timed_events = [ev for ev in events_list if not ev.get("is_all_day")]
@@ -216,11 +260,9 @@ def book_calendar_defense_for_user(current_user_id, start_time, end_time):
         google_integration = connected_providers['google']
         connected_providers['google_calendar'] = google_integration
 
-    is_mock = True
     if 'google_calendar' in connected_providers:
         integration = connected_providers['google_calendar']
         if not integration.access_token.startswith("mock_"):
-            is_mock = False
             try:
                 headers = {
                     "Authorization": f"Bearer {integration.access_token}",
@@ -248,23 +290,16 @@ def book_calendar_defense_for_user(current_user_id, start_time, end_time):
                 res.raise_for_status()
                 return jsonify({"message": "Successfully auto-booked focus block on Google Calendar!", "event": res.json()}), 201
             except Exception as e:
-                print("Failed to auto-book Google Calendar event, falling back to mock:", e)
-                is_mock = True
+                print("Failed to auto-book Google Calendar event:", e)
+                return jsonify({"error": "Failed to book focus block on Google Calendar", "message": str(e)}), 502
 
-    if is_mock:
-        return jsonify({
-            "message": "Successfully auto-booked focus block (Simulated).",
-            "event": {
-                "summary": "🔒 Deep Work: Focus Block",
-                "start": {"dateTime": start_time},
-                "end": {"dateTime": end_time}
-            }
-        }), 201
+    # No real Google Calendar integration connected — do not fabricate a booking
+    return jsonify({"error": "No connected Google Calendar integration. Connect Google Calendar to enable focus block booking."}), 400
 
 @calendar_defense_bp.route('/calendar/book', methods=['POST'])
 @token_required
 def book_calendar_defense_route(current_user_id):
-    data = request.get_json()
+    data = request.get_json(silent=True)
     if not data:
         return jsonify({"error": "Request body is required"}), 400
     return book_calendar_defense_for_user(current_user_id, data.get('start_time'), data.get('end_time'))
@@ -276,7 +311,7 @@ def handle_defense_suggestion(current_user_id):
     if not workspace_id:
         return jsonify({"error": "No active workspace context"}), 400
 
-    data = request.get_json()
+    data = request.get_json(silent=True)
     if not data or not data.get('action') or not data.get('start_time') or not data.get('end_time'):
         return jsonify({"error": "action, start_time, and end_time are required"}), 400
 
@@ -319,11 +354,9 @@ def get_calendar_rules(current_user_id):
         connected_providers['google_calendar'] = connected_providers['google']
 
     events_list = []
-    has_real_calendar = False
     if 'google_calendar' in connected_providers:
         integration = connected_providers['google_calendar']
         if not integration.access_token.startswith("mock_"):
-            has_real_calendar = True
             try:
                 headers = {"Authorization": f"Bearer {integration.access_token}"}
                 now = datetime.datetime.utcnow()
@@ -335,10 +368,17 @@ def get_calendar_rules(current_user_id):
                     if refresh_google_token(integration):
                         headers["Authorization"] = f"Bearer {integration.access_token}"
                         cal_res = requests.get(cal_url, headers=headers, timeout=5)
-                if cal_res.status_code == 200:
-                    events_list = cal_res.json().get('items', [])
+                if cal_res.status_code != 200:
+                    print(f"Google Calendar API returned status {cal_res.status_code}")
+                    return jsonify({"error": "Failed to fetch Google Calendar events", "status": cal_res.status_code}), 502
+                events_list = cal_res.json().get('items', [])
             except Exception as e:
                 print("Failed to fetch calendar events for rules:", e)
+                return jsonify({"error": "Failed to fetch Google Calendar events", "message": str(e)}), 502
+
+    # Fall back to locally-synced calendar events (mock sandbox / cached)
+    if not events_list:
+        events_list = _local_calendar_events(workspace_id, current_user_id)
 
     # Separate recurring and one-off events
     recurring_events = []

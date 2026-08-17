@@ -105,8 +105,8 @@ def search_memory(current_user_id):
 
         for k in knowledge_items:
             title_tok = tokenize(k.title)
-            content_tok = tokenize(k.content)
-            cat_tok = tokenize(k.category)
+            content_tok = tokenize(getattr(k, 'summary', '') or '')
+            cat_tok = tokenize(getattr(k, 'knowledge_type', '') or '')
 
             title_matches = sum(1 for tok in query_tokens if tok in title_tok)
             desc_matches = sum(1 for tok in query_tokens if tok in content_tok)
@@ -115,7 +115,11 @@ def search_memory(current_user_id):
             score = (title_matches * 3.0) + (desc_matches * 1.0) + (tag_matches * 2.0)
             if score > 0:
                 relevance_pct = min(100.0, (score / len(query_tokens)) * 25.0)
-                results.append({"type": "knowledge", "score": round(relevance_pct, 1), "data": k.to_dict()})
+                try:
+                    kd = k.to_dict()
+                except Exception:
+                    kd = {"id": getattr(k, 'id', None), "title": getattr(k, 'title', None), "error": "serialization failed"}
+                results.append({"type": "knowledge", "score": round(relevance_pct, 1), "data": kd})
 
     # Sort descending by score
     results.sort(key=lambda r: r["score"], reverse=True)
@@ -416,6 +420,72 @@ def get_offboarding_packet(current_user_id):
         "created_at": packet.created_at.isoformat() + "Z"
     })
 
+@memory_bp.route('/handoff/manual', methods=['POST'])
+@token_required
+def create_manual_handoff(current_user_id):
+    workspace_id = get_current_workspace_id(current_user_id)
+    if not workspace_id:
+        return jsonify({"error": "No active workspace context"}), 400
+
+    data = request.get_json(silent=True) or {}
+    packet_type = (data.get("packet_type") or "").strip().lower()
+    if packet_type not in ("onboarding", "offboarding"):
+        return jsonify({"error": "packet_type must be 'onboarding' or 'offboarding'"}), 400
+
+    user_name = (data.get("user_name") or "").strip()
+    if not user_name:
+        return jsonify({"error": "user_name is required"}), 400
+
+    note = (data.get("note") or "").strip()
+    role = (data.get("role") or "").strip()
+
+    workspace = Workspace.query.get(workspace_id)
+    stage = workspace.stage if workspace else "Think"
+    direction = "joined" if packet_type == "onboarding" else "left"
+    verb = "joined" if packet_type == "onboarding" else "left"
+
+    md_lines = [f"# {'🚀 Onboarding' if packet_type == 'onboarding' else '🚪 Offboarding'} Handoff Packet\n"]
+    md_lines.append(f"**Member**: {user_name}")
+    if role:
+        md_lines.append(f"**Role**: {role}")
+    md_lines.append(f"**Date**: {datetime.utcnow().strftime('%Y-%m-%d')}")
+    md_lines.append(f"**Recorded by**: {current_user_id}")
+    if note:
+        md_lines.append(f"\n## Notes\n{note}")
+    else:
+        md_lines.append(f"\n## Notes\n_{user_name} {verb} the team. Add context about handoff, access, and responsibilities._")
+    md = "\n".join(md_lines)
+
+    packet = HandoffPacket(
+        workspace_id=workspace_id,
+        packet_type=packet_type,
+        user_id=data.get("user_id"),
+        user_name=user_name,
+        markdown_content=md,
+        created_by=current_user_id
+    )
+    db.session.add(packet)
+    db.session.flush()
+
+    chronicle = ChronicleEvent(
+        workspace_id=workspace_id,
+        event_type="team_joined" if packet_type == "onboarding" else "team_left",
+        title=f"{'Onboarding' if packet_type == 'onboarding' else 'Offboarding'}: {user_name} {verb} the team",
+        description=f"Manual {'onboarding' if packet_type == 'onboarding' else 'offboarding'} packet created for {user_name}." + (f" Role: {role}." if role else "") + (f" Note: {note}" if note else ""),
+        stage=stage,
+        user_id=data.get("user_id"),
+        source_type="handoff",
+        source_id=packet.id
+    )
+    db.session.add(chronicle)
+    db.session.commit()
+
+    return jsonify({
+        "packet": packet.to_dict(),
+        "chronicle": chronicle.to_dict(),
+        "message": f"{'Onboarding' if packet_type == 'onboarding' else 'Offboarding'} packet created for {user_name}"
+    }), 201
+
 @memory_bp.route('/handoff/packets', methods=['GET'])
 @token_required
 def list_handoff_packets(current_user_id):
@@ -448,6 +518,15 @@ def get_chronicle(current_user_id):
     stage_filter = request.args.get('stage', '').strip()
     search_query = request.args.get('search', '').strip()
 
+    EVENT_TYPE_ALIASES = {
+        "meeting": "meeting_note",
+        "meetings": "meeting_note",
+        "integration": "activity",
+        "integrations": "activity",
+        "activity": "activity",
+    }
+    event_type_filter = EVENT_TYPE_ALIASES.get(event_type_filter.lower(), event_type_filter)
+
     workspace = Workspace.query.get(workspace_id)
     ws_stage = workspace.stage if workspace else "Think"
 
@@ -457,7 +536,12 @@ def get_chronicle(current_user_id):
     # 1. Fetch from ChronicleEvent model (all event types)
     chronicle_query = ChronicleEvent.query.filter_by(workspace_id=workspace_id)
     if event_type_filter:
-        chronicle_query = chronicle_query.filter(ChronicleEvent.event_type == event_type_filter)
+        if event_type_filter in ("milestone", "goal"):
+            chronicle_query = chronicle_query.filter(ChronicleEvent.event_type.in_(["milestone", "goal"]))
+        elif event_type_filter == "knowledge":
+            chronicle_query = chronicle_query.filter(ChronicleEvent.event_type.in_(["knowledge", "knowledge_item"]))
+        else:
+            chronicle_query = chronicle_query.filter(ChronicleEvent.event_type == event_type_filter)
     if stage_filter:
         chronicle_query = chronicle_query.filter(ChronicleEvent.stage == stage_filter)
     if search_query:
@@ -466,9 +550,22 @@ def get_chronicle(current_user_id):
             (ChronicleEvent.description.ilike(f"%{search_query}%"))
         )
     chronicle_events = chronicle_query.order_by(ChronicleEvent.created_at.desc()).limit(200).all()
+
+    # Record types that are re-added inline below (with canonical labels) so
+    # we skip their ChronicleEvent rows here to avoid duplicates.
+    RE_ADDED_TYPES = {"decision", "meeting", "meeting_note", "goal", "milestone", "knowledge", "knowledge_item"}
+    TYPE_LABELS = {"meeting_note": "meeting", "knowledge_item": "knowledge", "goal": "milestone"}
     for ce in chronicle_events:
+        if ce.event_type == "activity" and (ce.title or "").startswith("Ingested:"):
+            continue
+        if ce.event_type == "activity" and ce.source_id is not None:
+            continue
+        if ce.event_type in RE_ADDED_TYPES and ce.source_id is not None:
+            continue
+        if ce.source_type in RE_ADDED_TYPES and ce.source_id is not None:
+            continue
         events.append({
-            "type": ce.event_type,
+            "type": TYPE_LABELS.get(ce.event_type, ce.event_type),
             "title": ce.title,
             "description": ce.description or "",
             "date": ce.created_at,
@@ -526,8 +623,8 @@ def get_chronicle(current_user_id):
             })
 
     # 4. Meeting notes as inline events
-    existing_meeting_ids = {e.get("source_id") for e in events if e.get("source_type") == "meeting"}
-    if not event_type_filter or event_type_filter == "meeting":
+    existing_meeting_ids = {e.get("source_id") for e in events if e.get("source_type") in ("meeting", "meeting_note")}
+    if not event_type_filter or event_type_filter == "meeting_note":
         meetings = MeetingNotes.query.filter_by(workspace_id=workspace_id).all()
         for m in meetings:
             if m.id in existing_meeting_ids:
@@ -547,10 +644,34 @@ def get_chronicle(current_user_id):
                 "user_name": None
             })
 
+    # 4b. Knowledge items as inline events
+    existing_knowledge_ids = {e.get("source_id") for e in events if e.get("source_type") in ("knowledge", "knowledge_item")}
+    if not event_type_filter or event_type_filter == "knowledge":
+        knowledge_items = KnowledgeItem.query.filter_by(workspace_id=workspace_id).all()
+        for k in knowledge_items:
+            if k.id in existing_knowledge_ids:
+                continue
+            if search_query and not (search_query.lower() in (getattr(k, "title", "") or "").lower() or search_query.lower() in (getattr(k, "summary", "") or "").lower()):
+                continue
+            evt_date = getattr(k, "created_at", None) or now
+            events.append({
+                "type": "knowledge",
+                "title": f"Knowledge: {getattr(k, 'title', '')}",
+                "description": getattr(k, "summary", "") or "Knowledge item captured by the pipeline.",
+                "date": evt_date,
+                "stage": ws_stage,
+                "source_type": "knowledge",
+                "source_id": k.id,
+                "meta": {"knowledge_type": getattr(k, "knowledge_type", None), "status": getattr(k, "status", None)},
+                "user_name": None
+            })
+
     # 5. ActivityEvents from integrations (events the pipeline sees)
     acts = ActivityEvent.query.filter_by(workspace_id=workspace_id).order_by(ActivityEvent.fetched_at.desc()).limit(100).all()
     existing_ae_source_ids = {e.get("source_id") for e in events if e.get("source_type") == "activity_event"}
     for a in acts:
+        if event_type_filter and event_type_filter not in ("activity", "integration"):
+            continue
         sid = str(a.id)
         if sid in existing_ae_source_ids:
             continue
@@ -582,10 +703,12 @@ def get_chronicle(current_user_id):
             route_map = {
                 "decision": f"/memory/decisions/{source_id}",
                 "meeting": f"/memory/notes/{source_id}",
+                "meeting_note": f"/memory/notes/{source_id}",
                 "goal": f"/plan/goals/{source_id}",
                 "task": f"/execute/tasks/{source_id}",
                 "blocker": f"/execute/blockers/{source_id}",
                 "knowledge": f"/memory/knowledge/{source_id}",
+                "knowledge_item": f"/memory/knowledge/{source_id}",
                 "follow_up": f"/plan/follow-ups/{source_id}",
                 "handoff": f"/memory/handoff/packets/{source_id}",
             }

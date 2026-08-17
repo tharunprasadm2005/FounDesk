@@ -3,6 +3,7 @@ from config.database import db
 from utils.auth import token_required
 from models.user_integration import UserIntegration
 from models.activity_event import ActivityEvent
+from utils.mock_mode import mock_visibility_clause
 
 amplitude_bp = Blueprint("amplitude_bp", __name__)
 
@@ -41,9 +42,10 @@ def get_amplitude_events(current_user_id):
     if not workspace_id:
         return jsonify({"error": "No active workspace"}), 400
 
-    events = ActivityEvent.query.filter_by(
-        workspace_id=workspace_id,
-        provider="amplitude"
+    events = ActivityEvent.query.filter(
+        ActivityEvent.workspace_id == workspace_id,
+        ActivityEvent.provider == "amplitude",
+        mock_visibility_clause(workspace_id)
     ).order_by(ActivityEvent.external_timestamp.desc()).limit(50).all()
 
     return jsonify([{
@@ -58,7 +60,7 @@ def get_amplitude_events(current_user_id):
 @amplitude_bp.route("/amplitude/track", methods=["POST"])
 @token_required
 def track_amplitude_event(current_user_id):
-    data = request.get_json()
+    data = request.get_json(silent=True) or {}
     event = data.get("event")
     properties = data.get("properties", {})
 

@@ -240,7 +240,25 @@ def _llm_infer_decisions(workspace_id, raw_events):
                 existing_source_ids.add(str(d.source_event_id))
 
         creator_id = _get_workspace_creator(workspace_id)
-        batch = raw_events[:min(20, remaining)]
+        # Pre-filter: analytics/task-only/meeting-only sources can never be decisions \u2014
+        # excluding them here means they don't consume the limited batch window
+        candidates = []
+        for event in raw_events:
+            src = (event.source or "").lower()
+            if src in ANALYTICS_SOURCES or src in TASK_ONLY_SOURCES or src in MEETING_ONLY_SOURCES:
+                continue
+            payload = event.raw_payload
+            if isinstance(payload, str):
+                try:
+                    payload = _json.loads(payload)
+                except (_json.JSONDecodeError, TypeError):
+                    continue
+            if not isinstance(payload, dict):
+                continue
+            if not payload.get("title") and not payload.get("details"):
+                continue
+            candidates.append(event)
+        batch = candidates[:min(20, remaining)]
         created = 0
         skipped = 0
         tasks_routed = 0
@@ -318,6 +336,9 @@ def _llm_infer_decisions(workspace_id, raw_events):
                     continue
 
             event_text = f"Title: {title}\nDetails: {details}" if details else title
+            actor = payload.get("actor") or payload.get("from") or ""
+            if actor:
+                event_text = f"From: {actor}\n{event_text}"
             try:
                 result = extract_decision_from_event(event_text, event.source)
             except Exception as e:
@@ -897,6 +918,12 @@ def _infer_knowledge(workspace_id, raw_events):
         lock_ttl_minutes = int(os.environ.get("PIPELINE_LOCK_TTL_MINUTES", "15"))
         stale_cutoff = datetime.utcnow() - timedelta(minutes=lock_ttl_minutes)
 
+        # Scope to this workspace's events (via activity_event ids) \u2014 prevents
+        # one workspace's noise from being processed as another workspace's knowledge
+        from models.activity_event import ActivityEvent
+        ws_ae_ids = ActivityEvent.query.filter_by(workspace_id=workspace_id).with_entities(ActivityEvent.id).all()
+        ws_ae_id_strs = {str(r[0]) for r in ws_ae_ids}
+
         # Grab pending events, plus processing events older than lock TTL (stuck from a crash)
         pending = RawEvent.query.filter(
             (RawEvent.pipeline_name.is_(None) | (RawEvent.pipeline_name == 'knowledge')),
@@ -910,6 +937,9 @@ def _infer_knowledge(workspace_id, raw_events):
                 ),
             )
         ).order_by(RawEvent.created_at.asc()).limit(batch_size).all()
+
+        if ws_ae_id_strs:
+            pending = [e for e in pending if e.source_id in ws_ae_id_strs]
 
         if not pending:
             print(f"[KNOWLEDGE] No pending events for ws {workspace_id}")

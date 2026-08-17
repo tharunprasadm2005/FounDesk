@@ -5,7 +5,7 @@ import { NOTIFICATION_TYPES, NOTIF_ICONS, SETTINGS_STYLE as s } from "./Settings
 import { FileText, Mail, ChevronDown, Moon, Send, Save, Bell, AlertCircle, Sun, Clock, CheckCircle, Users, RefreshCw, MessageCircle, Shield, CreditCard, Calendar, UserCheck } from "lucide-react";
 
 export default function NotificationsTab({ notificationPrefs, onNotificationPrefsChange }) {
-  const { toast } = useToast();
+  const toast = useToast();
   const [notifExpanded, setNotifExpanded] = useState({});
   const [emailTemplates, setEmailTemplates] = useState([]);
   const [showEmailTemplates, setShowEmailTemplates] = useState(false);
@@ -23,7 +23,7 @@ export default function NotificationsTab({ notificationPrefs, onNotificationPref
   };
 
   const handleMarkAllRead = async (wsId) => {
-    try { await api.post(`/api/workspaces/${wsId}/notifications/mark-all-read`); toast("Marked all as read.", "success"); } catch { toast("Failed to mark all as read.", "error"); }
+    try { await api.post(`/api/notifications/read-all/workspace/${wsId}`); toast("Marked all as read.", "success"); } catch { toast("Failed to mark all as read.", "error"); }
   };
 
   const now = new Date();
@@ -79,12 +79,14 @@ export default function NotificationsTab({ notificationPrefs, onNotificationPref
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: "12px" }}>
         {NOTIFICATION_TYPES.map((n, idx) => {
-          const enabled = notificationPrefs[n.key] !== false;
+          const pref = notificationPrefs[n.key] || {};
+          const enabled = pref.enabled !== false;
           const expanded = notifExpanded[n.key];
           const NotifIcon = NOTIF_ICONS[n.category === "alerts" ? "alert" : n.category === "reports" ? "clock" : n.category === "team" ? "users" : n.category === "tasks" ? "check-square" : n.category === "ai" ? "cpu" : n.category === "social" ? "message-circle" : n.category === "security" ? "shield" : n.category === "billing" ? "credit-card" : n.category === "system" ? "alert" : "calendar"] || Bell;
-          const qhStart = notificationPrefs[`${n.key}_quiet_hours_start`];
-          const qhEnd = notificationPrefs[`${n.key}_quiet_hours_end`];
+          const qhStart = pref.quiet_hours_start;
+          const qhEnd = pref.quiet_hours_end;
           const inQuietHours = isInQuietHours(qhStart, qhEnd);
+          const setRule = (patch) => onNotificationPrefsChange({ ...notificationPrefs, [n.key]: { ...pref, rule_key: n.key, enabled, delivery_method: "in_app", sound_enabled: true, ...patch } });
           return (
             <div key={n.key} className="card-glass" style={{ padding: "14px" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: expanded ? "10px" : 0 }}>
@@ -98,7 +100,7 @@ export default function NotificationsTab({ notificationPrefs, onNotificationPref
                   )}
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                  <button onClick={() => onNotificationPrefsChange({ ...notificationPrefs, [n.key]: !enabled })}
+                  <button onClick={() => setRule({ enabled: !enabled })}
                     className={`neu-toggle ${enabled ? "on" : ""}`}><div className="thumb" /></button>
                   <button onClick={() => setNotifExpanded(p => ({ ...p, [n.key]: !expanded }))} className="btn-action-secondary" style={{ padding: "4px" }}>
                     <ChevronDown size={12} style={{ transform: expanded ? "rotate(180deg)" : "", transition: "transform 0.2s" }} />
@@ -108,34 +110,27 @@ export default function NotificationsTab({ notificationPrefs, onNotificationPref
               {expanded && (
                 <div style={{ borderTop: "1px solid rgba(107,107,111,0.08)", marginTop: "10px", paddingTop: "10px", display: "flex", flexDirection: "column", gap: "8px" }}>
                   <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
-                    <select className="plan-select" style={{ flex: 1, height: "32px", fontSize: "11px" }} value={notificationPrefs[`${n.key}_channel`] || "all"}>
-                      <option value="all">All Channels</option>
+                    <div style={{ fontSize: "11px", color: "var(--japandi-muted)" }}>Deliver via:</div>
+                    <select className="plan-select" style={{ flex: 1, height: "32px", fontSize: "11px" }} value={pref.delivery_method || "in_app"} onChange={e => setRule({ delivery_method: e.target.value })}>
+                      <option value="in_app">In-App</option>
                       <option value="email">Email</option>
-                      <option value="push">Push</option>
-                      <option value="in-app">In-App</option>
-                      <option value="slack">Slack</option>
+                      <option value="both">In-App + Email</option>
                     </select>
-                    <select className="plan-select" style={{ flex: 1, height: "32px", fontSize: "11px" }} value={notificationPrefs[`${n.key}_frequency`] || "immediate"}>
-                      <option value="immediate">Immediate</option>
-                      <option value="daily">Daily Digest</option>
-                      <option value="weekly">Weekly</option>
-                      <option value="off">Off</option>
-                    </select>
-                    <select className="plan-select" style={{ width: "80px", height: "32px", fontSize: "11px" }} value={notificationPrefs[`${n.key}_priority`] || "normal"}>
-                      <option value="high">🔴 High</option>
-                      <option value="normal">🟡 Normal</option>
-                      <option value="low">🟢 Low</option>
-                    </select>
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "11px", color: "var(--japandi-muted)" }}>
+                      Sound
+                      <button onClick={() => setRule({ sound_enabled: !(pref.sound_enabled !== false) })}
+                        className={`neu-toggle ${pref.sound_enabled !== false ? "on" : ""}`}><div className="thumb" /></button>
+                    </div>
                   </div>
                   <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
                     <div style={{ fontSize: "10px", color: "var(--japandi-muted)" }}>Quiet Hours:</div>
                     <input type="time" className="plan-input" style={{ width: "100px", fontSize: "11px", padding: "4px 6px" }}
-                      value={notificationPrefs[`${n.key}_quiet_hours_start`] || ""}
-                      onChange={e => onNotificationPrefsChange({ ...notificationPrefs, [`${n.key}_quiet_hours_start`]: e.target.value })} />
+                      value={qhStart || ""}
+                      onChange={e => setRule({ quiet_hours_start: e.target.value })} />
                     <span style={{ fontSize: "10px", color: "var(--japandi-muted)" }}>to</span>
                     <input type="time" className="plan-input" style={{ width: "100px", fontSize: "11px", padding: "4px 6px" }}
-                      value={notificationPrefs[`${n.key}_quiet_hours_end`] || ""}
-                      onChange={e => onNotificationPrefsChange({ ...notificationPrefs, [`${n.key}_quiet_hours_end`]: e.target.value })} />
+                      value={qhEnd || ""}
+                      onChange={e => setRule({ quiet_hours_end: e.target.value })} />
                   </div>
                   <button onClick={() => toast(`Test ${n.label} notification sent.`, "info")} className="btn-action-secondary" style={{ fontSize: "10px", padding: "4px 10px", alignSelf: "flex-start" }}>
                     <Send size={10} /> Test

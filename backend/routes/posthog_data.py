@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify
 from utils.auth import token_required
 from models.user_integration import UserIntegration
 from models.activity_event import ActivityEvent
+from utils.mock_mode import mock_visibility_clause
 
 posthog_bp = Blueprint("posthog_bp", __name__)
 
@@ -22,9 +23,10 @@ def get_posthog_events(current_user_id):
     if not workspace_id:
         return jsonify({"error": "No active workspace"}), 400
 
-    events = ActivityEvent.query.filter_by(
-        workspace_id=workspace_id,
-        provider="posthog"
+    events = ActivityEvent.query.filter(
+        ActivityEvent.workspace_id == workspace_id,
+        ActivityEvent.provider == "posthog",
+        mock_visibility_clause(workspace_id)
     ).order_by(ActivityEvent.external_timestamp.desc()).limit(50).all()
 
     return jsonify([{

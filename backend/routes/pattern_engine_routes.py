@@ -1,5 +1,5 @@
 from datetime import datetime
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, current_app
 from config.database import db
 from utils.auth import token_required
 from utils.workspace_auth import get_current_workspace_id
@@ -13,6 +13,7 @@ from pattern_engine.models import PatternCorrection
 from pattern_engine.pipeline.core import run_for_integration, run_all
 from models.user_integration import UserIntegration
 from services.notification_engine import run_notification_engine
+import threading
 
 pattern_engine_bp = Blueprint("pattern_engine", __name__)
 
@@ -22,6 +23,9 @@ RECORD_MAP = {
     "goal": Goal,
     "blocker": Blocker,
 }
+
+_pipeline_run_lock = threading.Lock()
+_pipeline_running = False
 
 @pattern_engine_bp.route("/pattern-engine/sync", methods=["POST"])
 @token_required
@@ -44,8 +48,27 @@ def trigger_sync(current_user_id):
 @pattern_engine_bp.route("/pattern-engine/run-all", methods=["POST"])
 @token_required
 def trigger_run_all(current_user_id):
-    result = run_all(user_id=current_user_id)
-    return jsonify(result)
+    global _pipeline_running
+    if _pipeline_running:
+        return jsonify({"status": "started", "message": "Pattern engine sync already running"}), 202
+
+    _pipeline_running = True
+    app = current_app._get_current_object()
+
+    def _background_run(uid):
+        global _pipeline_running
+        try:
+            with app.app_context():
+                result = run_all(user_id=uid)
+                print(f"Pattern engine run-all (background): {result}")
+        except Exception as e:
+            import traceback
+            print(f"Pattern engine run-all failed: {e}\n{traceback.format_exc()}")
+        finally:
+            _pipeline_running = False
+
+    threading.Thread(target=_background_run, args=(current_user_id,), daemon=True).start()
+    return jsonify({"status": "started", "message": "Pattern engine sync started in background"}), 202
 
 
 @pattern_engine_bp.route("/records/<record_type>/<int:record_id>/confirm", methods=["POST"])

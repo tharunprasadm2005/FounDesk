@@ -89,7 +89,7 @@ def create_note(current_user_id):
     if not workspace_id:
         return jsonify({"error": "No active workspace context"}), 400
 
-    data = request.get_json()
+    data = request.get_json(silent=True)
     if not data or not data.get('title'):
         return jsonify({"error": "Title is required"}), 400
         
@@ -142,7 +142,7 @@ def update_note(current_user_id, note_id):
     if not note:
         return jsonify({"error": "Meeting note not found in this workspace"}), 404
 
-    data = request.get_json()
+    data = request.get_json(silent=True)
     if not data:
         return jsonify({"error": "No data provided"}), 400
 
@@ -298,7 +298,9 @@ def process_note(current_user_id, note_id):
 
     created_decisions = []
     for d_data in decisions_extracted:
-        dec_title = (d_data.get("decision") or "Untitled Decision").strip()
+        dec_title = (d_data.get("decision") or "").strip()
+        if not dec_title or dec_title.lower() == "untitled decision":
+            continue
         if dec_title.lower() in existing_for_meeting:
             continue
         existing_for_meeting.add(dec_title.lower())

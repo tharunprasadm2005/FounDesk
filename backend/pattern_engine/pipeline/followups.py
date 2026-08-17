@@ -1,4 +1,5 @@
 import json
+import os
 from datetime import datetime, timedelta
 from config.database import db
 from models.follow_up import FollowUp
@@ -21,7 +22,8 @@ def _llm_follow_up_detection(workspace_id, raw_events):
     creator_id = _get_workspace_creator(workspace_id)
     follow_up_sources = {"gmail", "slack", "hubspot", "pipedrive"}
     created = 0
-    for event in raw_events[:min(5, remaining)]:
+    candidates = [e for e in raw_events if (e.source or "").lower() in follow_up_sources]
+    for event in candidates[:min(5, remaining)]:
         src = (event.source or "").lower()
         if src not in follow_up_sources:
             continue
@@ -35,7 +37,10 @@ def _llm_follow_up_detection(workspace_id, raw_events):
             continue
         title = payload.get("title", "") or ""
         details = payload.get("details", "") or ""
+        actor = payload.get("actor") or payload.get("from") or ""
         event_text = f"Title: {title}\nDetails: {details}" if details else title
+        if actor:
+            event_text = f"From: {actor}\n{event_text}"
         if len(event_text.strip()) < 30:
             continue
         try:
@@ -50,6 +55,14 @@ def _llm_follow_up_detection(workspace_id, raw_events):
                 action = result.get("action_needed", "")[:200]
                 suggested_date = result.get("suggested_followup_date", "")
                 full_context = f"{context} - {action}" if action else context
+                already_exists = FollowUp.query.filter_by(
+                    workspace_id=workspace_id,
+                    source=src,
+                    source_event_id=str(event.id),
+                ).first()
+                if already_exists:
+                    print(f"[FOLLOW-UP] Skipped duplicate for event {event.id} (existing FU #{already_exists.id})")
+                    continue
                 fu = FollowUp(
                     person_name=person[:100],
                     context=full_context[:200] if full_context else None,

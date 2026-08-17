@@ -314,6 +314,20 @@ def _auto_progress_v2(workspace_id):
             continue
 
         # 4. Auto-transition
+        children = Goal.query.filter_by(parent_id=goal.id, workspace_id=workspace_id).all()
+        if children:
+            # Parent goals roll up from their sub-goals. Never complete a parent
+            # from linked decisions alone while its sub-goals are still open.
+            child_statuses = set(c.status for c in children)
+            if child_statuses == {"completed"}:
+                goal.status = "completed"
+                print(f"[GOAL] Auto-completed '{goal.title[:40]}' ({goal.goal_type}) \u2014 all sub-goals done")
+            elif "in_progress" in child_statuses:
+                goal.status = "in_progress"
+            else:
+                goal.status = "pending"
+            continue
+
         if progress >= 100:
             goal.status = "completed"
             print(f"[GOAL] Auto-completed '{goal.title[:40]}' ({goal.goal_type}) \u2014 all linked work done")

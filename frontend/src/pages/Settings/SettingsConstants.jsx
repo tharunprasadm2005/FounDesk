@@ -89,10 +89,10 @@ export const NOTIF_ICONS = {
 
 export const TOKEN_PROVIDERS = new Set(["trello", "notion", "hubspot", "mixpanel", "amplitude", "posthog", "razorpay", "stripe"]);
 
-export const WORKSPACE_COLORS = ["#ff751f", "#3acaa5", "#53a1f5", "#f59e0b", "#a855f7", "#ef4444", "#ec4899", "#14b8a6"];
+export const WORKSPACE_COLORS = ["#D6824F", "#7E8E7B", "#B5654A", "#C9A876", "#8BA2A0", "#A58BA9", "#5F7264", "#C0864F"];
 export const WORKSPACE_STAGES = ["Think", "Build", "Launch", "Scale"];
 
-export const ROLE_BADGE_COLORS = { founder: "#ff751f", admin: "#3b82f6", manager: "#8b5cf6", developer: "#3acaa5", designer: "#ec4899", viewer: "#6b6b6f", member: "#6b6b6f" };
+export const ROLE_BADGE_COLORS = { founder: "#D6824F", admin: "#7E8E7B", manager: "#B5654A", developer: "#5F7264", designer: "#A58BA9", viewer: "#8F897F", member: "#8F897F" };
 
 export const PLAN_TIERS = [
   {

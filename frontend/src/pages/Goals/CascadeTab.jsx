@@ -7,14 +7,13 @@ import { Icon, PRIORITY_COLORS, renderProgressBar, renderSourceBadge, getGoalHea
 import { ExternalLink, AlertTriangle } from "lucide-react";
 import HeroNumber from "../../components/ui/HeroNumber";
 
-export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinkedTasks, teamMembers, setTeamMembers, onGoalsChange }) {
+export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinkedTasks, teamMembers, setTeamMembers, goalsLoading, onGoalsChange }) {
   const monthlyGoals = goals.filter(g => g.goal_type === "monthly");
   const weeklyGoals = goals.filter(g => g.goal_type === "weekly");
   const dailyGoals = goals.filter(g => g.goal_type === "daily");
   const navigate = useNavigate();
   const toast = useToast();
 
-  const [goalsLoading, setGoalsLoading] = useState(true);
   const [showGoalForm, setShowGoalForm] = useState(false);
   const [goalForm, setGoalForm] = useState({ title: "", description: "", goal_type: "monthly", parent_id: "", due_date: "", assignee_id: "" });
   const [quickTaskTitle, setQuickTaskTitle] = useState({});
@@ -104,12 +103,12 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
       <div className="fade-in" style={{ display: "flex", flexDirection: "column", gap: "22px" }}>
         {/* Stats Summary Row */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "22px", marginBottom: "8px" }}>
-          <div className="card-glass" style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+          <div className="card-glass" style={{ display: "flex", flexDirection: "column", gap: "2px", padding: "18px 20px" }}>
             <span className="card-label">Roadmap Goals</span>
             <HeroNumber value={goals.length} variant="neutral" />
             <span className="card-hero-support">{goals.length === 1 ? "Goal" : "Goals"} mapped</span>
           </div>
-          <div className="card-glass" style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+          <div className="card-glass" style={{ display: "flex", flexDirection: "column", gap: "2px", padding: "18px 20px" }}>
             <span className="card-label">Active Milestones</span>
             <HeroNumber
               value={goals.filter(g => g.goal_type === "monthly" && g.status === "in_progress").length}
@@ -117,7 +116,7 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
             />
             <span className="card-hero-support">In progress</span>
           </div>
-          <div className="card-glass" style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+          <div className="card-glass" style={{ display: "flex", flexDirection: "column", gap: "2px", padding: "18px 20px" }}>
             <span className="card-label">Unlinked Tasks</span>
             <HeroNumber value={unlinkedTasks.length} variant="warning" />
             <span className="card-hero-support">Not connected to goals</span>
@@ -162,7 +161,7 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
           </div>
         ) : monthlyGoals.filter(mg => filterStatus === "all" || mg.status === filterStatus).length === 0 &&
           weeklyGoals.filter(w => !w.parent_id).filter(w => filterStatus === "all" || w.status === filterStatus).length === 0 ? (
-          <div className="card-glass" style={{ textAlign: "center" }}>
+          <div className="card-glass" style={{ textAlign: "center", padding: "48px 24px" }}>
             <p style={{ margin: "0 0 16px", color: "var(--japandi-muted)", fontSize: "14px" }}>
               No milestones mapped for this phase.
             </p>
@@ -188,25 +187,35 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
                 const progressVal = mg.progress !== undefined ? mg.progress : 0;
 
                 return (
-                  <div key={mg.id} className="card-glass">
+                  <div key={mg.id} className="card-glass" style={{ padding: "20px 22px" }}>
                     {/* Milestone Header */}
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "14px" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px", flex: 1, minWidth: 0 }}>
                         <span onClick={() => {
                           const next = new Set(expandedMilestones);
                           isExpanded ? next.delete(mg.id) : next.add(mg.id);
                           setExpandedMilestones(next);
-                        }} style={{ fontSize: "10px", color: "var(--japandi-muted)", cursor: "pointer", width: "18px", textAlign: "center", userSelect: "none" }}>
+                        }} style={{ fontSize: "10px", color: "var(--japandi-muted)", cursor: "pointer", width: "18px", textAlign: "center", userSelect: "none", flexShrink: 0 }}>
                           {isExpanded ? "▼" : "▶"}
                         </span>
-                        <span style={{ fontSize: "9.5px", color: "var(--japandi-accent)", fontWeight: "800", textTransform: "uppercase", letterSpacing: "1px", backgroundColor: "rgba(232, 80, 2, 0.08)", padding: "3px 8px", borderRadius: "5px" }}>
+                        <span style={{ fontSize: "9.5px", color: "var(--japandi-accent)", fontWeight: "800", textTransform: "uppercase", letterSpacing: "1px", backgroundColor: "rgba(214, 130, 79, 0.12)", padding: "3px 8px", borderRadius: "5px", flexShrink: 0 }}>
                           Monthly
                         </span>
-                        {health && <span style={{ fontSize: "9.5px", fontWeight: "700", color: health.color }}>{health.label}</span>}
+                        <h3 onClick={() => fetchGoalDetail(mg.id)}
+                          style={{ fontSize: "17px", fontWeight: "600", color: "var(--japandi-text)", margin: 0, letterSpacing: "-0.015em", fontFamily: "'Cormorant Garamond', serif", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", flex: 1, minWidth: 0 }}>
+                          <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{mg.title}</span>
+                          <ExternalLink size={12} color="var(--japandi-muted)" style={{ opacity: 0.4, flexShrink: 0 }} />
+                        </h3>
                       </div>
-                      <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                      <div style={{ display: "flex", gap: "8px", alignItems: "center", flexShrink: 0, marginLeft: "12px" }}>
+                        {health && <span style={{ fontSize: "9.5px", fontWeight: "700", color: health.color, whiteSpace: "nowrap" }}>{health.label}</span>}
+                        {mg.due_date && (
+                          <span style={{ fontSize: "10px", color: "var(--japandi-muted)", fontWeight: "600", whiteSpace: "nowrap" }}>
+                            Due {new Date(mg.due_date).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+                          </span>
+                        )}
                         <select value={mg.status} onChange={(e) => handleStatusChange(mg.id, e.target.value)}
-                          className="neu-control select-custom" style={{ cursor: "pointer", fontSize: "11px", padding: "6px 12px", border: "none", color: "var(--japandi-text)", outline: "none" }}>
+                          className="neu-control select-custom" style={{ cursor: "pointer", fontSize: "11px", padding: "4px 9px", border: "none", color: "var(--japandi-text)", outline: "none" }}>
                           <option value="pending" style={{ background: "var(--dark-gray)", color: "#8a8a85" }}>Pending</option>
                           <option value="in_progress" style={{ background: "var(--dark-gray)", color: "var(--japandi-accent)" }}>In Progress</option>
                           <option value="completed" style={{ background: "var(--dark-gray)", color: "#5dcaa5" }}>Completed</option>
@@ -218,20 +227,7 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
                       </div>
                     </div>
 
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                      <h3 onClick={() => fetchGoalDetail(mg.id)}
-                        style={{ fontSize: "18px", fontWeight: "750", color: "var(--japandi-text)", margin: 0, letterSpacing: "-0.015em", fontFamily: "'Clash Display', sans-serif", cursor: "pointer", display: "flex", alignItems: "center", gap: "8px" }}>
-                        {mg.title}
-                        <ExternalLink size={12} color="var(--japandi-muted)" style={{ opacity: 0.4 }} />
-                      </h3>
-                      {mg.due_date && (
-                        <span style={{ fontSize: "10px", color: "var(--japandi-muted)", fontWeight: "600", whiteSpace: "nowrap" }}>
-                          Due {new Date(mg.due_date).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
-                        </span>
-                      )}
-                    </div>
-
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "4px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
                       {assignee && (
                         <span style={{ fontSize: "10px", color: "var(--japandi-muted)" }}>
                           Owner: <span style={{ color: "var(--japandi-accent)", fontWeight: "600" }}>{assignee.user_name || assignee.name || assignee.email}</span>
@@ -253,7 +249,7 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
                     {isExpanded && (
                       <>
                         {mg.description && (
-                          <div style={{ padding: "10px 12px", borderRadius: "8px", backgroundColor: "rgba(255,255,255,0.01)", border: "none" }}>
+                          <div style={{ padding: "10px 12px", borderRadius: "8px", backgroundColor: "rgba(45,45,45,0.03)", border: "none" }}>
                             {mg.description}
                           </div>
                         )}
@@ -270,9 +266,10 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
 
                             return (
                               <div key={wk.id} style={{
-                                borderLeft: `2.5px solid ${wk.status === "in_progress" ? "var(--japandi-accent)" : "rgba(255,255,255,0.03)"}`,
-                                paddingLeft: "14px"
-                              }}>
+                                  borderLeft: `2px solid ${wk.status === "in_progress" ? "var(--japandi-accent)" : "rgba(45,45,45,0.1)"}`,
+                                  paddingLeft: "16px",
+                                  marginTop: "10px"
+                                }}>
                                 {/* Weekly header */}
                                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "6px" }}>
                                   <div style={{ display: "flex", alignItems: "center", gap: "6px", flex: 1, minWidth: 0 }}>
@@ -283,7 +280,7 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
                                     }} style={{ fontSize: "9px", color: "var(--japandi-muted)", cursor: "pointer", width: "14px", textAlign: "center", userSelect: "none", flexShrink: 0 }}>
                                       {wkExpanded ? "▼" : "▶"}
                                     </span>
-                                    <span style={{ fontSize: "11px", color: "#53a1f5", fontWeight: "800", textTransform: "uppercase", letterSpacing: "0.5px", backgroundColor: "rgba(83,161,245,0.08)", padding: "1px 6px", borderRadius: "4px", flexShrink: 0 }}>
+                                    <span style={{ fontSize: "11px", color: "#6E8F76", fontWeight: "800", textTransform: "uppercase", letterSpacing: "0.5px", backgroundColor: "rgba(110,143,118,0.12)", padding: "1px 6px", borderRadius: "4px", flexShrink: 0 }}>
                                       Weekly
                                     </span>
                                     <h4 style={{ fontSize: "14px", fontWeight: "650", color: "var(--japandi-text)", margin: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{wk.title}</h4>
@@ -298,7 +295,7 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
                                     {wkAssignee && <span style={{ fontSize: "9px", color: "var(--japandi-accent)", fontWeight: "600", whiteSpace: "nowrap" }}>{wkAssignee.user_name || wkAssignee.name}</span>}
                                     {wk.due_date && <span style={{ fontSize: "9px", color: "var(--japandi-muted)", whiteSpace: "nowrap" }}>{new Date(wk.due_date).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span>}
                                     <select value={wk.status} onChange={(e) => handleStatusChange(wk.id, e.target.value)}
-                                      className="neu-control select-custom" style={{ cursor: "pointer", fontSize: "11px", padding: "6px 12px", border: "none", color: "var(--japandi-text)", outline: "none" }}>
+                                      className="neu-control select-custom" style={{ cursor: "pointer", fontSize: "11px", padding: "4px 9px", border: "none", color: "var(--japandi-text)", outline: "none" }}>
                                       <option value="pending" style={{ background: "var(--dark-gray)" }}>Pending</option>
                                       <option value="in_progress" style={{ background: "var(--dark-gray)" }}>In Progress</option>
                                       <option value="completed" style={{ background: "var(--dark-gray)" }}>Completed</option>
@@ -318,14 +315,14 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
                                       const dgDone = (dg.tasks || []).filter(t => t.status === "Done").length;
                                       return (
                                         <div key={dg.id} style={{
-                                          marginLeft: "10px",
-                                          padding: "6px 0 6px 10px",
-                                          borderLeft: "none",
+                                          marginLeft: "4px",
+                                          padding: "6px 0 6px 14px",
+                                          borderLeft: "1px solid rgba(45,45,45,0.07)",
                                           marginBottom: "4px"
                                         }}>
                                           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "4px" }}>
                                             <div style={{ display: "flex", alignItems: "center", gap: "6px", flex: 1, minWidth: 0 }}>
-                                              <span style={{ fontSize: "9px", color: "#3acaa5", fontWeight: "800", textTransform: "uppercase", letterSpacing: "0.5px", backgroundColor: "rgba(58,202,165,0.08)", padding: "1px 5px", borderRadius: "3px", flexShrink: 0 }}>
+                                              <span style={{ fontSize: "9px", color: "#6E8F76", fontWeight: "800", textTransform: "uppercase", letterSpacing: "0.5px", backgroundColor: "rgba(110,143,118,0.12)", padding: "1px 5px", borderRadius: "3px", flexShrink: 0 }}>
                                                 Daily
                                               </span>
                                               <span style={{ fontSize: "12px", fontWeight: "600", color: "var(--japandi-text)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{dg.title}</span>
@@ -356,10 +353,10 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
                                                 <div key={t.id} style={{
                                                   display: "flex", alignItems: "center",
                                                   padding: "2px 8px", borderRadius: "4px",
-                                                  backgroundColor: "rgba(255,255,255,0.005)"
+                                                  backgroundColor: "rgba(45,45,45,0.015)"
                                                 }}>
                                                   <span onClick={() => handleToggleTask(t)} style={{ cursor: "pointer", display: "flex", alignItems: "center", marginRight: "6px" }}>
-                                                    <Icon name={isDone ? "square-check" : "square"} size={11} stroke={isDone ? 2 : 1.5} color={isDone ? "#3ac69b" : "var(--japandi-muted)"} />
+                                                    <Icon name={isDone ? "square-check" : "square"} size={11} stroke={isDone ? 2 : 1.5} color={isDone ? "var(--japandi-green)" : "var(--japandi-muted)"} />
                                                   </span>
                                                   <span onClick={() => navigateToTask(t.id)} style={{ fontSize: "11.5px", color: isDone ? "var(--japandi-muted)" : "var(--japandi-text)", textDecoration: isDone ? "line-through" : "none", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", flex: 1, minWidth: 0 }}>
                                                     <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.title}</span>
@@ -394,7 +391,7 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
                                     })}
 
                                     {/* Tasks directly under weekly goal */}
-                                    <div style={{ display: "flex", flexDirection: "column", gap: "2px", marginBottom: "6px" }}>
+                                    <div style={{ display: "flex", flexDirection: "column", gap: "2px", marginBottom: "6px", marginLeft: "18px" }}>
                                       {(wk.tasks || []).map(t => {
                                         const isDone = t.status === "Done";
                                         const pc = PRIORITY_COLORS[t.priority] || PRIORITY_COLORS.P2;
@@ -402,10 +399,10 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
                                           <div key={t.id} style={{
                                             display: "flex", alignItems: "center",
                                             padding: "2px 8px", borderRadius: "4px",
-                                            backgroundColor: "rgba(255,255,255,0.005)"
+                                            backgroundColor: "rgba(45,45,45,0.015)"
                                           }}>
                                             <span onClick={() => handleToggleTask(t)} style={{ cursor: "pointer", display: "flex", alignItems: "center", marginRight: "6px" }}>
-                                              <Icon name={isDone ? "square-check" : "square"} size={11} stroke={isDone ? 2 : 1.5} color={isDone ? "#3ac69b" : "var(--japandi-muted)"} />
+                                              <Icon name={isDone ? "square-check" : "square"} size={11} stroke={isDone ? 2 : 1.5} color={isDone ? "var(--japandi-green)" : "var(--japandi-muted)"} />
                                             </span>
                                             <span onClick={() => navigateToTask(t.id)} style={{ fontSize: "11.5px", color: isDone ? "var(--japandi-muted)" : "var(--japandi-text)", textDecoration: isDone ? "line-through" : "none", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", flex: 1, minWidth: 0 }}>
                                               <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.title}</span>
@@ -421,7 +418,7 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
                                     </div>
 
                                     {/* Quick add task for weekly goal */}
-                                    <form onSubmit={(e) => handleQuickTask(e, wk.id)} style={{ display: "flex", gap: "4px" }}>
+                                    <form onSubmit={(e) => handleQuickTask(e, wk.id)} style={{ display: "flex", gap: "4px", marginLeft: "18px" }}>
                                       <input type="text" placeholder="Quick add task..." value={quickTaskTitle[wk.id] || ""}
                                         onChange={(e) => setQuickTaskTitle(p => ({ ...p, [wk.id]: e.target.value }))}
                                         style={{ flex: 1, padding: "4px 8px", borderRadius: "5px", border: "none" }} />
@@ -432,7 +429,7 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
                                     <span onClick={() => {
                                       setGoalForm({ title: "", description: "", goal_type: "daily", parent_id: wk.id.toString(), due_date: "", assignee_id: "" });
                                       setShowGoalForm(true);
-                                    }} style={{ fontSize: "9px", color: "var(--japandi-accent)", cursor: "pointer", fontWeight: "700", display: "inline-block", marginTop: "2px" }}>
+                                    }} style={{ fontSize: "9px", color: "var(--japandi-accent)", cursor: "pointer", fontWeight: "700", display: "inline-block", marginTop: "2px", marginLeft: "18px" }}>
                                       + Add Daily Step
                                     </span>
                                   </div>
@@ -478,8 +475,8 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
 
             {/* Standalone weekly goals */}
             {weeklyGoals.filter(w => !w.parent_id).filter(w => filterStatus === "all" || w.status === filterStatus).length > 0 && (
-              <div className="card-glass">
-                <p className="card-label">
+              <div className="card-glass" style={{ padding: "18px 20px", marginTop: "4px" }}>
+                <p className="card-label" style={{ margin: "0 0 10px" }}>
                   Standalone Weekly Action Steps
                 </p>
                 {weeklyGoals.filter(w => !w.parent_id).filter(w => filterStatus === "all" || w.status === filterStatus).map(wk => {
@@ -489,7 +486,7 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
                     .filter(d => filterStatus === "all" || d.status === filterStatus);
                   const wkExpanded = expandedWeekly.has(wk.id);
                   return (
-                    <div key={wk.id} style={{ borderBottom: `1px solid rgba(255,255,255,0.03)`, padding: "12px 0" }}>
+                    <div key={wk.id} style={{ borderBottom: `1px solid rgba(45,45,45,0.07)`, padding: "12px 0" }}>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: "6px", flex: 1, minWidth: 0 }}>
                           <span onClick={() => {
@@ -506,7 +503,7 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
                           {wkAssignee && <span style={{ fontSize: "9px", color: "var(--japandi-accent)", fontWeight: "600", whiteSpace: "nowrap" }}>{wkAssignee.user_name || wkAssignee.name}</span>}
                           {wk.due_date && <span style={{ fontSize: "9.5px", color: "var(--japandi-muted)", whiteSpace: "nowrap" }}>{new Date(wk.due_date).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span>}
                           <select value={wk.status} onChange={(e) => handleStatusChange(wk.id, e.target.value)}
-                            className="neu-control select-custom" style={{ cursor: "pointer", fontSize: "11px", padding: "6px 12px", border: "none", color: "var(--japandi-text)", outline: "none" }}>
+                            className="neu-control select-custom" style={{ cursor: "pointer", fontSize: "11px", padding: "4px 9px", border: "none", color: "var(--japandi-text)", outline: "none" }}>
                             <option value="pending" style={{ background: "var(--dark-gray)" }}>Pending</option>
                             <option value="in_progress" style={{ background: "var(--dark-gray)" }}>In Progress</option>
                             <option value="completed" style={{ background: "var(--dark-gray)" }}>Completed</option>
@@ -524,7 +521,7 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
                               <div key={dg.id} style={{ marginBottom: "4px", padding: "4px 0 4px 10px", borderLeft: "none" }}>
                                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                                   <div style={{ display: "flex", alignItems: "center", gap: "6px", flex: 1, minWidth: 0 }}>
-                                    <span style={{ fontSize: "9px", color: "#3acaa5", fontWeight: "800", backgroundColor: "rgba(58,202,165,0.08)", padding: "1px 5px", borderRadius: "3px", flexShrink: 0 }}>DAILY</span>
+                                    <span style={{ fontSize: "9px", color: "#6E8F76", fontWeight: "800", backgroundColor: "rgba(110,143,118,0.12)", padding: "1px 5px", borderRadius: "3px", flexShrink: 0 }}>DAILY</span>
                                     <span style={{ fontSize: "11.5px", fontWeight: "600", color: "var(--japandi-text)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{dg.title}</span>
                                     {dgHealth && <span style={{ fontSize: "8px", fontWeight: "700", color: dgHealth.color, whiteSpace: "nowrap", flexShrink: 0 }}>{dgHealth.label}</span>}
                                   </div>
@@ -549,7 +546,7 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
                             return (
                               <div key={t.id} style={{ display: "flex", alignItems: "center", gap: "6px", padding: "2px 8px", fontSize: "11px" }}>
                                 <span onClick={() => handleToggleTask(t)} style={{ cursor: "pointer", display: "flex", alignItems: "center" }}>
-                                  <Icon name={isDone ? "square-check" : "square"} size={10} stroke={isDone ? 2 : 1.5} color={isDone ? "#3ac69b" : "var(--japandi-muted)"} />
+                                  <Icon name={isDone ? "square-check" : "square"} size={10} stroke={isDone ? 2 : 1.5} color={isDone ? "var(--japandi-green)" : "var(--japandi-muted)"} />
                                 </span>
                                 <span onClick={() => navigateToTask(t.id)} style={{ color: isDone ? "var(--japandi-muted)" : "var(--japandi-text)", textDecoration: isDone ? "line-through" : "none", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", cursor: "pointer", display: "flex", alignItems: "center", gap: "4px" }}>
                                   <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.title}</span>
@@ -575,7 +572,7 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
 
             {/* Unlinked tasks alert */}
             {unlinkedTasks.length > 0 && (
-              <div className="card-glass" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <div className="card-glass" style={{ display: "flex", alignItems: "center", gap: "10px", padding: "14px 18px" }}>
                 <Icon name="link" size={14} stroke={2} style={{ color: "var(--japandi-accent)" }} />
                 <p style={{ fontSize: "12.5px", color: "var(--japandi-muted)", margin: 0 }}>
                   {unlinkedTasks.length} task{unlinkedTasks.length === 1 ? " is" : "s are"} not connected to any milestone.{" "}
@@ -600,8 +597,8 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
           background: "rgba(5,5,4,0.75)", backdropFilter: "blur(18px)",
           display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1000,
         }}>
-          <div className="card-glass" style={{ width: "90%", maxWidth: "480px" }}>
-            <h3 style={{ fontSize: "18px", fontWeight: "750", color: "var(--japandi-text)", margin: "0 0 20px", letterSpacing: "-0.015em", fontFamily: "'Clash Display', sans-serif" }}>Add Roadmap Item</h3>
+          <div className="card-glass" style={{ width: "90%", maxWidth: "480px", padding: "26px 28px" }}>
+            <h3 style={{ fontSize: "18px", fontWeight: "600", color: "var(--japandi-text)", margin: "0 0 20px", letterSpacing: "-0.015em", fontFamily: "'Cormorant Garamond', serif" }}>Add Roadmap Item</h3>
             <form onSubmit={handleCreateGoal}>
               <div style={{ marginBottom: "16px", display: "flex", flexDirection: "column", gap: "6px" }}>
                 <label className="card-label">Item Type</label>
@@ -707,14 +704,14 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
 
       {/* ═══════════════ GOAL DETAIL DRAWER ═══════════════ */}
       {goalDetail && (
-        <div style={{ position: "fixed", top: 0, right: 0, bottom: 0, width: "480px", maxWidth: "100vw", background: "var(--ink)", borderLeft: "1px solid rgba(255,255,255,0.06)", zIndex: 1000, overflowY: "auto", padding: "24px", animation: "fadeSlide 0.2s ease-out", boxShadow: "-8px 0 40px rgba(0,0,0,0.4)" }}>
+        <div style={{ position: "fixed", top: 0, right: 0, bottom: 0, width: "480px", maxWidth: "100vw", background: "var(--ink)", borderLeft: "1px solid rgba(45,45,45,0.12)", zIndex: 1000, overflowY: "auto", padding: "24px", animation: "fadeSlide 0.2s ease-out", boxShadow: "-8px 0 40px rgba(45,45,45,0.25)" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "20px" }}>
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "4px" }}>
-                <span style={{ fontSize: "9px", fontWeight: "800", textTransform: "uppercase", letterSpacing: "1px", padding: "2px 6px", borderRadius: "4px", background: "rgba(232,80,2,0.1)", color: "var(--japandi-accent)" }}>{goalDetail.goal.goal_type}</span>
+                <span style={{ fontSize: "9px", fontWeight: "800", textTransform: "uppercase", letterSpacing: "1px", padding: "2px 6px", borderRadius: "4px", background: "rgba(214,130,79,0.15)", color: "var(--japandi-accent)" }}>{goalDetail.goal.goal_type}</span>
                 {goalDetail.goal.source_info && renderSourceBadge(goalDetail.goal)}
               </div>
-              <h2 style={{ fontSize: "20px", fontWeight: "750", color: "var(--japandi-text)", margin: 0, fontFamily: "'Clash Display', sans-serif" }}>{goalDetail.goal.title}</h2>
+              <h2 style={{ fontSize: "20px", fontWeight: "600", color: "var(--japandi-text)", margin: 0, fontFamily: "'Cormorant Garamond', serif" }}>{goalDetail.goal.title}</h2>
             </div>
             <button onClick={closeGoalDetail} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--japandi-muted)", padding: "4px" }}>
               <Icon name="x" size={18} />
@@ -722,7 +719,7 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
           </div>
 
           {goalDetail.goal.description && (
-            <div style={{ padding: "10px 12px", borderRadius: "8px", background: "rgba(255,255,255,0.02)", fontSize: "12px", color: "var(--japandi-text)", marginBottom: "16px" }}>{goalDetail.goal.description}</div>
+            <div style={{ padding: "10px 12px", borderRadius: "8px", background: "rgba(45,45,45,0.04)", fontSize: "12px", color: "var(--japandi-text)", marginBottom: "16px" }}>{goalDetail.goal.description}</div>
           )}
 
           {goalDetail.goal.at_risk && goalDetail.goal.risk_reason && (
@@ -761,9 +758,9 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
               </h3>
               <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
                 {goalDetail.tasks.map(t => (
-                  <div key={t.id} onClick={() => navigateToTask(t.id)} style={{ display: "flex", alignItems: "center", gap: "6px", padding: "6px 8px", borderRadius: "6px", background: "rgba(255,255,255,0.02)", cursor: "pointer", fontSize: "11px", color: "var(--japandi-text)" }}>
+                  <div key={t.id} onClick={() => navigateToTask(t.id)} style={{ display: "flex", alignItems: "center", gap: "6px", padding: "6px 8px", borderRadius: "6px", background: "rgba(45,45,45,0.04)", cursor: "pointer", fontSize: "11px", color: "var(--japandi-text)" }}>
                     <span onClick={(e) => { e.stopPropagation(); handleToggleTask(t); }} style={{ cursor: "pointer", display: "flex" }}>
-                      <Icon name={t.status === "Done" ? "square-check" : "square"} size={10} color={t.status === "Done" ? "#3ac69b" : "var(--japandi-muted)"} />
+                      <Icon name={t.status === "Done" ? "square-check" : "square"} size={10} color={t.status === "Done" ? "var(--japandi-green)" : "var(--japandi-muted)"} />
                     </span>
                     <span style={{ flex: 1, textDecoration: t.status === "Done" ? "line-through" : "none", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.title}</span>
                     <span style={{ fontSize: "9px", padding: "1px 5px", borderRadius: "3px", background: PRIORITY_COLORS[t.priority]?.bg || "transparent", color: PRIORITY_COLORS[t.priority]?.text || "var(--japandi-muted)" }}>{t.priority}</span>
@@ -779,7 +776,7 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
               <h3 style={{ fontSize: "13px", fontWeight: "700", color: "var(--japandi-text)", marginBottom: "8px" }}>Linked Decisions ({goalDetail.decisions.length})</h3>
               <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
                 {goalDetail.decisions.map(d => (
-                  <div key={d.id} style={{ display: "flex", alignItems: "center", gap: "6px", padding: "6px 8px", borderRadius: "6px", background: "rgba(255,255,255,0.02)", fontSize: "11px", color: "var(--japandi-text)" }}>
+                  <div key={d.id} style={{ display: "flex", alignItems: "center", gap: "6px", padding: "6px 8px", borderRadius: "6px", background: "rgba(45,45,45,0.04)", fontSize: "11px", color: "var(--japandi-text)" }}>
                     <span style={{ fontSize: "12px" }}>💡</span>
                     <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{d.decision?.substring(0, 100) || d.title || "Decision"}</span>
                     {d.confidence_score && <span style={{ fontSize: "9px", color: d.confidence_score >= 80 ? "var(--japandi-green)" : "var(--japandi-muted)" }}>{Math.round(d.confidence_score)}%</span>}
@@ -794,8 +791,8 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
               <h3 style={{ fontSize: "13px", fontWeight: "700", color: "var(--japandi-text)", marginBottom: "8px" }}>Sub-Goals ({goalDetail.sub_goals.length})</h3>
               <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
                 {goalDetail.sub_goals.map(sg => (
-                  <div key={sg.id} onClick={() => fetchGoalDetail(sg.id)} style={{ display: "flex", alignItems: "center", gap: "6px", padding: "6px 8px", borderRadius: "6px", background: "rgba(255,255,255,0.02)", cursor: "pointer", fontSize: "11px", color: "var(--japandi-text)" }}>
-                    <span style={{ fontSize: "9px", fontWeight: "800", textTransform: "uppercase", padding: "1px 4px", borderRadius: "3px", background: "rgba(83,161,245,0.1)", color: "#53a1f5", flexShrink: 0 }}>{sg.goal_type}</span>
+                  <div key={sg.id} onClick={() => fetchGoalDetail(sg.id)} style={{ display: "flex", alignItems: "center", gap: "6px", padding: "6px 8px", borderRadius: "6px", background: "rgba(45,45,45,0.04)", cursor: "pointer", fontSize: "11px", color: "var(--japandi-text)" }}>
+                    <span style={{ fontSize: "9px", fontWeight: "800", textTransform: "uppercase", padding: "1px 4px", borderRadius: "3px", background: "rgba(110,143,118,0.12)", color: "#6E8F76", flexShrink: 0 }}>{sg.goal_type}</span>
                     <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{sg.title}</span>
                     <span style={{ fontSize: "9px", color: "var(--japandi-muted)" }}>{sg.progress}%</span>
                   </div>
@@ -819,7 +816,7 @@ export default function CascadeTab({ goals, setGoals, unlinkedTasks, setUnlinked
             </div>
           )}
 
-          <div style={{ display: "flex", gap: "8px", marginTop: "24px", paddingTop: "16px", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+          <div style={{ display: "flex", gap: "8px", marginTop: "24px", paddingTop: "16px", borderTop: "1px solid rgba(45,45,45,0.08)" }}>
             <button onClick={() => { handleDeleteGoal(goalDetail.goal.id); setGoalDetail(null); }}
               style={{ padding: "8px 16px", borderRadius: "8px", border: "1px solid rgba(239,68,68,0.3)", background: "transparent", color: "#ef4444", cursor: "pointer", fontSize: "11px", fontWeight: 600, flex: 1 }}>
               Delete Goal

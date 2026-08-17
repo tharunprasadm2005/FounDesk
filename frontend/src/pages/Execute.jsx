@@ -25,8 +25,8 @@ function Icon({ name, size = 16, stroke: strokeWidth = 1.5 }) {
 }
 
 const PRIORITY_COLORS = {
-  P0: { bg: "rgba(232,80,2,0.12)", text: "var(--japandi-accent)" },
-  P1: { bg: "rgba(232,80,2,0.12)", text: "var(--japandi-accent)" },
+  P0: { bg: "rgba(214,130,79,0.15)", text: "var(--japandi-accent)" },
+  P1: { bg: "rgba(214,130,79,0.15)", text: "var(--japandi-accent)" },
   P2: { bg: "rgba(59,130,246,0.1)", text: "var(--japandi-muted)" },
   P3: { bg: "rgba(107,114,128,0.08)", text: "var(--japandi-muted)" },
 };
@@ -291,36 +291,36 @@ function Execute() {
     header: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "20px" },
     headerLeft: {},
     headerRight: { display: "flex", gap: "8px", alignItems: "center" },
-    title: { margin: 0, fontSize: "28px", fontWeight: 700, letterSpacing: "-0.02em", color: "var(--japandi-text)", fontFamily: "'Clash Display', sans-serif" },
-    subtitle: { margin: "4px 0 0", fontSize: "13px", color: "var(--japandi-muted)" },
-    tabBar: { display: "flex", gap: "4px", marginBottom: "20px", padding: "4px", backgroundColor: "rgba(20,20,22,0.8)", borderRadius: "12px", border: "1px solid rgba(107,107,111,0.15)", width: "fit-content" },
+    title: { margin: 0, fontSize: "clamp(30px, 4vw, 46px)", fontWeight: 500, letterSpacing: "-0.03em", lineHeight: 1, color: "var(--japandi-text)", fontFamily: "'Cormorant Garamond', serif" },
+    subtitle: { margin: "10px 0 0", fontSize: "13px", color: "var(--japandi-muted)", fontWeight: 600, fontFamily: "'Manrope', sans-serif" },
+    tabBar: { display: "flex", gap: "4px", marginBottom: "20px", padding: "4px", backgroundColor: "rgba(45,45,45,0.06)", borderRadius: "12px", border: "1px solid rgba(45,45,45,0.1)", width: "fit-content" },
     tab: (active) => ({
       padding: "8px 16px", borderRadius: "8px", border: "none", cursor: "pointer",
-      fontSize: "13px", fontWeight: 600, fontFamily: "'Satoshi', sans-serif",
-      color: active ? "var(--japandi-text)" : "var(--japandi-muted)",
+      fontSize: "13px", fontWeight: 600, fontFamily: "'Manrope', sans-serif",
+      color: active ? "#431F0E" : "var(--japandi-muted)",
       backgroundColor: active ? "var(--japandi-accent)" : "transparent",
       transition: "all 0.2s",
       display: "flex", alignItems: "center", gap: "6px",
     }),
-    orangeBtn: { padding: "8px 16px", borderRadius: "8px", border: "none", cursor: "pointer", backgroundColor: "var(--japandi-accent)", color: "#fff", fontSize: "13px", fontWeight: 700, fontFamily: "'Satoshi', sans-serif", display: "flex", alignItems: "center", gap: "6px", transition: "all 0.2s" },
+    orangeBtn: { padding: "8px 16px", borderRadius: "999px", border: "none", cursor: "pointer", backgroundColor: "var(--japandi-accent)", color: "#431F0E", fontSize: "12px", fontWeight: 700, fontFamily: "'Manrope', sans-serif", display: "flex", alignItems: "center", gap: "6px", transition: "all 0.18s" },
     filterBar: { display: "flex", gap: "8px", marginBottom: "16px", flexWrap: "wrap", alignItems: "center" },
-    select: { height: "36px", borderRadius: "8px", border: "1px solid rgba(107,107,111,0.2)", backgroundColor: "rgba(20,20,22,0.8)", color: "var(--japandi-text)", padding: "0 10px", fontSize: "12px", fontFamily: "'Satoshi', sans-serif", outline: "none", cursor: "pointer" },
-    searchInput: { height: "36px", borderRadius: "8px", border: "1px solid rgba(107,107,111,0.2)", backgroundColor: "rgba(20,20,22,0.8)", color: "var(--japandi-text)", padding: "0 10px 0 30px", fontSize: "12px", fontFamily: "'Satoshi', sans-serif", outline: "none", width: "200px" },
-    glassPanel: { backgroundColor: "rgba(20,20,22,0.6)", borderRadius: "12px", border: "1px solid rgba(107,107,111,0.12)", padding: "16px", backdropFilter: "blur(12px)" },
-    column: { backgroundColor: "rgba(20,20,22,0.4)", borderRadius: "10px", border: "1px solid rgba(107,107,111,0.1)", minWidth: "220px", flex: "1", padding: "10px", display: "flex", flexDirection: "column", gap: "8px" },
+    select: { height: "36px", borderRadius: "12px", border: "1px solid rgba(45,45,45,0.16)", backgroundColor: "#FDFAF5", color: "var(--japandi-text)", padding: "0 10px", fontSize: "12px", fontFamily: "'Manrope', sans-serif", outline: "none", cursor: "pointer" },
+    searchInput: { height: "36px", borderRadius: "12px", border: "1px solid rgba(45,45,45,0.16)", backgroundColor: "#FDFAF5", color: "var(--japandi-text)", padding: "0 10px 0 30px", fontSize: "12px", fontFamily: "'Manrope', sans-serif", outline: "none", width: "200px" },
+    glassPanel: { backgroundColor: "rgba(253,250,245,0.92)", borderRadius: "12px", border: "1px solid rgba(45,45,45,0.1)", padding: "16px", backdropFilter: "blur(12px)" },
+    column: { backgroundColor: "rgba(253,250,245,0.55)", borderRadius: "14px", border: "1px solid rgba(45,45,45,0.08)", minWidth: "220px", flex: "1", padding: "12px", display: "flex", flexDirection: "column", gap: "8px" },
     columnHeader: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px", padding: "0 4px" },
-    card: { backgroundColor: "rgba(20,20,22,0.8)", borderRadius: "8px", border: "1px solid rgba(107,107,111,0.1)", padding: "10px 12px", cursor: "pointer", transition: "all 0.15s" },
-    gridCard: { backgroundColor: "rgba(20,20,22,0.6)", borderRadius: "10px", border: "1px solid rgba(107,107,111,0.08)", padding: "12px 14px", marginBottom: "8px" },
-    formOverlay: { position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 },
-    formModal: { backgroundColor: "var(--ink-2)", borderRadius: "16px", padding: "24px", width: "90%", maxWidth: "520px", maxHeight: "85vh", overflow: "auto", border: "1px solid rgba(107,107,111,0.15)" },
+    card: { backgroundColor: "#FCFAF7", borderRadius: "12px", border: "1px solid rgba(45,45,45,0.1)", padding: "10px 12px", cursor: "pointer", transition: "all 0.15s" },
+    gridCard: { backgroundColor: "#FCFAF7", borderRadius: "12px", border: "1px solid rgba(45,45,45,0.08)", padding: "12px 14px", marginBottom: "8px" },
+    formOverlay: { position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(30,29,27,0.45)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 },
+    formModal: { backgroundColor: "#FDFAF5", borderRadius: "20px", padding: "24px", width: "90%", maxWidth: "520px", maxHeight: "85vh", overflow: "auto", border: "1px solid rgba(45,45,45,0.12)", boxShadow: "0 30px 70px -32px rgba(45,45,45,0.5)" },
     formField: { marginBottom: "12px" },
-    input: { width: "100%", padding: "10px 12px", borderRadius: "8px", border: "1px solid rgba(107,107,111,0.2)", backgroundColor: "rgba(0,0,0,0.3)", color: "var(--japandi-text)", fontSize: "13px", fontFamily: "'Satoshi', sans-serif", outline: "none", boxSizing: "border-box" },
-    textarea: { width: "100%", padding: "10px 12px", borderRadius: "8px", border: "1px solid rgba(107,107,111,0.2)", backgroundColor: "rgba(0,0,0,0.3)", color: "var(--japandi-text)", fontSize: "13px", fontFamily: "'Satoshi', sans-serif", outline: "none", resize: "vertical", minHeight: "80px", boxSizing: "border-box" },
+    input: { width: "100%", padding: "10px 12px", borderRadius: "12px", border: "1px solid rgba(45,45,45,0.14)", backgroundColor: "#F8F4EE", color: "var(--japandi-text)", fontSize: "13px", fontFamily: "'Manrope', sans-serif", outline: "none", boxSizing: "border-box" },
+    textarea: { width: "100%", padding: "10px 12px", borderRadius: "12px", border: "1px solid rgba(45,45,45,0.14)", backgroundColor: "#F8F4EE", color: "var(--japandi-text)", fontSize: "13px", fontFamily: "'Manrope', sans-serif", outline: "none", resize: "vertical", minHeight: "80px", boxSizing: "border-box" },
     label: { display: "block", fontSize: "11px", fontWeight: 700, color: "var(--japandi-muted)", marginBottom: "4px", textTransform: "uppercase", letterSpacing: "0.04em" },
-    drawer: { position: "fixed", top: 0, right: 0, width: "420px", height: "100vh", backgroundColor: "rgba(20,20,22,0.95)", backdropFilter: "blur(20px)", borderLeft: "1px solid rgba(107,107,111,0.15)", zIndex: 999, padding: "24px", overflow: "auto", boxShadow: "-8px 0 30px rgba(0,0,0,0.3)" },
+    drawer: { position: "fixed", top: 0, right: 0, width: "420px", height: "100vh", backgroundColor: "#FDFAF5", backdropFilter: "blur(20px)", borderLeft: "1px solid rgba(45,45,45,0.12)", zIndex: 999, padding: "24px", overflow: "auto", boxShadow: "-8px 0 30px rgba(45,45,45,0.18)" },
     priorityBadge: (p) => ({ padding: "2px 8px", borderRadius: "4px", fontSize: "10px", fontWeight: 700, backgroundColor: PRIORITY_COLORS[p]?.bg || "rgba(107,114,128,0.08)", color: PRIORITY_COLORS[p]?.text || "var(--japandi-muted)" }),
     statusDot: (s) => ({ width: "8px", height: "8px", borderRadius: "50%", backgroundColor: STATUS_COLORS[s] || "var(--japandi-muted)", flexShrink: 0 }),
-    avatar: (name) => ({ width: "24px", height: "24px", borderRadius: "50%", backgroundColor: "rgba(232,80,2,0.15)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "10px", fontWeight: 700, color: "var(--japandi-accent)", flexShrink: 0 }),
+    avatar: (name) => ({ width: "24px", height: "24px", borderRadius: "50%", backgroundColor: "rgba(214,130,79,0.18)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "10px", fontWeight: 700, color: "var(--japandi-accent)", flexShrink: 0 }),
     badge: (label) => ({ padding: "2px 8px", borderRadius: "4px", fontSize: "10px", fontWeight: 600, backgroundColor: "rgba(107,107,111,0.1)", color: "var(--japandi-muted)" }),
   };
 
@@ -338,14 +338,14 @@ function Execute() {
         <div style={{ display: "flex", gap: "12px", overflow: "auto", paddingBottom: "12px" }}>
           {catEntries.map(([cat, tasks]) => (
             <div key={cat} className="card-glass"
-              style={{ minWidth: "240px", flex: "1", padding: "16px", display: "flex", flexDirection: "column", gap: "10px", background: "rgba(20,20,22,0.45)" }}>
+              style={{ minWidth: "240px", flex: "1", padding: "16px", display: "flex", flexDirection: "column", gap: "10px", background: "rgba(253,250,245,0.55)" }}>
               <div style={S.columnHeader}>
                 <span className="card-label" style={{ fontSize: "11px", color: "var(--japandi-muted)" }}>{cat} <span style={{ opacity: 0.6 }}>({tasks.length})</span></span>
               </div>
               {tasks.map((task, idx) => (
                 <div key={task.id} className="card-glass kanban-task-card stagger-item"
                   onClick={() => setShowTaskDrawer(task)}
-                  style={{ padding: "12px", cursor: "pointer", background: "rgba(20,20,22,0.75)", animationDelay: `${idx * 40}ms` }}>
+                  style={{ padding: "12px", cursor: "pointer", background: "#FCFAF7", animationDelay: `${idx * 40}ms` }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "6px" }}>
                     <span className={`badge-${(task.priority || "P2").toLowerCase()}`}>{task.priority}</span>
                     <span className={`badge-${(task.status || "Not Started").toLowerCase().replace(/\s+/g, "-")}`} style={{ fontSize: "10px" }}>{task.status}</span>
@@ -410,7 +410,7 @@ function Execute() {
                 const id = e.dataTransfer.getData("text/plain");
                 if (id) handleDrop(id, col.key);
               }}
-              style={{ minWidth: isCollapsed ? "50px" : "240px", transition: "min-width 0.2s, background-color 0.2s, border-color 0.2s", flex: "1", padding: "16px", display: "flex", flexDirection: "column", gap: "10px", background: "rgba(20,20,22,0.45)" }}>
+              style={{ minWidth: isCollapsed ? "50px" : "240px", transition: "min-width 0.2s, background-color 0.2s, border-color 0.2s", flex: "1", padding: "16px", display: "flex", flexDirection: "column", gap: "10px", background: "rgba(253,250,245,0.55)" }}>
               <div style={S.columnHeader}>
                 <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                   <div style={S.statusDot(col.key)} />
@@ -450,7 +450,7 @@ function Execute() {
                   onDragStart={e => { e.dataTransfer.setData("text/plain", task.id); e.currentTarget.style.opacity = "0.5"; }}
                   onDragEnd={e => e.currentTarget.style.opacity = "1"}
                   onClick={() => setShowTaskDrawer(task)}
-                  style={{ padding: "12px", cursor: "pointer", background: "rgba(20,20,22,0.75)", animationDelay: `${idx * 40}ms` }}>
+                  style={{ padding: "12px", cursor: "pointer", background: "#FCFAF7", animationDelay: `${idx * 40}ms` }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "6px" }}>
                     <span className={`badge-${(task.priority || "P2").toLowerCase()}`}>{task.priority}</span>
                     {task.phase_tag && <span style={S.badge(task.phase_tag)}>{task.phase_tag}</span>}
@@ -460,13 +460,13 @@ function Execute() {
                   {(task.source === "monday" || task.source_integration === "monday") && (task.progress_percentage !== null || task.risk_level) && (
                     <div style={{ display: "flex", gap: "8px", alignItems: "center", marginBottom: "6px" }}>
                       {task.progress_percentage !== null && (
-                        <div style={{ flex: 1, height: "3px", borderRadius: "2px", background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
+                        <div style={{ flex: 1, height: "3px", borderRadius: "2px", background: "rgba(45,45,45,0.08)", overflow: "hidden" }}>
                           <div style={{ width: `${task.progress_percentage}%`, height: "100%", borderRadius: "2px", background: task.progress_percentage >= 80 ? "var(--japandi-green)" : task.progress_percentage >= 40 ? "var(--japandi-accent)" : "var(--japandi-muted)", transition: "width 0.3s ease" }} />
           </div>
       )}
 
                       {task.risk_level && (
-                        <span style={{ fontSize: "9px", padding: "1px 6px", borderRadius: "4px", fontWeight: 600, background: task.risk_level === "High" ? "rgba(232,67,79,0.12)" : task.risk_level === "Medium" ? "rgba(232,80,2,0.12)" : "rgba(58,202,165,0.1)", color: task.risk_level === "High" ? "var(--japandi-red)" : task.risk_level === "Medium" ? "var(--japandi-accent)" : "var(--japandi-green)" }}>{task.risk_level}</span>
+                        <span style={{ fontSize: "9px", padding: "1px 6px", borderRadius: "4px", fontWeight: 600, background: task.risk_level === "High" ? "rgba(232,67,79,0.12)" : task.risk_level === "Medium" ? "rgba(214,130,79,0.15)" : "rgba(110,143,118,0.12)", color: task.risk_level === "High" ? "var(--japandi-red)" : task.risk_level === "Medium" ? "var(--japandi-accent)" : "var(--japandi-green)" }}>{task.risk_level}</span>
                       )}
         </div>
       )}
@@ -515,7 +515,7 @@ function Execute() {
           const isSelected = selectedTasks.has(task.id);
           return (
             <div key={task.id} className="stagger-item" style={{ borderTop: idx > 0 ? "1px solid var(--japandi-border)" : "none", padding: "12px 0", animationDelay: `${idx * 30}ms` }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "10px", borderLeft: isOverdue ? `3px solid var(--japandi-red)` : task.status === "Blocked" ? `3px solid var(--japandi-red)` : `3px solid transparent`, paddingLeft: "8px", backgroundColor: isSelected ? "rgba(232,80,2,0.06)" : undefined, borderRadius: "4px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", borderLeft: isOverdue ? `3px solid var(--japandi-red)` : task.status === "Blocked" ? `3px solid var(--japandi-red)` : `3px solid transparent`, paddingLeft: "8px", backgroundColor: isSelected ? "rgba(214,130,79,0.1)" : undefined, borderRadius: "4px" }}>
                 <input type="checkbox" checked={isSelected} onChange={() => toggleSelect(task.id)} style={{ accentColor: "var(--japandi-accent)" }} />
                 <div style={S.statusDot(task.status)} />
                 <div style={{ flex: 1, minWidth: 0 }} onClick={() => setExpandedTaskId(isExpanded ? null : task.id)}>
@@ -604,7 +604,7 @@ function Execute() {
           ) : sortedBlockers.map(b => {
             const sevColor = SEVERITY_COLORS[b.severity] || "var(--japandi-red)";
             return (
-              <div key={b.id} className="card-glass" style={{ borderLeft: `3px solid ${sevColor}`, marginBottom: "12px", padding: "16px", background: "rgba(20,20,22,0.6)", opacity: blockerSort === "resolved" ? 0.6 : 1 }}>
+              <div key={b.id} className="card-glass" style={{ borderLeft: `3px solid ${sevColor}`, marginBottom: "12px", padding: "16px", background: "rgba(253,250,245,0.8)", opacity: blockerSort === "resolved" ? 0.6 : 1 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "4px" }}>
                   <span style={{ fontWeight: 600, fontSize: "13px", color: b.status === "resolved" ? "var(--japandi-muted)" : "var(--japandi-text)" }}>{b.title}</span>
                   <span style={{ padding: "2px 8px", borderRadius: "4px", fontSize: "10px", fontWeight: 700, backgroundColor: sevColor + "22", color: sevColor }}>{SEVERITY_LABELS[b.severity] || "Medium"}</span>
@@ -652,7 +652,7 @@ function Execute() {
               {Object.entries(severityCounts).map(([s, c]) => {
                 const sc = SEVERITY_COLORS[s] || "var(--japandi-muted)";
                 return (
-                  <div key={s} className="card-glass" style={{ display: "flex", flexDirection: "column", gap: "4px", padding: "12px", alignItems: "center", background: "rgba(20,20,22,0.4)" }}>
+                  <div key={s} className="card-glass" style={{ display: "flex", flexDirection: "column", gap: "4px", padding: "12px", alignItems: "center", background: "rgba(253,250,245,0.6)" }}>
                     <span style={{ fontSize: "10px", fontWeight: "700", color: sc }}>{SEVERITY_LABELS[s] || s}</span>
                     <HeroNumber
                       as="span"
@@ -712,10 +712,10 @@ function Execute() {
     return (
       <div style={{ marginBottom: "8px" }}>
         <div onClick={() => toggleSection(standupId, sectionKey)}
-          style={{ display: "flex", alignItems: "center", gap: "6px", cursor: "pointer", padding: "6px 8px", borderRadius: "6px", background: "rgba(255,255,255,0.03)", fontSize: "11px", fontWeight: 600, color: color, userSelect: "none" }}>
+          style={{ display: "flex", alignItems: "center", gap: "6px", cursor: "pointer", padding: "6px 8px", borderRadius: "6px", background: "rgba(45,45,45,0.05)", fontSize: "11px", fontWeight: 600, color: color, userSelect: "none" }}>
           <span style={{ fontSize: "13px" }}>{icon}</span>
           <span style={{ flex: 1 }}>{label}</span>
-          <span className="badge" style={{ fontSize: "9px", background: "rgba(255,255,255,0.06)", color: "var(--japandi-muted)", padding: "1px 6px", borderRadius: "8px" }}>{totalItems}</span>
+          <span className="badge" style={{ fontSize: "9px", background: "rgba(45,45,45,0.08)", color: "var(--japandi-muted)", padding: "1px 6px", borderRadius: "8px" }}>{totalItems}</span>
           <span style={{ transform: isOpen ? "rotate(90deg)" : "none", transition: "transform 0.15s", fontSize: "10px" }}>▶</span>
         </div>
         {isOpen && (
@@ -726,12 +726,12 @@ function Execute() {
                 {items.map((item, idx) => (
                   <div key={item.id || idx} onClick={() => navigateToRecord(item, key, sectionKey)}
                     style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "11px", color: "var(--japandi-text)", padding: "3px 4px", borderRadius: "4px", cursor: "pointer" }}
-                    onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.04)"}
+                    onMouseEnter={e => e.currentTarget.style.background = "rgba(45,45,45,0.06)"}
                     onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
                     {item.priority && <span style={{ fontSize: "9px", fontWeight: 700, color: PRIORITY_COLORS[item.priority]?.text || "var(--japandi-muted)", marginRight: "4px" }}>{item.priority}</span>}
                     <span style={{ flex: 1 }}>{item.title}</span>
                     <span style={{ fontSize: "9px", color: "var(--graphite-dim)", marginRight: "4px" }}>id={item.id}</span>
-                    {item.severity && <span style={{ fontSize: "9px", padding: "0 4px", borderRadius: "3px", background: item.severity === "high" ? "rgba(232,80,2,0.15)" : "rgba(245,158,11,0.12)", color: item.severity === "high" ? "var(--japandi-accent)" : "var(--amber)" }}>{item.severity}</span>}
+                    {item.severity && <span style={{ fontSize: "9px", padding: "0 4px", borderRadius: "3px", background: item.severity === "high" ? "rgba(214,130,79,0.18)" : "rgba(245,158,11,0.15)", color: item.severity === "high" ? "var(--japandi-accent)" : "var(--amber)" }}>{item.severity}</span>}
                     {item.days_overdue > 0 && <span style={{ fontSize: "9px", color: "var(--japandi-red)" }}>{item.days_overdue}d overdue</span>}
                     {item.age_days > 0 && <span style={{ fontSize: "9px", color: "var(--japandi-muted)" }}>{item.age_days}d</span>}
                     {item.confidence !== undefined && item.confidence !== null && <span style={{ fontSize: "9px", color: item.confidence >= 80 ? "var(--japandi-green)" : item.confidence >= 50 ? "var(--amber)" : "var(--japandi-red)" }}>{Math.round(item.confidence)}%</span>}
@@ -749,7 +749,7 @@ function Execute() {
   };
 
   const renderStandupCard = (s, isMine) => (
-    <div key={s.id} className="card-glass" style={{ borderLeft: isMine ? "3px solid var(--japandi-accent)" : "3px solid transparent", padding: "14px", background: isMine ? "rgba(20,20,22,0.6)" : "transparent", marginBottom: "12px" }}>
+    <div key={s.id} className="card-glass" style={{ borderLeft: isMine ? "3px solid var(--japandi-accent)" : "3px solid transparent", padding: "14px", background: isMine ? "rgba(253,250,245,0.8)" : "transparent", marginBottom: "12px" }}>
       <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
         <div style={S.avatar(s.user_name || "A")}>{(s.user_name || "A")[0]}</div>
         <span style={{ fontSize: "12px", fontWeight: 600, color: "var(--japandi-text)" }}>{s.user_name}</span>
@@ -804,7 +804,7 @@ function Execute() {
                 else if (diff === -7) label = "Last Week";
                 else if (diff === 7) label = "Next Week";
                 if (!label) return null;
-                return <span style={{ fontSize: "9px", color: diff === 0 ? "var(--japandi-accent)" : "var(--japandi-muted)", background: diff === 0 ? "rgba(232,80,2,0.08)" : "rgba(255,255,255,0.04)", padding: "1px 6px", borderRadius: "8px", fontWeight: diff === 0 ? 600 : 400 }}>{label}</span>;
+                return <span style={{ fontSize: "9px", color: diff === 0 ? "var(--japandi-accent)" : "var(--japandi-muted)", background: diff === 0 ? "rgba(214,130,79,0.12)" : "rgba(45,45,45,0.05)", padding: "1px 6px", borderRadius: "8px", fontWeight: diff === 0 ? 600 : 400 }}>{label}</span>;
               })()}
               {!isToday && (
                 <button onClick={() => setStandupDate(todayStr)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--japandi-accent)", fontSize: "10px", fontWeight: 600, fontFamily: "'JetBrains Mono', monospace", padding: "2px 6px", borderRadius: "8px" }}>Back to Today</button>
@@ -857,7 +857,7 @@ function Execute() {
           </div>
 
           {nonResponders.length > 0 && (
-            <div style={{ marginTop: "20px", paddingTop: "16px", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+            <div style={{ marginTop: "20px", paddingTop: "16px", borderTop: "1px solid rgba(45,45,45,0.08)" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "8px" }}>
                 <span className="badge badge-warning" style={{ fontSize: "9px" }}>{nonResponders.length}</span>
                 <span style={{ fontSize: "11px", fontWeight: 600, color: "var(--japandi-muted)" }}>Haven't checked in</span>
@@ -877,13 +877,14 @@ function Execute() {
   };
 
   return (
-    <div style={S.container}>
-      <div style={S.header}>
-        <div style={S.headerLeft}>
-          <h1 style={S.title}>Execute</h1>
-          <p style={S.subtitle}>{SUBTITLE_MAP[activeTab] || "Manage and track your team's tasks."}</p>
+    <div className="fd-page">
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", gap: "16px", flexWrap: "wrap", marginBottom: "28px" }}>
+        <div>
+          <div className="fd-page-kicker">The work</div>
+          <h1 className="fd-page-title">Execute</h1>
+          <p className="fd-page-sub">{SUBTITLE_MAP[activeTab] || "Manage and track your team's tasks."}</p>
         </div>
-        <div style={S.headerRight}>
+        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
           <button onClick={() => { setEditTask(null); setTaskForm({ title: "", description: "", priority: "P2", status: "Not Started", deadline: "", goal_id: "", parent_id: "", assignee_id: "", estimated_hours: "", phase_tag: "" }); setShowTaskForm(true); }} style={S.orangeBtn}><Icon name="plus" /> New Task</button>
         </div>
       </div>
@@ -915,7 +916,7 @@ function Execute() {
               { label: "Overdue", value: tasks.filter(t => t.deadline && new Date(t.deadline) < new Date()).length, color: "var(--error)" },
               { label: "P0", value: tasks.filter(t => t.priority === "P0").length, color: "var(--japandi-red)" },
             ].map(s => (
-              <div key={s.label} className="card-glass" style={{ padding: "8px 16px", display: "flex", alignItems: "center", gap: "8px", background: "rgba(20,20,22,0.3)" }}>
+              <div key={s.label} className="card-glass" style={{ padding: "8px 16px", display: "flex", alignItems: "center", gap: "8px", background: "rgba(253,250,245,0.5)" }}>
                 <span style={{ fontSize: "18px", fontWeight: 700, color: s.color }}>{s.value}</span>
                 <span style={{ fontSize: "11px", color: "var(--japandi-muted)" }}>{s.label}</span>
               </div>
@@ -1022,7 +1023,7 @@ function Execute() {
           </div>
           <div style={{ display: "flex", gap: "6px", marginBottom: "12px", flexWrap: "wrap", alignItems: "center" }}>
             <span className={`badge-${(showTaskDrawer.priority || "P2").toLowerCase()}`}>{showTaskDrawer.priority}</span>
-            <span className="badge" style={{ backgroundColor: "rgba(255,255,255,0.05)", color: STATUS_COLORS[showTaskDrawer.status || "Not Started"] }}>{showTaskDrawer.status}</span>
+            <span className="badge" style={{ backgroundColor: "rgba(45,45,45,0.06)", color: STATUS_COLORS[showTaskDrawer.status || "Not Started"] }}>{showTaskDrawer.status}</span>
             {showTaskDrawer.phase_tag && <span style={S.badge(showTaskDrawer.phase_tag)}>{showTaskDrawer.phase_tag}</span>}
           </div>
           {showTaskDrawer.description && (

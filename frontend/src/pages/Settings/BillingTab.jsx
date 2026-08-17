@@ -118,7 +118,7 @@ export default function BillingTab() {
                 {billing?.current_period_end && ` \u00B7 Renews ${new Date(billing.current_period_end).toLocaleDateString()}`}
               </div>
             </div>
-            <span className="badge" style={{ backgroundColor: status === "active" ? "rgba(62,207,142,0.15)" : "rgba(255,90,0,0.15)", color: status === "active" ? "#4ade80" : "var(--japandi-accent)", border: "1px solid " + (status === "active" ? "rgba(62,207,142,0.2)" : "rgba(255,90,0,0.2)") }}>
+            <span className="badge" style={{ backgroundColor: status === "active" ? "rgba(62,207,142,0.15)" : "rgba(214,130,79,0.15)", color: status === "active" ? "#4ade80" : "var(--japandi-accent)", border: "1px solid " + (status === "active" ? "rgba(62,207,142,0.2)" : "rgba(214,130,79,0.2)") }}>
               {status.charAt(0).toUpperCase() + status.slice(1)}
             </span>
           </div>

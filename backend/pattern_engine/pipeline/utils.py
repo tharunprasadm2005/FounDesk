@@ -37,6 +37,38 @@ def _clean_field(value, maxlen=None):
     return cleaned
 
 
+def _normalize_task_priority(value):
+    if not value:
+        return "P2"
+    s = str(value).strip().lower()
+    if s in ("p0", "critical", "urgent"):
+        return "P0"
+    if s in ("p1", "high", "highest"):
+        return "P1"
+    if s in ("p2", "medium", "normal", "default"):
+        return "P2"
+    if s in ("p3", "low", "lowest", "none"):
+        return "P3"
+    return value
+
+
+def _normalize_task_status(value):
+    if not value:
+        return "Not Started"
+    s = str(value).strip().lower()
+    if s in ("done", "completed", "closed", "100%", "merged"):
+        return "Done"
+    if s in ("canceled", "cancelled", "archived", "rejected", "abandoned"):
+        return "Cancelled"
+    if s in ("in progress", "in_progress", "started", "active", "working on it", "review", "open", "reopened", "ready"):
+        return "In Progress"
+    if s in ("blocked", "waiting", "stuck"):
+        return "Blocked"
+    if s in ("backlog", "to do", "todo", "planning", "not started"):
+        return "Not Started"
+    return "Not Started"
+
+
 def _parse_date(value):
     if not value:
         return None
@@ -74,8 +106,8 @@ def _update_record(existing, model_class, result, event, workspace_id, stats):
     if model_class == Task:
         existing.title = fields.get("title", existing.title)[:255]
         existing.description = fields.get("description", existing.description)
-        existing.priority = fields.get("priority", existing.priority)
-        existing.status = fields.get("status", existing.status)
+        existing.priority = _normalize_task_priority(fields.get("priority", existing.priority))
+        existing.status = _normalize_task_status(fields.get("status", existing.status))
         existing.deadline = fields.get("deadline", existing.deadline)
         existing.estimated_hours = fields.get("estimated_hours", existing.estimated_hours)
     elif model_class == DecisionLog:
@@ -136,11 +168,14 @@ def _build_record(model_class, fields, workspace_id):
     creator_id = _get_workspace_creator(workspace_id)
     try:
         if model_class == Task:
+            task_title = _clean_field(fields.get("title"), 255)
+            if not task_title:
+                return None
             return Task(
-                title=_clean_field(fields.get("title", "Untitled"), 255),
+                title=task_title,
                 description=_clean_field(fields.get("description")),
-                priority=fields.get("priority", "P2"),
-                status=fields.get("status", "Not Started"),
+                priority=_normalize_task_priority(fields.get("priority")) or "P2",
+                status=_normalize_task_status(fields.get("status") or fields.get("state")),
                 deadline=_parse_date(fields.get("deadline")),
                 estimated_hours=fields.get("estimated_hours"),
                 goal_id=fields.get("linked_goal_id"),
@@ -149,8 +184,11 @@ def _build_record(model_class, fields, workspace_id):
                 user_id=creator_id,
             )
         elif model_class == DecisionLog:
+            decision_text = _clean_field(fields.get("decision_text") or fields.get("decision") or fields.get("title"), 255)
+            if not decision_text:
+                return None
             return DecisionLog(
-                decision=_clean_field(fields.get("decision_text") or fields.get("decision") or fields.get("title"), 255) or "Untitled Decision",
+                decision=decision_text,
                 context=_clean_field(fields.get("context"), 500),
                 alternatives=fields.get("alternatives"),
                 attendees=fields.get("attendees"),
@@ -171,8 +209,11 @@ def _build_record(model_class, fields, workspace_id):
                 workspace_id=workspace_id,
             )
         elif model_class == Blocker:
+            blocker_title = _clean_field(fields.get("title"), 255)
+            if not blocker_title or blocker_title.lower() == "untitled blocker":
+                return None
             return Blocker(
-                title=fields.get("title", "Untitled Blocker")[:255],
+                title=blocker_title,
                 description=fields.get("description"),
                 severity=fields.get("severity", "medium"),
                 status="open",
@@ -235,6 +276,17 @@ def _create_chronicle(record, result, event, workspace_id):
         chronicle_title = title if rtype != "none" else f"Ingested: {payload.get('title', '') or event.source}"
         stage = _get_workspace_stage(workspace_id)
         user_id = getattr(record, "created_by", None) or getattr(record, "user_id", None) if record else None
+
+        if rtype != "none":
+            existing_chronicle = ChronicleEvent.query.filter_by(
+                workspace_id=workspace_id,
+                event_type=event_type,
+                source_type=rtype if rtype not in ("none", "activity") else None,
+                source_id=record.id if record else None,
+            ).first()
+            if existing_chronicle:
+                return
+
         chronicle = ChronicleEvent(
             workspace_id=workspace_id,
             event_type=event_type,

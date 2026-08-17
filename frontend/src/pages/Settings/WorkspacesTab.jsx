@@ -11,7 +11,7 @@ export default function WorkspacesTab({ workspaces, currentWorkspace, onWorkspac
   const toast = useToast();
 
   const [showCreateWS, setShowCreateWS] = useState(false);
-  const [wsForm, setWsForm] = useState({ name: "", description: "", stage: "Think", color: "#ff751f", logo_url: "", website: "", industry: "", size: "" });
+  const [wsForm, setWsForm] = useState({ name: "", description: "", stage: "Think", color: "#D6824F", logo_url: "", website: "", industry: "", size: "" });
   const [wsActivity, setWsActivity] = useState([]);
   const [wsTags, setWsTags] = useState({});
   const [showTransferModal, setShowTransferModal] = useState(false);
@@ -22,7 +22,7 @@ export default function WorkspacesTab({ workspaces, currentWorkspace, onWorkspac
   const [newTagInput, setNewTagInput] = useState("");
   const [wsDrawer, setWsDrawer] = useState(null);
   const [wsDrawerForm, setWsDrawerForm] = useState({
-    name: "", description: "", stage: "Build", color: "#ff751f",
+    name: "", description: "", stage: "Build", color: "#D6824F",
     logo_url: "", website: "", industry: "", size: ""
   });
   const [wsNotifPrefs, setWsNotifPrefs] = useState({});
@@ -119,7 +119,7 @@ export default function WorkspacesTab({ workspaces, currentWorkspace, onWorkspac
       name: ws.name || "",
       description: ws.description || "",
       stage: ws.stage || "Build",
-      color: ws.color || "#ff751f",
+      color: ws.color || "#D6824F",
       logo_url: ws.logo_url || "",
       website: ws.website || "",
       industry: ws.industry || "",
@@ -151,7 +151,7 @@ export default function WorkspacesTab({ workspaces, currentWorkspace, onWorkspac
   };
 
   const handleMarkAllRead = async (wsId) => {
-    try { await api.post(`/api/workspaces/${wsId}/notifications/mark-all-read`); toast("Marked all as read.", "success"); } catch { toast("Failed to mark all as read.", "error"); }
+    try { await api.post(`/api/notifications/read-all/workspace/${wsId}`); toast("Marked all as read.", "success"); } catch { toast("Failed to mark all as read.", "error"); }
   };
 
   const stats = {
@@ -189,7 +189,7 @@ export default function WorkspacesTab({ workspaces, currentWorkspace, onWorkspac
         <div key={ws.id} className="card-glass"
           style={{ padding: "16px", marginBottom: "8px", cursor: "pointer", transition: "border-color 0.15s", border: "1px solid transparent" }}
           onClick={() => { if (!selectMode) openWsDrawer(ws); }}
-          onMouseEnter={e => { if (wsDrawer?.id !== ws.id) e.currentTarget.style.borderColor = "rgba(255,90,0,0.2)"; }}
+          onMouseEnter={e => { if (wsDrawer?.id !== ws.id) e.currentTarget.style.borderColor = "rgba(214,130,79,0.2)"; }}
           onMouseLeave={e => e.currentTarget.style.borderColor = "transparent"}>
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
             {selectMode && (
@@ -197,7 +197,7 @@ export default function WorkspacesTab({ workspaces, currentWorkspace, onWorkspac
                 onChange={e => { const s = new Set(selectedWorkspaceIds); if (e.target.checked) s.add(ws.id); else s.delete(ws.id); setSelectedWorkspaceIds(s); }}
                 style={{ accentColor: "var(--japandi-accent)", width: "16px", height: "16px" }} onClick={e => e.stopPropagation()} />
             )}
-            <div style={{ width: "40px", height: "40px", borderRadius: "10px", backgroundColor: ws.color || "#ff751f", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 700, fontSize: "16px", flexShrink: 0 }}>
+            <div style={{ width: "40px", height: "40px", borderRadius: "10px", backgroundColor: ws.color || "#D6824F", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 700, fontSize: "16px", flexShrink: 0 }}>
               {(ws.name || "W")[0].toUpperCase()}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
@@ -336,14 +336,14 @@ export default function WorkspacesTab({ workspaces, currentWorkspace, onWorkspac
           boxShadow: "-8px 0 40px rgba(0,0,0,0.4)"
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "20px 24px", borderBottom: "1px solid rgba(107,107,111,0.08)" }}>
-            <div style={{ width: "36px", height: "36px", borderRadius: "10px", backgroundColor: wsDrawer.color || "#ff751f", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 700, fontSize: "14px", flexShrink: 0 }}>
+            <div style={{ width: "36px", height: "36px", borderRadius: "10px", backgroundColor: wsDrawer.color || "#D6824F", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 700, fontSize: "14px", flexShrink: 0 }}>
               {(wsDrawer.name || "W")[0].toUpperCase()}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: "15px", fontWeight: 700, color: "var(--japandi-text)" }}>{wsDrawer.name}</div>
               <div style={{ fontSize: "11px", color: "var(--japandi-muted)" }}>{wsDrawer.stage} stage · {wsDrawer.members?.filter(m => m.status === "active")?.length || 0} members</div>
             </div>
-            <button onClick={() => { setWsDrawer(null); setWsDrawerForm({ name: "", description: "", stage: "Build", color: "#ff751f", logo_url: "", website: "", industry: "", size: "" }); }}
+            <button onClick={() => { setWsDrawer(null); setWsDrawerForm({ name: "", description: "", stage: "Build", color: "#D6824F", logo_url: "", website: "", industry: "", size: "" }); }}
               className="btn-action-secondary" style={{ padding: "6px" }}><X size={14} /></button>
           </div>
 
@@ -457,7 +457,7 @@ export default function WorkspacesTab({ workspaces, currentWorkspace, onWorkspac
 
           <div style={{ padding: "16px 24px", borderTop: "1px solid rgba(107,107,111,0.08)", display: "flex", gap: "8px" }}>
             <button onClick={handleWsDrawerSave} className="btn-ember"><Save size={14} /> Save Changes</button>
-            <button onClick={() => { setWsDrawer(null); setWsDrawerForm({ name: "", description: "", stage: "Build", color: "#ff751f", logo_url: "", website: "", industry: "", size: "" }); }}
+            <button onClick={() => { setWsDrawer(null); setWsDrawerForm({ name: "", description: "", stage: "Build", color: "#D6824F", logo_url: "", website: "", industry: "", size: "" }); }}
               className="btn-action-secondary">Cancel</button>
           </div>
         </div>
@@ -465,7 +465,7 @@ export default function WorkspacesTab({ workspaces, currentWorkspace, onWorkspac
 
       {wsDrawer && (
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.3)", zIndex: 998 }}
-          onClick={() => { setWsDrawer(null); setWsDrawerForm({ name: "", description: "", stage: "Build", color: "#ff751f", logo_url: "", website: "", industry: "", size: "" }); }} />
+          onClick={() => { setWsDrawer(null); setWsDrawerForm({ name: "", description: "", stage: "Build", color: "#D6824F", logo_url: "", website: "", industry: "", size: "" }); }} />
       )}
     </div>
   );

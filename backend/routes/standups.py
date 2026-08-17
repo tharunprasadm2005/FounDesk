@@ -16,7 +16,7 @@ def submit_standup(current_user_id):
     if not workspace_id:
         return jsonify({"error": "No active workspace context"}), 400
 
-    data = request.get_json()
+    data = request.get_json(silent=True)
     if not data or not data.get('q1_yesterday') or not data.get('q2_today'):
         return jsonify({"error": "Standup answers for yesterday and today are required."}), 400
 

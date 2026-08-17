@@ -1,80 +1,49 @@
-import React, { useEffect, useRef } from "react";
-import Lenis from "lenis";
+import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
+import { Menu, X } from "lucide-react";
 import Sidebar from "./Sidebar";
 import { NotificationProvider } from "../context/NotificationContext";
 import { ToastProvider } from "../context/ToastContext";
 import CommandBar from "./CommandBar";
 
 function Layout({ children }) {
-  const scrollRef = useRef(null);
+  const location = useLocation();
+  const [navOpen, setNavOpen] = useState(false);
 
   useEffect(() => {
-    // Check prefers-reduced-motion media query
-    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-    if (mediaQuery.matches || !scrollRef.current) {
-      return; // Do not initialize Lenis
-    }
-
-    const lenis = new Lenis({
-      wrapper: scrollRef.current,
-      content: scrollRef.current.firstElementChild || scrollRef.current,
-      duration: 1.2,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      orientation: "vertical",
-      gestureOrientation: "vertical",
-      smoothWheel: true,
-      wheelMultiplier: 1,
-      touchMultiplier: 2,
-      infinite: false,
-    });
-
-    function raf(time) {
-      lenis.raf(time);
-      requestAnimationFrame(raf);
-    }
-
-    requestAnimationFrame(raf);
-
-    return () => {
-      lenis.destroy();
-    };
-  }, []);
-
-  const styles = {
-    layout: {
-      display: "flex",
-      minHeight: "100vh",
-      backgroundColor: "transparent",
-      color: "var(--japandi-text)",
-      overflow: "hidden",
-    },
-    container: {
-      display: "flex",
-      flex: 1,
-      height: "100vh",
-      overflow: "hidden",
-      width: "100%",
-    },
-    mainContent: {
-      flex: 1,
-      padding: "24px", // Layout bezel
-      background: "transparent",
-      overflowY: "auto",
-      boxSizing: "border-box",
-      position: "relative",
-    },
-  };
+    setNavOpen(false);
+  }, [location.pathname]);
 
   return (
     <NotificationProvider>
       <ToastProvider>
-        <div style={styles.layout}>
-          <div style={styles.container}>
-            <Sidebar />
-            <main ref={scrollRef} style={styles.mainContent} className="main-scroll-zone">
-              <div>
-                {children}
-              </div>
+        <div className="fd-app">
+          {/* Mobile topbar */}
+          <header className="fd-app-top">
+            <button
+              className="fd-app-burger"
+              onClick={() => setNavOpen((open) => !open)}
+              aria-label={navOpen ? "Close navigation" : "Open navigation"}
+              aria-expanded={navOpen}
+            >
+              {navOpen ? <X size={18} strokeWidth={2} /> : <Menu size={18} strokeWidth={2} />}
+            </button>
+            <span className="fd-app-topword">
+              <span style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic", fontWeight: 600, marginRight: 4 }}>f</span>
+              FounDesk
+            </span>
+          </header>
+
+          <div
+            className={`fd-app-overlay ${navOpen ? "is-open" : ""}`}
+            onClick={() => setNavOpen(false)}
+          />
+
+          <Sidebar mobileOpen={navOpen} onNavigate={() => setNavOpen(false)} />
+
+          <div className="fd-app-main">
+            <main className="fd-app-scroll">
+              <div className="fd-app-canvas">{children}</div>
             </main>
           </div>
         </div>

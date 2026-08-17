@@ -13,7 +13,7 @@ from routes.integrations.main import integrations_bp, validate_asana_token, vali
 @integrations_bp.route('/integrations/oauth/url', methods=['POST'])
 @token_required
 def get_oauth_url(current_user_id):
-    data = request.get_json()
+    data = request.get_json(silent=True) or {}
     raw_provider = data.get('provider')
     GOOGLE_SUB_PROVIDERS = {'gmail', 'google_calendar', 'google_meet', 'google_docs', 'google_analytics'}
     if raw_provider in GOOGLE_SUB_PROVIDERS:
@@ -137,7 +137,7 @@ def get_oauth_url(current_user_id):
 @integrations_bp.route('/integrations/oauth/callback', methods=['POST'])
 @token_required
 def oauth_callback(current_user_id):
-    data = request.get_json()
+    data = request.get_json(silent=True) or {}
     provider = data.get('provider')
     code = data.get('code')
     if not provider or not code:

@@ -48,7 +48,7 @@ export default function Settings() {
   const fetchNotificationPrefs = async () => {
     try {
       const res = await api.get("/api/notifications/preferences");
-      setNotificationPrefs(res.data?.preferences || {});
+      setNotificationPrefs(res.data?.rules || {});
     } catch (err) { console.error("[Settings] Failed to fetch notification preferences:", err); }
   };
 
@@ -103,10 +103,13 @@ export default function Settings() {
   };
 
   return (
-    <div className="settings-page" style={{ padding: "24px 32px", fontFamily: "'Satoshi', sans-serif" }}>
-      <div style={{ marginBottom: 24 }}>
-        <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: "var(--japandi-text)", fontFamily: "'Clash Display', sans-serif" }}>Settings</h1>
-        <p style={{ margin: "4px 0 0", fontSize: 12, color: "var(--japandi-muted)", fontWeight: 500 }}>{SUBTITLE_MAP[activeTab]}</p>
+    <div className="settings-page" style={{ padding: "clamp(28px, 4.5vw, 60px) clamp(28px, 4.5vw, 60px) 64px", fontFamily: "'Manrope', sans-serif" }}>
+      <div style={{ marginBottom: 28 }}>
+        <div className="fd-dash-date">Open desk</div>
+        <h1 style={{ margin: 0, fontSize: "clamp(30px, 4vw, 46px)", fontWeight: 500, lineHeight: 1, letterSpacing: "-0.03em", color: "var(--japandi-text)", fontFamily: "'Cormorant Garamond', serif" }}>
+          {TABS.find(t => t.key === activeTab)?.label || "Settings"}
+        </h1>
+        <p style={{ margin: "10px 0 0", fontSize: 13, color: "var(--japandi-muted)", fontWeight: 500, maxWidth: 520 }}>{SUBTITLE_MAP[activeTab]}</p>
       </div>
       <div className="view-tabs" style={{ marginBottom: 24 }}>
         {TABS.map(tab => (

@@ -1,3 +1,4 @@
+/* global gtag */
 import api from "./api";
 
 export async function track(event, properties = {}) {

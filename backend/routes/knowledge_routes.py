@@ -50,7 +50,7 @@ def create_knowledge_item(current_user_id):
     if not workspace_id:
         return jsonify({"error": "No active workspace context"}), 400
 
-    data = request.get_json()
+    data = request.get_json(silent=True)
     if not data or not data.get('title'):
         return jsonify({"error": "Title is required"}), 400
 
@@ -84,7 +84,7 @@ def update_knowledge_item(current_user_id, item_id):
     if not item:
         return jsonify({"error": "Knowledge item not found"}), 404
 
-    data = request.get_json()
+    data = request.get_json(silent=True)
     if not data:
         return jsonify({"error": "No data provided"}), 400
 

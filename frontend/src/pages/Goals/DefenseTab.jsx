@@ -36,7 +36,7 @@ export default function DefenseTab({ activeTab }) {
     finally { if (!skipLoading) setDefenseLoading(false); }
   }, []);
 
-  useEffect(() => { if (activeTab === "defense") fetchRules(); }, [activeTab, fetchRules]);
+  useEffect(() => { fetchRules(); }, [fetchRules]);
 
   const handleSaveHours = async () => {
     try {
@@ -104,7 +104,7 @@ export default function DefenseTab({ activeTab }) {
   return (
     <div className="fade-in" style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
       {defenseLoading ? (
-        <div className="card-glass" style={{ textAlign: "center" }}>
+        <div className="card-glass" style={{ textAlign: "center", padding: "36px 24px" }}>
           <p style={{ fontSize: "13px", color: "var(--japandi-muted)", margin: 0 }}>Analyzing schedule defense configurations...</p>
         </div>
       ) : (
@@ -112,6 +112,7 @@ export default function DefenseTab({ activeTab }) {
           {/* Calendar connection banner */}
           <div className="card-glass" style={{
             display: "flex", alignItems: "center", justifyContent: "space-between",
+            padding: "18px 22px",
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
               <Icon name="calendar" size={14} style={{ color: "var(--muted-gold)" }} />
@@ -133,7 +134,7 @@ export default function DefenseTab({ activeTab }) {
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "22px" }}>
 
             {/* Left: Rules & Configuration */}
-            <div className="card-glass" style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+            <div className="card-glass" style={{ display: "flex", flexDirection: "column", gap: "20px", padding: "20px 22px" }}>
               <div>
                 <p className="card-label">Working Hours</p>
                 <div style={{ display: "flex", gap: "10px", alignItems: "flex-end", marginTop: "12px" }}>
@@ -163,7 +164,7 @@ export default function DefenseTab({ activeTab }) {
                     <div key={i} style={{
                       display: "flex", alignItems: "center", gap: "8px",
                       padding: "8px 12px", borderRadius: "8px",
-                      background: "rgba(255,255,255,0.01)"
+                      background: "rgba(45,45,45,0.03)"
                     }}>
                       <Icon name="shield" size={13} stroke={2} style={{ color: "var(--japandi-accent)" }} />
                       <span style={{ fontSize: "12px", color: "var(--japandi-text)", fontWeight: "600" }}>{r.label}</span>
@@ -179,7 +180,7 @@ export default function DefenseTab({ activeTab }) {
             <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
               {/* Stats cards */}
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "22px" }}>
-                <div className="card-glass" style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                <div className="card-glass" style={{ display: "flex", flexDirection: "column", gap: "2px", padding: "18px 20px" }}>
                   <span className="card-label">Protected / day</span>
                   <HeroNumber
                     value={`${wsCalendarRules.end_hour - wsCalendarRules.start_hour}h`}
@@ -187,7 +188,7 @@ export default function DefenseTab({ activeTab }) {
                   />
                   <span className="card-hero-support">Shielded time slot</span>
                 </div>
-                <div className="card-glass" style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                <div className="card-glass" style={{ display: "flex", flexDirection: "column", gap: "2px", padding: "18px 20px" }}>
                   <span className="card-label">Conflicts</span>
                   <HeroNumber
                     value={rulesData.suggestions?.length || 0}
@@ -198,7 +199,7 @@ export default function DefenseTab({ activeTab }) {
               </div>
 
               {/* Visual Day Timeline */}
-              <div className="card-glass" style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+              <div className="card-glass" style={{ flex: 1, display: "flex", flexDirection: "column", padding: "20px 22px" }}>
                 <p className="card-label" style={{ marginBottom: "16px" }}>Today's Schedule</p>
                 <div style={{ display: "flex", flexDirection: "column", gap: "4px", flex: 1 }}>
                   {Array.from({ length: 14 }, (_, i) => {
@@ -215,7 +216,7 @@ export default function DefenseTab({ activeTab }) {
                         </span>
                         <div style={{
                           flex: 1, height: "10px", borderRadius: "3px",
-                          backgroundColor: hasMeeting ? "rgba(232,67,79,0.12)" : isProtected ? "rgba(62,207,142,0.12)" : "rgba(255,255,255,0.02)",
+                          backgroundColor: hasMeeting ? "rgba(232,67,79,0.12)" : isProtected ? "rgba(110,143,118,0.14)" : "rgba(45,45,45,0.04)",
                           border: "none",
                           position: "relative"
                         }}>
@@ -243,7 +244,7 @@ export default function DefenseTab({ activeTab }) {
           </div>
 
           {/* Suggestions section */}
-          <div className="card-glass">
+          <div className="card-glass" style={{ padding: "20px 22px" }}>
             <p className="card-label" style={{ marginBottom: "16px" }}>
               Move Suggestions {rulesData.suggestions?.length > 0 ? `(${rulesData.suggestions.length})` : ""}
             </p>
@@ -252,7 +253,7 @@ export default function DefenseTab({ activeTab }) {
                 {rulesData.suggestions.map((s, i) => (
                   <div key={i} style={{
                     display: "flex", alignItems: "center", justifyContent: "space-between",
-                    padding: "14px 16px", background: `rgba(232,80,2,0.03)`, borderRadius: "12px",
+                    padding: "14px 16px", background: `rgba(214,130,79,0.05)`, borderRadius: "12px",
                     border: "none",
                   }}>
                     <div style={{ flex: 1 }}>

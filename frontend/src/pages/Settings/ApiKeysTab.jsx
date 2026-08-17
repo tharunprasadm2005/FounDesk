@@ -28,7 +28,7 @@ export default function ApiKeysTab() {
   const fetchApiKeys = async () => {
     try {
       const res = await api.get("/api/developer/api-keys");
-      setApiKeys(Array.isArray(res.data) ? res.data : []);
+      setApiKeys(Array.isArray(res.data?.api_keys) ? res.data.api_keys : []);
     } catch (err) { console.error("[Settings] Failed to fetch API keys:", err); }
   };
 
@@ -38,7 +38,7 @@ export default function ApiKeysTab() {
     if (!newKeyName.trim()) return;
     try {
       const res = await api.post("/api/developer/api-keys", { name: newKeyName.trim(), permissions: keyPermissions });
-      setNewlyCreatedKey(res.data?.key || res.data?.api_key || "Key created");
+      setNewlyCreatedKey(res.data?.raw_key || res.data?.key || res.data?.api_key?.key || "Key created");
       setNewKeyName("");
       setShowNewKeyForm(false);
       setKeyPermissions({ read: true, write: false, admin: false });

@@ -189,7 +189,7 @@ def create_goal(current_user_id):
     if not workspace_id:
         return jsonify({"error": "No active workspace context"}), 400
 
-    data = request.get_json()
+    data = request.get_json(silent=True)
     if not data or not data.get('title') or not data.get('goal_type'):
         return jsonify({"error": "Title and goal type are required"}), 400
 
@@ -234,7 +234,7 @@ def update_goal(current_user_id, goal_id):
     if not goal:
         return jsonify({"error": "Goal not found in this workspace"}), 404
 
-    data = request.get_json()
+    data = request.get_json(silent=True)
     if not data:
         return jsonify({"error": "No update data provided"}), 400
 

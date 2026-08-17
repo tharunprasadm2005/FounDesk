@@ -15,12 +15,23 @@ from models.workspace_member import WorkspaceMember
 from models.workspace import Workspace
 from utils.auth import token_required
 from utils.workspace_auth import get_current_workspace_id
+from utils.mock_mode import mock_visibility_clause
 from datetime import datetime, timedelta
 import requests
 import os
 import threading
 
 dashboard_bp = Blueprint('dashboard', __name__)
+
+def _day_trunc(col):
+    if db.engine.dialect.name == "sqlite":
+        return db.func.strftime('%Y-%m-%d', col)
+    return db.func.date_trunc('day', col)
+
+def _day_key(value):
+    if hasattr(value, "strftime"):
+        return value.strftime('%Y-%m-%d')
+    return str(value)
 
 @dashboard_bp.route('/dashboard', methods=['GET'])
 @token_required
@@ -241,16 +252,16 @@ def get_dashboard(current_user_id):
         Task.completed_at >= week_ago,
     ).count()
     daily_counts = db.session.query(
-        db.func.date_trunc('day', Task.completed_at).label('day'),
+        _day_trunc(Task.completed_at).label('day'),
         db.func.count(Task.id)
     ).filter(
         Task.workspace_id == workspace_id,
         Task.status == 'Done',
         Task.completed_at >= week_ago,
     ).group_by(
-        db.func.date_trunc('day', Task.completed_at)
+        _day_trunc(Task.completed_at)
     ).all()
-    counts_by_day = {row[0].strftime('%Y-%m-%d'): row[1] for row in daily_counts}
+    counts_by_day = {_day_key(row[0]): row[1] for row in daily_counts}
     completion_data_points = [
         counts_by_day.get((now - timedelta(days=i)).strftime('%Y-%m-%d'), 0)
         for i in range(6, -1, -1)
@@ -288,7 +299,7 @@ def get_dashboard(current_user_id):
         db.func.count(ActivityEvent.id)
     ).filter(
         ActivityEvent.workspace_id == workspace_id,
-        ActivityEvent.is_mock == False,
+        mock_visibility_clause(workspace_id),
         ActivityEvent.external_timestamp >= digest_start
     ).group_by(ActivityEvent.provider).all()
     integration_digest = {row[0]: row[1] for row in digest_rows if row[0] not in ('posthog', 'mixpanel', 'amplitude')}

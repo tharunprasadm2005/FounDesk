@@ -32,21 +32,21 @@ export default function PhaseTab({ goals }) {
     finally { setApplyingPhase(false); }
   };
 
-  useEffect(() => {
-    const active = templates.find(t => t.is_active);
-    if (active) {
-      handleSelectPhase(active.name);
-    }
-  }, [templates]);
-
-  const handleSelectPhase = async (name) => {
+  async function handleSelectPhase(name) {
     try {
       setPhaseDetailLoading(true);
       setPhaseDetail(null);
       const res = await api.get(`/api/phase/${name}`);
       setPhaseDetail(res.data);
     } catch (err) { console.error("[Goals] Failed to select phase:", err); } finally { setPhaseDetailLoading(false); }
-  };
+  }
+
+  useEffect(() => {
+    const active = templates.find(t => t.is_active);
+    if (active) {
+      handleSelectPhase(active.name);
+    }
+  }, [templates]);
 
   const loadCompletedItems = (templateName) => {
     try { const stored = localStorage.getItem(`phase_checklist_${templateName}`); return new Set(stored ? JSON.parse(stored) : []); }
@@ -76,12 +76,12 @@ export default function PhaseTab({ goals }) {
 
   return (
     <div className="fade-in" style={{ display: "flex", flexDirection: "column", gap: "22px" }}>
-      <div className="card-glass">
+      <div className="card-glass" style={{ padding: "22px 24px" }}>
         {workspace ? (
           <div>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
               <div>
-                <h3 style={{ fontSize: "18px", fontWeight: "800", color: "var(--japandi-text)", margin: 0, fontFamily: "'Clash Display', sans-serif" }}>
+                <h3 style={{ fontSize: "18px", fontWeight: "600", color: "var(--japandi-text)", margin: 0, fontFamily: "'Cormorant Garamond', serif" }}>
                   {PHASE_LABELS[workspace.active_phase] || (workspace.active_phase || "Build").replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}
                 </h3>
                 <span className="badge badge-positive" style={{ marginTop: "6px" }}>
@@ -96,7 +96,7 @@ export default function PhaseTab({ goals }) {
             </div>
 
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", position: "relative", margin: "32px 0 40px", padding: "0 10px" }}>
-              <div style={{ position: "absolute", top: "50%", left: 0, right: 0, height: "2px", background: "rgba(255,255,255,0.03)", zIndex: 1, transform: "translateY(-50%)" }} />
+              <div style={{ position: "absolute", top: "50%", left: 0, right: 0, height: "2px", background: "rgba(45,45,45,0.08)", zIndex: 1, transform: "translateY(-50%)" }} />
               <div style={{ position: "absolute", top: "50%", left: 0, width: `${(Math.max(0, ["think", "build", "launch", "scale"].indexOf((workspace.active_phase || "build").toLowerCase())) / 3) * 100}%`, height: "2px", background: "var(--japandi-accent)", zIndex: 1, transform: "translateY(-50%)", transition: "width 0.5s ease" }} />
 
               {["think", "build", "launch", "scale"].map((p, idx) => {
@@ -111,7 +111,7 @@ export default function PhaseTab({ goals }) {
                       display: "flex", alignItems: "center", justifyContent: "center",
                       background: isActive ? "var(--ink)" : isCompleted ? "var(--japandi-surface)" : "var(--ink)",
                       border: isActive ? "2px solid var(--japandi-accent)" : isCompleted ? "1px solid var(--japandi-border)" : "1px solid var(--japandi-border)",
-                      boxShadow: isActive ? "0 0 12px rgba(232, 80, 2, 0.2)" : "none",
+                      boxShadow: isActive ? "0 0 12px rgba(214, 130, 79, 0.28)" : "none",
                       color: isActive ? "var(--japandi-accent)" : isCompleted ? "var(--japandi-text)" : "var(--japandi-muted)",
                       fontWeight: "750", fontSize: "11px", transition: "all 0.3s"
                     }}>
@@ -120,7 +120,7 @@ export default function PhaseTab({ goals }) {
                     <span style={{
                       marginTop: "8px", fontSize: "11.5px", fontWeight: isActive ? "750" : "500",
                       color: isActive ? "var(--japandi-text)" : "var(--japandi-muted)",
-                      fontFamily: isActive ? "'Clash Display', sans-serif" : "inherit"
+                      fontFamily: isActive ? "'Cormorant Garamond', serif" : "inherit"
                     }}>
                       {label}
                     </span>
@@ -139,7 +139,7 @@ export default function PhaseTab({ goals }) {
                     border: "none",
                     padding: "14px 0", borderBottom: "1px solid var(--japandi-border)"
                   }}>
-                    <h5 style={{ fontSize: "14px", fontWeight: "750", color: "var(--japandi-accent)", margin: "0 0 8px", fontFamily: "'Clash Display', sans-serif" }}>
+                    <h5 style={{ fontSize: "14px", fontWeight: "600", color: "var(--japandi-accent)", margin: "0 0 8px", fontFamily: "'Cormorant Garamond', serif" }}>
                       📅 {goal.title}
                     </h5>
                     {goal.description && (

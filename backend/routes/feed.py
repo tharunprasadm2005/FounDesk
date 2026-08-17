@@ -6,6 +6,7 @@ from models.pinned_item import PinnedItem
 from config.database import db
 from services.activity_compiler import compile_activity_feed
 from services.decision_engine import extract_priority_actions, extract_alerts
+from utils.mock_mode import mock_visibility_clause
 from datetime import datetime, timedelta
 import re
 import hashlib
@@ -40,7 +41,10 @@ def get_legacy_feed(current_user_id):
     except Exception as e:
         print("Warning: compile_activity_feed failed during legacy feed:", e)
 
-    base = ActivityEvent.query.filter(ActivityEvent.workspace_id == workspace_id)
+    base = ActivityEvent.query.filter(
+        ActivityEvent.workspace_id == workspace_id,
+        mock_visibility_clause(workspace_id)
+    )
     total = base.count()
 
     events = base.order_by(ActivityEvent.external_timestamp.desc()).paginate(page=page, per_page=per_page, error_out=False)
@@ -124,7 +128,10 @@ def extract_actionable_signal(title, details, actor, provider):
 
 
 def get_normalized_feed_data(workspace_id):
-    events = ActivityEvent.query.filter_by(workspace_id=workspace_id).all()
+    events = ActivityEvent.query.filter(
+        ActivityEvent.workspace_id == workspace_id,
+        mock_visibility_clause(workspace_id)
+    ).all()
     normalized_feed = []
     
     for ev in events:
@@ -215,25 +222,7 @@ def get_normalized_feed_data(workspace_id):
             if meet_urls:
                 link = meet_urls[0]
         if not link:
-            provider_links = {
-                "slack": "https://slack.com/",
-                "github": "https://github.com/",
-                "gmail": "https://mail.google.com/",
-                "calendar": "https://calendar.google.com/",
-                "monday": "https://monday.com/",
-                "notion": "https://notion.so/",
-                "docs": "https://docs.google.com/",
-                "analytics": "https://analytics.google.com/",
-                "asana": "https://app.asana.com/",
-                "linear": "https://linear.app/",
-                "posthog": "https://us.posthog.com/",
-                "mixpanel": "https://mixpanel.com/",
-                "amplitude": "https://amplitude.com/",
-                "hubspot": "https://app.hubspot.com/",
-                "pipedrive": "https://app.pipedrive.com/",
-                "zoho_crm": "https://crm.zoho.in/"
-            }
-            link = provider_links.get(ev.provider) or provider_links.get(mapped_source, "https://google.com/")
+            link = ""
 
         # Stable hash generation
         timestamp_str = ev.external_timestamp.isoformat() if ev.external_timestamp else "1970-01-01T00:00:00"

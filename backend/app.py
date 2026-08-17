@@ -300,12 +300,12 @@ app.register_blueprint(health_bp)
 
 @app.route('/auth/google', methods=['POST'])
 @app.route('/api/auth/google', methods=['POST'])
-@limiter.limit("10 per minute")
+@limiter.limit("30 per minute")
 def google_auth():
     import traceback
     from models.workspace import Workspace
     from models.workspace_member import WorkspaceMember
-    data = request.get_json()
+    data = request.get_json(silent=True)
     if not data or not data.get('token'):
         return jsonify({"error": "Missing token"}), 400
     token = data.get('token')

@@ -84,7 +84,7 @@ export default function ConnectedAppsTab({ integrations, onIntegrationsChange, p
                 <div key={svc.key} className="card-glass" style={{ padding: "16px", display: "flex", flexDirection: "column", gap: 10 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                      <div style={{ width: "34px", height: "34px", borderRadius: "8px", backgroundColor: connected ? "rgba(255,90,0,0.15)" : "rgba(107,107,111,0.1)", border: connected ? "1px solid rgba(255,90,0,0.2)" : "1px solid rgba(107,107,111,0.12)", flexShrink: 0 }} />
+                      <div style={{ width: "34px", height: "34px", borderRadius: "8px", backgroundColor: connected ? "rgba(214,130,79,0.15)" : "rgba(107,107,111,0.1)", border: connected ? "1px solid rgba(214,130,79,0.2)" : "1px solid rgba(107,107,111,0.12)", flexShrink: 0 }} />
                       <div><div style={{ fontSize: "13px", fontWeight: 600, color: "var(--japandi-text)" }}>{svc.name}</div><div style={{ fontSize: "10px", color: "var(--japandi-muted)" }}>{connected ? `Connected as ${integ.email || integ.provider}` : "Not connected"}</div></div>
                     </div>
                     {connected ? <span className="badge badge-positive">CONNECTED</span> : <span className="badge badge-neutral">UNLINKED</span>}

@@ -127,7 +127,7 @@ export default function TeamTab({ teamMembers, currentWorkspace, onTeamChange })
         <button onClick={() => { setSelectedMember(null); setMemberActivity([]); }} className="btn-action-secondary" style={{ marginBottom: "16px" }}><ChevronRight size={14} style={{ transform: "rotate(180deg)" }} /> Back to Team</button>
         <div className="card-glass" style={{ padding: "20px", marginBottom: "12px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "14px", marginBottom: "16px" }}>
-            <div style={{ width: "48px", height: "48px", borderRadius: "12px", backgroundColor: "rgba(255,90,0,0.15)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--japandi-accent)", fontWeight: 700, fontSize: "18px" }}>
+            <div style={{ width: "48px", height: "48px", borderRadius: "12px", backgroundColor: "rgba(214,130,79,0.15)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--japandi-accent)", fontWeight: 700, fontSize: "18px" }}>
               {(selectedMember.user_name || selectedMember.email || "?")[0].toUpperCase()}
             </div>
             <div>
@@ -220,11 +220,11 @@ export default function TeamTab({ teamMembers, currentWorkspace, onTeamChange })
             ) : filteredMembers.map(m => (
               <tr key={m.id} style={{ borderBottom: "1px solid rgba(107,107,111,0.06)", cursor: "pointer", transition: "background 0.1s" }}
                 onClick={() => { setSelectedMember(m); fetchMemberActivity(wsId, m.user_id); }}
-                onMouseEnter={e => e.currentTarget.style.background = "rgba(255,90,0,0.03)"}
+                onMouseEnter={e => e.currentTarget.style.background = "rgba(214,130,79,0.03)"}
                 onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
                 <td style={{ padding: "10px 14px" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                    <div style={{ width: "32px", height: "32px", borderRadius: "8px", backgroundColor: "rgba(255,90,0,0.12)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--japandi-accent)", fontWeight: 700, fontSize: "12px" }}>
+                    <div style={{ width: "32px", height: "32px", borderRadius: "8px", backgroundColor: "rgba(214,130,79,0.12)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--japandi-accent)", fontWeight: 700, fontSize: "12px" }}>
                       {(m.user_name || m.email || "?")[0].toUpperCase()}
                     </div>
                     <span style={{ fontWeight: 600, color: "var(--japandi-text)" }}>{m.user_name || m.email || "Unnamed"}</span>
@@ -334,7 +334,7 @@ export default function TeamTab({ teamMembers, currentWorkspace, onTeamChange })
               {subTeams.map(team => (
                 <div key={team.id} className="card-glass" style={{ padding: "12px", cursor: "pointer", border: "1px solid transparent" }}
                   onClick={() => { setSelectedTeam(team); fetchTeamMembers(wsId, team.id); }}
-                  onMouseEnter={e => e.currentTarget.style.borderColor = "rgba(255,90,0,0.2)"}
+                  onMouseEnter={e => e.currentTarget.style.borderColor = "rgba(214,130,79,0.2)"}
                   onMouseLeave={e => e.currentTarget.style.borderColor = "transparent"}>
                   <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                     <Folder size={16} style={{ color: "var(--japandi-muted)" }} />
@@ -375,7 +375,7 @@ export default function TeamTab({ teamMembers, currentWorkspace, onTeamChange })
             <div style={{ textAlign: "center" }}>
               <div style={{ marginBottom: "16px" }}>
                 <div className="card-label" style={{ marginBottom: "8px" }}>Founder</div>
-                <span className="tag" style={{ backgroundColor: "#ff751f22", color: "#ff751f", border: "1px solid #ff751f33" }}>
+                <span className="tag" style={{ backgroundColor: "#D6824F22", color: "#D6824F", border: "1px solid #D6824F33" }}>
                   {orgChartData.founder?.name || orgChartData.founder?.email || "—"}
                 </span>
               </div>

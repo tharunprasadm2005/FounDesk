@@ -63,7 +63,7 @@ def get_workspaces(current_user_id):
 @workspaces_bp.route('/workspaces', methods=['POST'])
 @token_required
 def create_workspace(current_user_id):
-    data = request.get_json()
+    data = request.get_json(silent=True)
     if not data or not data.get('name'):
         return jsonify({"error": "Workspace name is required"}), 400
         
@@ -142,7 +142,7 @@ def update_workspace(current_user_id, workspace_id):
     if not ws:
         return jsonify({"error": "Workspace not found"}), 404
         
-    data = request.get_json()
+    data = request.get_json(silent=True) or {}
     if 'name' in data:
         ws.name = data['name']
     if 'stage' in data:
@@ -198,7 +198,7 @@ def invite_member(current_user_id, workspace_id):
     if not member or member.role not in ['founder', 'admin']:
         return jsonify({"error": "Unauthorized to invite team members"}), 403
         
-    data = request.get_json()
+    data = request.get_json(silent=True) or {}
     email = data.get('email', '').strip().lower()
     role = data.get('role', 'member')
     
@@ -550,7 +550,7 @@ def update_member_role(current_user_id, workspace_id, member_id):
     if not current_member or current_member.role not in ['founder', 'admin']:
         return jsonify({"error": "Unauthorized"}), 403
 
-    data = request.get_json()
+    data = request.get_json(silent=True) or {}
     new_role = data.get('role')
     if new_role not in ['founder', 'admin', 'manager', 'developer', 'designer', 'viewer', 'member']:
         return jsonify({"error": f"Invalid role '{new_role}'"}), 400
@@ -582,7 +582,7 @@ def save_workspace_notifications(current_user_id, workspace_id):
     member = WorkspaceMember.query.filter_by(workspace_id=workspace_id, user_id=current_user_id, status='active').first()
     if not member:
         return jsonify({"error": "Unauthorized"}), 403
-    data = request.get_json()
+    data = request.get_json(silent=True)
     if not data:
         return jsonify({"error": "No data provided"}), 400
     for ntype, settings in data.items():
@@ -615,7 +615,7 @@ def transfer_ownership(current_user_id, workspace_id):
     if not member or member.role != 'founder':
         return jsonify({"error": "Only the founder can transfer ownership"}), 403
 
-    data = request.get_json()
+    data = request.get_json(silent=True) or {}
     new_owner_id = data.get('new_owner_id')
     if not new_owner_id:
         return jsonify({"error": "new_owner_id is required"}), 400
@@ -714,7 +714,7 @@ def update_workspace_tags(current_user_id, workspace_id):
     if not ws:
         return jsonify({"error": "Workspace not found"}), 404
 
-    data = request.get_json()
+    data = request.get_json(silent=True) or {}
     tags = data.get('tags', [])
     ws.tags = tags
     db.session.commit()
@@ -724,7 +724,7 @@ def update_workspace_tags(current_user_id, workspace_id):
 @workspaces_bp.route('/workspaces/bulk-archive', methods=['POST'])
 @token_required
 def bulk_archive_workspaces(current_user_id):
-    data = request.get_json()
+    data = request.get_json(silent=True) or {}
     workspace_ids = data.get('workspace_ids', [])
     if not workspace_ids:
         return jsonify({"error": "workspace_ids is required"}), 400

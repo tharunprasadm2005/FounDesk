@@ -87,6 +87,12 @@ ALTER TABLE workspace_members ADD COLUMN invited_by INTEGER REFERENCES users(id)
 | `GET /api/notes` 502 | `n.to_dict()` crashes on broken relationships | Per-note safe serialization + try/except |
 | Goals page infinite loading | `(t.completed_at or t.updated_at) >= datetime.utcnow()` crashes when both are None | None guard + timezone-safe comparison |
 | Compiler lock crash | `release()` called on unacquired `asyncio.Lock` | `lock_acquired` flag — only release if acquired |
+| Pipeline picked up other workspaces' events | `_unprocessed_events_for_workspace` filtered globally, not by workspace | Match `RawEvent.source_id` against that workspace's `activity_events` ids |
+| Pipeline re-polled terminal events forever | Events kept `processing`/`pending` after their stage ran | `_drain_noise_events` finalizes `done/skipped/failed` events older than lock TTL; also finalizes analytics (amplitude/mixpanel/posthog) events that no AI stage consumes |
+| `import os` missing in followups.py / blockers.py | `os.environ` used without import → NameError, stages died silently | Added `import os` to both |
+| LLM person_name = "Unknown" for Gmail | LLM prompt had no actor/from | Prepend `From: {actor}` to the LLM event text in follow-up + decision inference |
+| Analytics noise starved AI batch | decision/knowledge candidates sliced by count before filtering noise | Pre-filter candidates (exclude ANALYTICS/TASK_ONLY/MEETING_ONLY sources, require title/details) before `[:N]` slicing |
+| Duplicate follow-ups per event | no dedup check on `(workspace_id, source, source_event_id)` | Skip if a FollowUp already exists for that raw event |
 | GitHub hardcoded date | `2026-01-01` would stop returning results in Jan 2026 | Changed to `30 days ago` relative date |
 | Calendly timestamp parse | `.split("+")[0]` truncates timezone info | `fromisoformat` + proper UTC conversion |
 | Zoho debug leaks | `validate_zoho_token()` prints full URL + response body | Removed all 3 print() statements |

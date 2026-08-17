@@ -18,6 +18,12 @@ class LLMQuotaExhausted(RuntimeError):
 _client = None
 _models = None
 
+# Global circuit breaker: when every LLM tier is quota-exhausted, pause calls
+# for a cooldown window so the pipeline doesn't hammer rate-limited providers
+# (each hung call also holds a DB connection, starving web requests).
+_breaker_until = 0.0
+_BREAKER_COOLDOWN_SECONDS = float(os.environ.get("LLM_BREAKER_COOLDOWN", "300"))
+
 
 def _get_provider(base_url):
     if not base_url:
@@ -31,14 +37,14 @@ def _get_provider(base_url):
     return "generic"
 
 
-def _create_client(base_url, api_key):
+def _create_client(base_url, api_key, timeout=30.0):
     headers = {}
     if "openrouter" in base_url:
         headers = {
             "HTTP-Referer": "https://foundesk.app",
             "X-Title": "FounDesk",
         }
-    return OpenAI(base_url=base_url, api_key=api_key, default_headers=headers, timeout=180.0)
+    return OpenAI(base_url=base_url, api_key=api_key, default_headers=headers, timeout=timeout, max_retries=0)
 
 
 def _ensure_client():
@@ -223,11 +229,19 @@ def call_llm(messages, json_schema, model=None, temperature=0):
     Once that happens, events are re-queued as pending and retried on the next cycle.
     A paid provider tier (e.g. Groq paid API or dedicated OpenAI) removes this bottleneck.
     """
+    global _breaker_until
     client, models = _ensure_client()
     model = model or models["primary"]
     start = time.time()
     provider = _get_provider(str(client.base_url))
     _quota_hit = False
+
+    # Circuit breaker: if we already exhausted every tier, pause without calling out.
+    now = time.time()
+    if now < _breaker_until:
+        raise LLMQuotaExhausted(
+            f"LLM circuit breaker open for {int(_breaker_until - now)}s — skipping call"
+        )
 
     # Tier 1: Primary (Qwen local via Ollama, or configured primary)
     try:
@@ -289,5 +303,39 @@ def call_llm(messages, json_schema, model=None, temperature=0):
         print(f"[LLM EXHAUSTED] {msg}")
         from utils.error_logger import log_error
         log_error(error={"type": "LLM_QUOTA_EXHAUSTED", "message": msg})
+        # Open the circuit breaker so concurrent/queued events stop hammering providers.
+        _breaker_until = time.time() + _BREAKER_COOLDOWN_SECONDS
+        print(f"[LLM BREAKER] Open for {_BREAKER_COOLDOWN_SECONDS}s (until {_breaker_until:.0f})")
         raise LLMQuotaExhausted(msg)
     raise RuntimeError(f"All LLM tiers failed after {elapsed:.0f}ms")
+
+
+def call_llm_quick(messages, json_schema, temperature=0.3, timeout=12.0):
+    """
+    Single-shot LLM call for user-facing features (briefing, insights).
+    No retries, no fallback chain, no circuit breaker side effects, short
+    timeout so web requests never hang. Returns the parsed JSON dict or raises.
+    """
+    if not (os.environ.get("OPENAI_API_KEY") or os.environ.get("OPENROUTER_API_KEY")):
+        raise RuntimeError("No LLM API key configured")
+    client, models = _ensure_client()
+
+    candidates = []
+    primary = models.get("primary") or "openrouter/free"
+    candidates.append((primary, str(client.base_url), client.api_key))
+    fallback = models.get("fallback")
+    if fallback and fallback != primary and os.environ.get("OPENROUTER_API_KEY"):
+        candidates.append((fallback, "https://openrouter.ai/api/v1", os.environ["OPENROUTER_API_KEY"]))
+
+    start = time.time()
+    last_exc = None
+    for model, base_url, api_key in candidates:
+        try:
+            _client_quick = _create_client(base_url, api_key, timeout=timeout)
+            result, api_response = _call(_client_quick, messages, json_schema, model, temperature=temperature)
+            _log_usage(model, api_response, (time.time() - start) * 1000, provider=_get_provider(base_url))
+            return result
+        except Exception as e:
+            print(f"[LLM QUICK] model {model} failed ({type(e).__name__}): {str(e)[:200]}")
+            last_exc = e
+    raise RuntimeError(f"call_llm_quick: all models failed: {last_exc}")

@@ -13,10 +13,10 @@ export function Icon({ name, size = 18, stroke: strokeWidth = 1.5 }) {
 }
 
 export const PRIORITY_COLORS = {
-  P0: { bg: "rgba(232,80,2,0.12)", text: "var(--japandi-accent)" },
-  P1: { bg: "rgba(232,80,2,0.12)", text: "var(--japandi-accent)" },
-  P2: { bg: "rgba(59,130,246,0.1)", text: "var(--japandi-muted)" },
-  P3: { bg: "rgba(107,114,128,0.08)", text: "var(--japandi-muted)" },
+  P0: { bg: "rgba(214,130,79,0.14)", text: "var(--japandi-accent)" },
+  P1: { bg: "rgba(214,130,79,0.14)", text: "var(--japandi-accent)" },
+  P2: { bg: "rgba(45,45,45,0.06)", text: "var(--japandi-muted)" },
+  P3: { bg: "rgba(45,45,45,0.06)", text: "var(--japandi-muted)" },
 };
 
 export const SOURCE_BADGES = {
@@ -38,7 +38,7 @@ export function renderSourceBadge(goal) {
   const info = goal.source_info || {};
   const badge = SOURCE_BADGES[info.type] || SOURCE_BADGES.manual;
   return (
-    <span style={{ fontSize: "9px", color: "var(--japandi-muted)", fontWeight: "500", display: "inline-flex", alignItems: "center", gap: "3px", padding: "1px 6px", borderRadius: "4px", background: "rgba(255,255,255,0.03)" }}>
+    <span style={{ fontSize: "9px", color: "var(--japandi-muted)", fontWeight: "500", display: "inline-flex", alignItems: "center", gap: "3px", padding: "1px 6px", borderRadius: "4px", background: "rgba(45,45,45,0.05)" }}>
       {badge.icon} {info.label || badge.label}
     </span>
   );
@@ -67,8 +67,8 @@ export function renderProgressBar(goal, options = {}) {
           <span style={{ fontSize: "11px", color: "var(--japandi-text)", fontWeight: "700" }}>{progress}%</span>
         </div>
       </div>
-      <div style={{ height: barHeight, background: "rgba(255,255,255,0.03)", borderRadius: "4px", cursor: clickable ? "pointer" : "default", overflow: "hidden" }}>
-        <div style={{ height: barHeight, width: `${Math.min(progress, 100)}%`, background: `linear-gradient(90deg, ${barColor}, ${progress >= 100 ? "#3acaa5" : "#F16001"})`, borderRadius: "4px", transition: "width 0.6s cubic-bezier(0.16, 1, 0.3, 1)" }} />
+      <div style={{ height: barHeight, background: "rgba(45,45,45,0.06)", borderRadius: "4px", cursor: clickable ? "pointer" : "default", overflow: "hidden" }}>
+        <div style={{ height: barHeight, width: `${Math.min(progress, 100)}%`, background: `linear-gradient(90deg, ${barColor}, ${progress >= 100 ? "#5F7264" : "#C05F2E"})`, borderRadius: "4px", transition: "width 0.6s cubic-bezier(0.16, 1, 0.3, 1)" }} />
       </div>
     </div>
   );
@@ -76,13 +76,13 @@ export function renderProgressBar(goal, options = {}) {
 
 export function getGoalHealth(goal) {
   if (goal.at_risk && goal.risk_reason) {
-    return { label: goal.risk_reason, color: goal.status === "at_risk" ? "#ef4444" : "#eab308" };
+    return { label: goal.risk_reason, color: goal.status === "at_risk" ? "#B04A35" : "#C9A876" };
   }
   if (!goal.due_date || goal.status === "completed" || goal.status === "failed") return null;
   const diff = Math.ceil((new Date(goal.due_date) - new Date()) / (1000 * 60 * 60 * 24));
-  if (diff < 0) return { label: `${Math.abs(diff)}d overdue`, color: "#ef4444" };
-  if (diff <= 3) return { label: `${diff}d to deadline`, color: "#eab308" };
-  return { label: `${diff}d to deadline`, color: "#3acaa5" };
+  if (diff < 0) return { label: `${Math.abs(diff)}d overdue`, color: "#B04A35" };
+  if (diff <= 3) return { label: `${diff}d to deadline`, color: "#C9A876" };
+  return { label: `${diff}d to deadline`, color: "#6E8F76" };
 }
 
 export const PHASE_LABELS = {
@@ -92,6 +92,6 @@ export const PHASE_LABELS = {
 export const orangePill = {
   fontSize: "12.5px", color: "var(--japandi-bg)", background: "var(--japandi-accent)",
   padding: "8px 16px", borderRadius: "10px", fontWeight: "700",
-  cursor: "pointer", border: "none", fontFamily: "'Satoshi', sans-serif",
+  cursor: "pointer", border: "none", fontFamily: "'Manrope', sans-serif",
   transition: "all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)"
 };

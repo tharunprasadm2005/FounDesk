@@ -214,7 +214,7 @@ def connect_demo(current_user_id):
 @integrations_bp.route('/integrations/token', methods=['POST'])
 @token_required
 def save_token(current_user_id):
-    data = request.get_json()
+    data = request.get_json(silent=True) or {}
     provider = data.get('provider')
     access_token = data.get('access_token')
     connected_email = data.get('connected_email')
@@ -404,7 +404,7 @@ def disconnect_integration(current_user_id, provider):
 @integrations_bp.route('/integrations/env-connect', methods=['POST'])
 @token_required
 def env_connect(current_user_id):
-    data = request.get_json()
+    data = request.get_json(silent=True) or {}
     provider = data.get('provider')
     if not provider:
         return jsonify({"error": "Provider is required"}), 400

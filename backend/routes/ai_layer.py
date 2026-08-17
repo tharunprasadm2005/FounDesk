@@ -217,7 +217,7 @@ def submit_feedback(current_user_id):
     if not workspace_id:
         return jsonify({"error": "No active workspace context"}), 400
 
-    data = request.get_json()
+    data = request.get_json(silent=True)
     if not data:
         return jsonify({"error": "Request body is required"}), 400
 
@@ -251,7 +251,7 @@ def create_workflow(current_user_id):
     if not workspace_id:
         return jsonify({"error": "No active workspace context"}), 400
 
-    data = request.get_json()
+    data = request.get_json(silent=True)
     if not data or not data.get('title'):
         return jsonify({"error": "Title is required"}), 400
 
@@ -352,7 +352,7 @@ def confirm_decision(current_user_id):
     if not workspace_id:
         return jsonify({"error": "No active workspace context"}), 400
 
-    data = request.get_json()
+    data = request.get_json(silent=True)
     if not data or not data.get('decision'):
         return jsonify({"error": "Decision text is required"}), 400
 

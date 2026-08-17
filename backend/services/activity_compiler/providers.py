@@ -2,6 +2,7 @@ from config.database import db
 from models.user_integration import UserIntegration
 from services.briefing import refresh_google_token, refresh_asana_token, refresh_calendly_token, refresh_linear_token
 from services.google_analytics import getAnalyticsReport
+from services.fake_data import generate_fake_events
 from datetime import datetime, timedelta, timezone
 import requests
 import os
@@ -82,7 +83,7 @@ def getGmailData(integration):
         ]
 
         if is_mock:
-            return []
+            return generate_fake_events("gmail")
         else:
             headers = {"Authorization": f"Bearer {integration.access_token}"}
             seven_days_ago = (datetime.utcnow() - timedelta(days=7)).strftime('%Y/%m/%d')
@@ -141,7 +142,7 @@ def getCalendarData(integration):
         is_mock = integration.access_token.startswith("mock_")
         results = []
         if is_mock:
-            return []
+            return generate_fake_events("google_calendar")
         else:
             now = datetime.utcnow()
             start_of_window = (now - timedelta(days=7)).replace(hour=0, minute=0, second=0, microsecond=0).isoformat() + "Z"
@@ -195,7 +196,7 @@ def getGithubData(integration):
         is_mock = integration.access_token.startswith("mock_")
         results = []
         if is_mock:
-            return []
+            return generate_fake_events("github")
         else:
             headers = {
                 "Authorization": f"token {integration.access_token}",
@@ -245,7 +246,7 @@ def getSlackData(integration):
         is_mock = integration.access_token.startswith("mock_")
         results = []
         if is_mock:
-            return []
+            return generate_fake_events("slack")
         else:
             from services.slack_service import get_channels, get_messages, get_users
             token = integration.access_token
@@ -296,7 +297,7 @@ def getNotionData(integration):
         is_mock = integration.access_token.startswith("mock_")
         results = []
         if is_mock:
-            return []
+            return generate_fake_events("notion")
         else:
             from services.notion_service import get_notion_items
             token = integration.access_token
@@ -341,7 +342,7 @@ def getMondayData(integration):
         is_mock = integration.access_token.startswith("mock_")
         raw_items = []
         if is_mock:
-            return []
+            return generate_fake_events("monday")
         else:
             from services.monday_service import get_items
             token = integration.access_token
@@ -379,9 +380,6 @@ def getMondayData(integration):
 
 def getMeetData(integration):
     try:
-        is_mock = integration.access_token.startswith("mock_")
-        if is_mock:
-            return []
         # Derive from Calendar data to eliminate duplicate API call
         calendar_results = getCalendarData(integration)
         results = []
@@ -402,6 +400,8 @@ def getMeetData(integration):
 
 def getDocsData(integration):
     try:
+        if integration.access_token.startswith("mock_"):
+            return generate_fake_events("google_docs")
         from services.google_docs_service import get_recent_documents, get_document
         token = integration.access_token
         docs = get_recent_documents(token)
@@ -444,7 +444,7 @@ def getTrelloData(integration):
         is_mock = integration.access_token.startswith("mock_")
         raw_items = []
         if is_mock:
-            return []
+            return generate_fake_events("trello")
         else:
             import services.trello_service as trello_service
             key = os.getenv("TRELLO_API_KEY")
@@ -553,7 +553,7 @@ def getAsanaData(integration):
         is_mock = integration.access_token.startswith("mock_")
         raw_items = []
         if is_mock:
-            return []
+            return generate_fake_events("asana")
         else:
             token = integration.access_token
             now = datetime.utcnow()
@@ -634,7 +634,7 @@ def getCalendlyData(integration):
         is_mock = integration.access_token.startswith("mock_")
         raw_items = []
         if is_mock:
-            return []
+            return generate_fake_events("calendly")
         else:
             token = integration.access_token
             now = datetime.utcnow()
@@ -699,6 +699,9 @@ def getLinearData(integration):
         raw_items = []
         now = datetime.utcnow()
 
+        if token and token.startswith("mock_"):
+            return generate_fake_events("linear")
+
         try:
             issues = get_linear_issues(token, limit=200)
         except Exception:
@@ -762,6 +765,9 @@ def getAnalyticsData(integration, workspace_id=None):
 
         is_mock = access_token.startswith("mock_") if access_token else True
 
+        if is_mock:
+            return generate_fake_events("google_analytics")
+
         # Resolve property_id
         property_id = None
         if isinstance(integration, dict):
@@ -785,10 +791,7 @@ def getAnalyticsData(integration, workspace_id=None):
         if not property_id or property_id == "YOUR_PROPERTY_ID":
             return []
 
-        if is_mock:
-            return []
-        else:
-            report = getAnalyticsReport(access_token, property_id)
+        report = getAnalyticsReport(access_token, property_id)
 
         if len(report) < 2:
             return []
@@ -852,6 +855,9 @@ def getHubspotData(integration):
             return []
 
         from services.hubspot_service import get_contacts, get_deals, get_companies
+
+        if token and token.startswith("mock_"):
+            return generate_fake_events("hubspot")
 
         contacts = get_contacts(token, limit=100).get("results", [])
         deals = get_deals(token, limit=100).get("results", [])
@@ -937,6 +943,8 @@ def getPipedriveData(integration):
             return []
 
         from services.pipedrive_service import get_deals
+        if token and token.startswith("mock_"):
+            return generate_fake_events("pipedrive")
         data = get_deals(token, limit=200)
         deals = data.get("data", [])
 
@@ -986,6 +994,9 @@ def getZohoData(integration):
             return []
 
         from services.zoho_service import get_deals, get_contacts, get_leads
+
+        if token and token.startswith("mock_"):
+            return generate_fake_events("zoho_crm")
 
         deals = get_deals(token, limit=200).get("data", [])
         contacts = get_contacts(token, limit=200).get("data", [])

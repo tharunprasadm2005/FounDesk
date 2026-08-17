@@ -60,7 +60,7 @@ def _validate_password(password, prefix="Password"):
 
 
 @auth_bp.route("/auth/signup", methods=["POST"])
-@limiter.limit("5 per minute")
+@limiter.limit("10 per minute")
 def signup():
     data = request.get_json() or {}
     name = (data.get("name") or "").strip()
@@ -123,7 +123,7 @@ def signup():
 
 
 @auth_bp.route("/auth/login", methods=["POST"])
-@limiter.limit("10 per minute")
+@limiter.limit("20 per minute")
 def login():
     data = request.get_json() or {}
     email = (data.get("email") or "").strip().lower()

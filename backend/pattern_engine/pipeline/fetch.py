@@ -2,9 +2,11 @@ from datetime import datetime
 from config.database import db
 from pattern_engine.models import RawEvent
 from models.activity_event import ActivityEvent
+from utils.mock_mode import workspace_in_mock_mode
 
 
 def _fetch_raw_events(event_providers, workspace_id):
+    mock_sandbox = workspace_in_mock_mode(workspace_id)
     existing_source_ids = {}
     existing_raw_refs = set()
     for ep in event_providers:
@@ -22,6 +24,8 @@ def _fetch_raw_events(event_providers, workspace_id):
     results = []
     for ep in event_providers:
         query = ActivityEvent.query.filter_by(provider=ep, workspace_id=workspace_id)
+        if not mock_sandbox:
+            query = query.filter(ActivityEvent.is_mock == False)
         if existing_source_ids[ep]:
             query = query.filter(~ActivityEvent.id.cast(db.String).in_(existing_source_ids[ep]))
         activity_events = query.order_by(ActivityEvent.external_timestamp.desc()).limit(200).all()

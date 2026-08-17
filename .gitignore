@@ -68,3 +68,7 @@ trace.zip
 
 # AI agent artifacts
 brain/
+
+# Runtime artifacts
+backend/server.pid
+

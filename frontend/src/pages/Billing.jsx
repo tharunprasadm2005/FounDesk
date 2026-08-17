@@ -28,6 +28,18 @@ export default function Billing() {
   const token = () => localStorage.getItem("token") || "";
   const headers = { "Content-Type": "application/json", Authorization: "Bearer " + token() };
 
+  async function fetchPlan() {
+    try {
+      const res = await fetch("/api/billing/plan", { headers });
+      const d = await res.json();
+      setPlan(d);
+      setLoading(false);
+    } catch (err) {
+      console.error("[Billing] Failed to fetch plan:", err);
+      setLoading(false);
+    }
+  }
+
   useEffect(() => {
     fetch("/api/billing/config")
       .then((r) => r.json())
@@ -42,18 +54,6 @@ export default function Billing() {
     document.body.appendChild(s);
     return () => { if (s.parentNode) s.parentNode.removeChild(s); };
   }, []);
-
-  const fetchPlan = async () => {
-    try {
-      const res = await fetch("/api/billing/plan", { headers });
-      const d = await res.json();
-      setPlan(d);
-      setLoading(false);
-    } catch (err) {
-      console.error("[Billing] Failed to fetch plan:", err);
-      setLoading(false);
-    }
-  };
 
   const fetchInvoices = async () => {
     try {

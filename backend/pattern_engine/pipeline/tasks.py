@@ -26,15 +26,15 @@ def _map_tool_status(raw_status, source):
     if not raw_status:
         return "Not Started"
     s = raw_status.strip().lower()
-    if s in ("done", "completed", "closed", "100%"):
+    if s in ("done", "completed", "closed", "100%", "merged"):
         return "Done"
-    if s in ("canceled", "cancelled", "archived"):
+    if s in ("canceled", "cancelled", "archived", "rejected", "abandoned"):
         return "Cancelled"
-    if s in ("in progress", "started", "active", "working on it", "review"):
+    if s in ("in progress", "in_progress", "started", "active", "working on it", "review", "open", "reopened", "ready"):
         return "In Progress"
     if s in ("blocked", "waiting", "stuck"):
         return "Blocked"
-    if s in ("backlog", "to do", "planning", "not started"):
+    if s in ("backlog", "to do", "todo", "planning", "not started"):
         return "Not Started"
     return "Not Started"
 
@@ -46,11 +46,11 @@ def _map_tool_priority(priority_str):
     s = str(priority_str).strip().lower()
     if s in ("p0", "critical", "urgent"):
         return "P0"
-    if s in ("p1", "high"):
+    if s in ("p1", "high", "highest"):
         return "P1"
-    if s in ("p2", "medium"):
+    if s in ("p2", "medium", "normal", "default"):
         return "P2"
-    if s in ("p3", "low", "none"):
+    if s in ("p3", "low", "none", "lowest"):
         return "P3"
     return None
 

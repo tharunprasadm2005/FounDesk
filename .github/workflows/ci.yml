@@ -38,7 +38,7 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - name: Frontend unit tests
-        run: npx vitest run || true
+        run: npx vitest run
         working-directory: frontend
 
   frontend-build:

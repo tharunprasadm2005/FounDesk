@@ -4,27 +4,29 @@ from models.user_integration import UserIntegration
 from models.activity_event import ActivityEvent
 from utils.auth import token_required
 from utils.workspace_auth import get_current_workspace_id
+from utils.mock_mode import user_in_mock_mode
 from routes.integrations.main import integrations_bp
 
 
 @integrations_bp.route('/integrations/connect/hubspot', methods=['POST'])
 @token_required
 def connect_hubspot(current_user_id):
-    data = request.get_json()
+    data = request.get_json(silent=True) or {}
     token = data.get('token')
     connected_email = data.get('connected_email', 'HubSpot User')
     if not token:
         return jsonify({"error": "HubSpot API key is required"}), 400
-    if token.startswith("mock_"):
+    if token.startswith("mock_") and not user_in_mock_mode(current_user_id):
         return jsonify({"error": "Mock tokens are disabled. Provide a real HubSpot API key."}), 400
-    from services.hubspot_service import validate_hubspot_token, get_contacts
-    is_valid, msg = validate_hubspot_token(token)
-    if not is_valid:
-        return jsonify({"error": msg}), 400
-    try:
-        get_contacts(token, limit=1)
-    except Exception:
-        return jsonify({"error": "Invalid HubSpot API key. Could not fetch contacts. Check your key at: HubSpot \u2192 Settings \u2192 Integrations \u2192 Private Apps."}), 400
+    if not token.startswith("mock_"):
+        from services.hubspot_service import validate_hubspot_token, get_contacts
+        is_valid, msg = validate_hubspot_token(token)
+        if not is_valid:
+            return jsonify({"error": msg}), 400
+        try:
+            get_contacts(token, limit=1)
+        except Exception:
+            return jsonify({"error": "Invalid HubSpot API key. Could not fetch contacts. Check your key at: HubSpot \u2192 Settings \u2192 Integrations \u2192 Private Apps."}), 400
     from datetime import datetime, timedelta
     integration = UserIntegration.query.filter_by(user_id=current_user_id, provider='hubspot').first()
     if not integration:

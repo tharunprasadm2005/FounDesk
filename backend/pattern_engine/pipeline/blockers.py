@@ -1,4 +1,5 @@
 import json
+import os
 from datetime import datetime, timedelta
 from config.database import db
 from models.blocker import Blocker
@@ -37,7 +38,9 @@ def _process_blocker_events(workspace_id, raw_events):
         try:
             result = extract_blocker_from_event(event_text, event.source)
             if result and result.get("is_blocker"):
-                title_text = result.get("title", "Untitled Blocker")[:255]
+                title_text = (result.get("title") or "").strip()[:255]
+                if not title_text or title_text.lower() == "untitled blocker":
+                    continue
                 existing = Blocker.query.filter_by(
                     workspace_id=workspace_id,
                     title=title_text,

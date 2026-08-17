@@ -4,24 +4,25 @@ from models.user_integration import UserIntegration
 from models.activity_event import ActivityEvent
 from utils.auth import token_required
 from utils.workspace_auth import get_current_workspace_id
+from utils.mock_mode import user_in_mock_mode
 from routes.integrations.main import integrations_bp
 
 
 @integrations_bp.route('/integrations/connect/posthog', methods=['POST'])
 @token_required
 def connect_posthog(current_user_id):
-    data = request.get_json()
+    data = request.get_json(silent=True) or {}
     print(f"[CONNECT POSTHOG] Received body: {data}")
     token = data.get('token')
     connected_email = data.get('connected_email', 'PostHog User')
     if not token:
         print(f"[CONNECT POSTHOG] ERROR: No token in request body. Keys: {list(data.keys()) if data else 'None'}")
         return jsonify({"error": "PostHog project token is required"}), 400
-    if token.startswith("mock_"):
+    if token.startswith("mock_") and not user_in_mock_mode(current_user_id):
         return jsonify({"error": "Mock tokens are disabled. Provide a real PostHog token."}), 400
     from services.posthog_service import validate_posthog_token
-    print(f"[CONNECT POSTHOG] Validating token: {token[:15]}...")
-    is_valid, msg = validate_posthog_token(token)
+    is_mock_ok = token.startswith("mock_")
+    is_valid, msg = (True, None) if is_mock_ok else validate_posthog_token(token)
     if not is_valid:
         return jsonify({"error": msg}), 400
     from datetime import datetime, timedelta
@@ -63,8 +64,9 @@ def connect_posthog(current_user_id):
         db.session.add(mirror_event)
         db.session.commit()
     from services.posthog_service import capture_event
-    capture_event(token, "foundesk_integration_connected", current_user_id, {
-        "provider": "posthog",
-        "email": connected_email
-    })
+    if not token.startswith("mock_"):
+        capture_event(token, "foundesk_integration_connected", current_user_id, {
+            "provider": "posthog",
+            "email": connected_email
+        })
     return jsonify({"message": "PostHog connected successfully", "email": connected_email})

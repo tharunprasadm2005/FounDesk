@@ -6,40 +6,10 @@ import {
   Bell, LogOut, Sparkles
 } from "lucide-react";
 import api from "../utils/api";
-import Logo from "./Logo";
 
 let lastFetchedTime = 0;
 
-const ITEM_HEIGHT = 40;
-const ITEM_GAP = 4;
-
-function SidebarIcon({ name, size = 18 }) {
-  const paths = {
-    dashboard: "M3 3h7v9H3zm11 0h7v5h-7zm0 9h7v9h-7zm-11 4h7v5H3z",
-    plan: "M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zm0-6a4 4 0 1 0 0-8 4 4 0 0 0 0 8z",
-    execute: "M13 2L3 14h9l-1 8 10-12h-9l1-8z",
-    memory: "M12 2a5 5 0 0 0-5 5v3a3 3 0 0 0-3 3v4a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-4a3 3 0 0 0-3-3V7a5 5 0 0 0-5-5zm-3 8V7a3 3 0 0 1 6 0v3H9z",
-    settings: "M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.1a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z",
-    logout: "M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"
-  };
-
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d={paths[name]} />
-    </svg>
-  );
-}
-
-function Sidebar() {
+function Sidebar({ mobileOpen = false, onNavigate }) {
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(() => localStorage.getItem("sidebar_collapsed") === "true");
   const [workspaces, setWorkspaces] = useState([]);
@@ -93,6 +63,17 @@ function Sidebar() {
 
   useEffect(() => {
     fetchWorkspaces();
+    api.get("/api/me").then((res) => {
+      if (res.data?.user) {
+        setUser(res.data.user);
+        localStorage.setItem("user", JSON.stringify(res.data.user));
+      }
+    }).catch(() => {});
+    api.get("/api/notifications").then((res) => {
+      const list = (res.data || []).slice(0, 12);
+      setNotifications(list);
+      setUnreadCount(list.filter((n) => n.is_unread).length);
+    }).catch(() => {});
 
     const handleClickOutside = (event) => {
       if (switcherRef.current && !switcherRef.current.contains(event.target)) {
@@ -141,177 +122,171 @@ function Sidebar() {
     { to: "/settings", label: "Settings", icon: Settings }
   ];
 
-  const activeIndex = menuItems.findIndex(item => location.pathname.startsWith(item.to));
-  const indicatorTranslate = activeIndex >= 0 ? activeIndex * (ITEM_HEIGHT + ITEM_GAP) : 0;
-  const indicatorVisible = activeIndex >= 0;
-
   const wsInitial = activeWorkspace ? activeWorkspace.name.charAt(0).toUpperCase() : "W";
   const userInitial = user?.name ? user.name.charAt(0).toUpperCase() : user?.email?.charAt(0).toUpperCase() || "?";
 
   return (
     <div
-      className={`sidebar tier-glass ${collapsed ? "is-collapsed" : ""}`}
-      style={{ width: collapsed ? "76px" : "252px" }}
+      className={`fd-side ${collapsed ? "is-collapsed" : ""} ${mobileOpen ? "nav-open" : ""}`}
+      style={{ width: collapsed ? 82 : 264 }}
     >
       <button
         onClick={handleToggleCollapse}
-        className="dock-toggle"
+        className="fd-side-toggle"
         aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         title={collapsed ? "Expand" : "Collapse"}
       >
-        {collapsed ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
+        {collapsed ? <ChevronRight size={13} strokeWidth={2} /> : <ChevronLeft size={13} strokeWidth={2} />}
       </button>
 
-      <div className="sidebar-scroll">
-        <div className="brand" onClick={() => navigate("/dashboard")} style={{ cursor: "pointer" }}>
-          <div className="brand-mark">
-            Fd
-          </div>
-          {!collapsed && (
-            <span className="brand-text">
-              FounDesk
-            </span>
-          )}
+      <div className="fd-side-scroll">
+        {/* Brand */}
+        <div className="fd-side-brand" onClick={() => { navigate("/dashboard"); onNavigate(); }} style={{ cursor: "pointer" }}>
+          <div className="fd-side-mark">f</div>
+          {!collapsed && <span className="fd-side-word">FounDesk</span>}
         </div>
 
+        {/* Workspace switcher */}
         {!collapsed && (
-          <div className="ws-wrap" ref={switcherRef}>
-            <div className="workspace-pill tier-neu" onClick={() => setSwitcherOpen(!switcherOpen)}>
-              <div className="ws-avatar">{wsInitial}</div>
-              <div className="ws-meta">
-                <span className="ws-name">{activeWorkspace ? activeWorkspace.name : "Workspace"}</span>
-                {activeWorkspace && <span className="ws-role">{activeWorkspace.role}</span>}
+          <div className="fd-side-sec">
+            <span className="fd-side-label">Workspace</span>
+            <div className="fd-ws-wrap" ref={switcherRef}>
+              <div className="fd-ws-pill" onClick={() => setSwitcherOpen(!switcherOpen)}>
+                <div className="fd-ws-avatar">{wsInitial}</div>
+                <div className="fd-ws-meta">
+                  <span className="fd-ws-name">{activeWorkspace ? activeWorkspace.name : "Workspace"}</span>
+                  {activeWorkspace && <span className="fd-ws-role">{activeWorkspace.role}</span>}
+                </div>
+                <ChevronsUpDown size={13} strokeWidth={2.2} className="fd-ws-caret" />
               </div>
-              <ChevronsUpDown size={13} className="ws-caret" />
-            </div>
 
-            {switcherOpen && (
-              <div className="ws-panel tier-glass" data-lenis-prevent>
-                <div className="ws-panel-list">
-                  {workspaces.map(ws => {
-                    const isActive = activeWorkspace && activeWorkspace.id === ws.id;
-                    return (
-                      <div
-                        key={ws.id}
-                        className={`ws-row ${isActive ? "is-active" : ""}`}
-                        onClick={() => handleSwitchWorkspace(ws.id)}
-                      >
-                        <div className="ws-row-avatar">{ws.name.charAt(0).toUpperCase()}</div>
-                        <div className="ws-row-meta">
-                          <div className="ws-row-name">{ws.name}</div>
-                          <span className="ws-row-role">{ws.role}</span>
+              {switcherOpen && (
+                <div className="fd-ws-pop" data-lenis-prevent>
+                  <div className="fd-ws-list">
+                    {workspaces.map(ws => {
+                      const isActive = activeWorkspace && activeWorkspace.id === ws.id;
+                      return (
+                        <div
+                          key={ws.id}
+                          className={`fd-ws-row ${isActive ? "is-active" : ""}`}
+                          onClick={() => handleSwitchWorkspace(ws.id)}
+                        >
+                          <div className="fd-ws-row-avatar">{ws.name.charAt(0).toUpperCase()}</div>
+                          <div className="fd-ws-row-meta">
+                            <div className="fd-ws-row-name">{ws.name}</div>
+                            <span className="fd-ws-row-role">{ws.role}</span>
+                          </div>
+                          {isActive && <Check size={13} strokeWidth={3} className="fd-ws-row-check" />}
                         </div>
-                        {isActive && <Check size={13} className="ws-row-check" />}
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
+                  <div className="fd-ws-foot">
+                    {showCreateForm ? (
+                      <form onSubmit={handleCreateWorkspace} className="fd-ws-form">
+                        <input
+                          type="text"
+                          placeholder="Workspace name…"
+                          className="fd-ws-input"
+                          value={newWsName}
+                          onChange={(e) => setNewWsName(e.target.value)}
+                          autoFocus
+                          required
+                        />
+                        <div className="fd-ws-form-actions">
+                          <button type="submit" className="fd-ws-btn-primary">Create</button>
+                          <button type="button" className="fd-ws-btn-ghost" onClick={() => setShowCreateForm(false)}>Cancel</button>
+                        </div>
+                      </form>
+                    ) : (
+                      <button className="fd-ws-add" onClick={() => setShowCreateForm(true)}>
+                        <Plus size={12} strokeWidth={2.5} /> New workspace
+                      </button>
+                    )}
+                  </div>
                 </div>
-
-                <div className="ws-panel-footer">
-                  {showCreateForm ? (
-                    <form onSubmit={handleCreateWorkspace} className="ws-create-form">
-                      <input
-                        type="text"
-                        placeholder="Workspace name..."
-                        className="ws-input"
-                        value={newWsName}
-                        onChange={(e) => setNewWsName(e.target.value)}
-                        autoFocus
-                        required
-                      />
-                      <div className="ws-form-actions">
-                        <button type="submit" className="ws-btn-primary">Create</button>
-                        <button type="button" className="ws-btn-ghost" onClick={() => setShowCreateForm(false)}>
-                          Cancel
-                        </button>
-                      </div>
-                    </form>
-                  ) : (
-                    <button className="ws-add" onClick={() => setShowCreateForm(true)}>
-                      <Plus size={12} />
-                      New workspace
-                    </button>
-                  )}
-                </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         )}
 
-        <nav className="nav">
-          {menuItems.map(item => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              data-icon={item.label.toLowerCase()}
-              className={({ isActive }) => `nav-item ${isActive ? "active" : ""} ${collapsed ? "is-collapsed" : ""}`}
-            >
-              <item.icon size={18} />
-              {!collapsed && <span>{item.label}</span>}
-            </NavLink>
-          ))}
-        </nav>
+        {/* Nav */}
+        <div className="fd-side-sec">
+          <span className="fd-side-label">{collapsed ? "Menu" : "Command"}</span>
+          <nav className="fd-side-nav">
+            {menuItems.map(item => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                className={({ isActive }) => `fd-side-item ${isActive ? "is-active" : ""} ${collapsed ? "is-collapsed" : ""}`}
+                onClick={onNavigate}
+              >
+                <item.icon size={17} strokeWidth={1.9} />
+                {!collapsed && <span>{item.label}</span>}
+              </NavLink>
+            ))}
+          </nav>
+        </div>
       </div>
 
-      <div className={`sidebar-footer tier-neu ${collapsed ? "is-collapsed" : ""}`}>
-        <div className="user-profile">
-          <div className="user-avatar">
+      {/* Footer — user identity + actions */}
+      <div className={`fd-side-foot ${collapsed ? "is-collapsed" : ""}`}>
+        <div className="fd-user">
+          <div className="fd-user-avatar">
             {user?.picture ? (
-              <img src={user.picture} alt="" className="user-avatar-img" />
+              <img src={user.picture} alt="" className="fd-user-img" />
             ) : (
-              <div className="user-avatar-fallback">{userInitial}</div>
+              <span className="fd-user-fallback">{userInitial}</span>
             )}
           </div>
           {!collapsed && (
-            <span className="user-name">{user?.name || user?.email || "User"}</span>
+            <div className="fd-user-meta">
+              <span className="fd-user-name">{user?.name || user?.email || "User"}</span>
+              <span className="fd-user-role">Founder</span>
+            </div>
           )}
         </div>
-        <div className="footer-actions" ref={notifRef}>
+        <div className="fd-foot-actions" ref={notifRef}>
           <button
-            className="cmd-trigger-btn"
+            className="fd-icon-btn fd-cmd-trigger"
             onClick={() => window.dispatchEvent(new CustomEvent("open-command-palette"))}
             title="Command Bar (Ctrl+K)"
             aria-label="Open command bar (Ctrl+K)"
-            style={{ marginRight: "4px" }}
           >
-            <Sparkles size={14} />
+            <Sparkles size={14} strokeWidth={2} />
           </button>
           <div style={{ position: "relative" }}>
             <button
-              className={`icon-btn ${unreadCount > 0 ? "has-badge" : ""}`}
+              className={`fd-icon-btn ${unreadCount > 0 ? "has-badge" : ""}`}
               onClick={() => setNotifOpen(!notifOpen)}
               title="Notifications"
             >
-              <Bell size={14} />
-              {unreadCount > 0 && <span className="badge-dot" />}
+              <Bell size={14} strokeWidth={2} />
+              {unreadCount > 0 && <span className="fd-badge-dot" />}
             </button>
-
             {notifOpen && (
-              <div className="notif-panel tier-glass" data-lenis-prevent>
-                <div className="notif-head">
+              <div className="fd-notif-pop" data-lenis-prevent>
+                <div className="fd-notif-head">
                   <span>Notifications</span>
                   {unreadCount > 0 && (
-                    <button
-                      className="notif-markall"
-                      onClick={async () => {
-                        try { await api.post("/api/notifications/mark-all-read"); } catch (err) { console.error("[Sidebar] Failed to mark all notifications as read:", err); }
-                        setNotifications([]);
-                        setUnreadCount(0);
-                      }}
-                    >
-                      <Check size={10} /> Mark all read
+                    <button className="fd-notif-markall" onClick={async () => {
+                      try { await api.post("/api/notifications/read-all"); } catch (err) { console.error("[Sidebar] Failed to mark all notifications as read:", err); }
+                      setNotifications([]);
+                      setUnreadCount(0);
+                    }}>
+                      <Check size={10} strokeWidth={3} /> Mark all read
                     </button>
                   )}
                 </div>
-                <div className="notif-list">
+                <div className="fd-notif-list">
                   {notifications.length === 0 ? (
-                    <div className="notif-empty">No notifications yet</div>
+                    <div className="fd-notif-empty">No notifications yet</div>
                   ) : (
                     notifications.map((n, i) => (
-                      <div key={n.id || i} className={`notif-item ${n.is_unread ? "is-unread" : ""}`}>
-                        <div className="notif-title">{n.title}</div>
-                        <div className="notif-message">{n.message}</div>
-                        <div className="notif-time">{n.created_at}</div>
+                      <div key={n.id || i} className={`fd-notif-item ${n.is_unread ? "is-unread" : ""}`}>
+                        <div className="fd-notif-title">{n.title}</div>
+                        <div className="fd-notif-message">{n.message}</div>
+                        <div className="fd-notif-time">{n.created_at}</div>
                       </div>
                     ))
                   )}
@@ -320,7 +295,7 @@ function Sidebar() {
             )}
           </div>
           <button
-            className="icon-btn logout-btn"
+            className="fd-icon-btn fd-logout"
             onClick={() => {
               localStorage.removeItem("token");
               localStorage.removeItem("user");
@@ -329,7 +304,7 @@ function Sidebar() {
             }}
             title="Logout"
           >
-            <LogOut size={14} />
+            <LogOut size={14} strokeWidth={2} />
           </button>
         </div>
       </div>

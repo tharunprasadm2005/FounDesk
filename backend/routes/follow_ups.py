@@ -14,7 +14,7 @@ def create_follow_up(current_user_id):
     if not workspace_id:
         return jsonify({"error": "No active workspace context"}), 400
 
-    data = request.get_json()
+    data = request.get_json(silent=True)
     if not data or not data.get('person_name'):
         return jsonify({"error": "Person name is required"}), 400
 
@@ -74,7 +74,7 @@ def update_follow_up(current_user_id, fu_id):
     if not follow_up:
         return jsonify({"error": "Follow-up not found"}), 404
 
-    data = request.get_json()
+    data = request.get_json(silent=True)
     if not data:
         return jsonify({"error": "No data provided"}), 400
 

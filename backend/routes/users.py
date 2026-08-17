@@ -43,22 +43,43 @@ def get_user_profile(current_user_id):
     for m in active_memberships:
         ws = m.workspace
         if ws:
-            ws_list.append({"id": ws.id, "name": ws.name, "stage": ws.stage, "role": m.role, "active_phase": ws.active_phase})
+            ws_list.append({"id": ws.id, "name": ws.name, "stage": ws.stage, "role": m.role, "active_phase": ws.active_phase, "plan": ws.plan or "starter"})
 
+    # Determine plan from real workspace subscription data (no heuristic fabrication)
+    plan_rank = {"free": 0, "starter": 1, "pro": 2, "enterprise": 3}
     plan = "free"
-    if len(ws_list) >= 3 or integration_count >= 10 or goal_count >= 30:
-        plan = "starter"
-    if len(ws_list) >= 10 or integration_count >= 50 or goal_count >= 100:
-        plan = "pro"
+    for w in ws_list:
+        ws_plan = str(w.get("plan") or "free").lower()
+        if plan_rank.get(ws_plan, 0) > plan_rank.get(plan, 0):
+            plan = ws_plan
 
+    # Derive last login from the most recent real session token
     last_login = None
-    if active_memberships:
+    most_recent_session = RefreshToken.query.filter_by(user_id=current_user_id).order_by(
+        RefreshToken.last_used_at.desc().nullslast(),
+        RefreshToken.created_at.desc()
+    ).first()
+    if most_recent_session:
+        last_login = most_recent_session.last_used_at or most_recent_session.created_at
+    elif active_memberships:
         last_login = max(m.created_at for m in active_memberships)
 
     google_integration = UserIntegration.query.filter_by(user_id=current_user_id, provider="google").first()
     connected_providers = {}
     for integ in all_integrations:
         connected_providers[integ.provider] = {"connected": True, "email": integ.connected_email, "connected_at": integ.created_at.isoformat() if integ.created_at else None}
+
+    # Real session data from unrevoked refresh tokens (matches /users/me/sessions shape)
+    session_tokens = RefreshToken.query.filter_by(user_id=current_user_id, revoked=False).order_by(RefreshToken.created_at.desc()).limit(20).all()
+    sessions = []
+    for t in session_tokens:
+        sessions.append({
+            "id": t.id,
+            "device": t.user_agent or "Unknown",
+            "ip_address": t.ip_address or "",
+            "last_active_at": t.last_used_at.isoformat() if t.last_used_at else t.created_at.isoformat() if t.created_at else None,
+            "created_at": t.created_at.isoformat() if t.created_at else None,
+        })
 
     return jsonify({
         **user.to_dict(),
@@ -75,7 +96,7 @@ def get_user_profile(current_user_id):
         "blocker_count": blocker_count,
         "pending_invites_count": len(pending_invites),
         "plan_name": plan.capitalize(),
-        "sessions": []
+        "sessions": sessions
     })
 
 
@@ -86,7 +107,7 @@ def update_user_profile(current_user_id):
     if not user:
         return jsonify({"error": "User not found"}), 404
 
-    data = request.get_json()
+    data = request.get_json(silent=True) or {}
     allowed = ["name", "email", "timezone", "locale", "theme", "date_format", "week_start_day", "avatar_url"]
 
     if 'email' in data and data['email'] != user.email:
@@ -291,6 +312,22 @@ def get_sessions(current_user_id):
             "created_at": t.created_at.isoformat() if t.created_at else None,
         })
     return jsonify({"sessions": sessions})
+
+
+@users_bp.route('/users/me/sessions/<int:session_id>', methods=['DELETE'])
+@token_required
+def revoke_session(current_user_id, session_id):
+    import traceback
+    try:
+        token = RefreshToken.query.filter_by(id=session_id, user_id=current_user_id).first()
+        if not token:
+            return jsonify({"error": "Session not found"}), 404
+        token.revoked = True
+        db.session.commit()
+        return jsonify({"message": "Session revoked"})
+    except Exception as e:
+        print(f"DELETE /users/me/sessions/{session_id} error: {e}\n{traceback.format_exc()}")
+        return jsonify({"error": "Failed to revoke session", "message": str(e)}), 500
 
 
 # ─── Connected Accounts ───────────────────────

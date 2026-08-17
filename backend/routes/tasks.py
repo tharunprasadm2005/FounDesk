@@ -59,7 +59,7 @@ def create_task(current_user_id):
     if not workspace_id:
         return jsonify({"error": "No active workspace context"}), 400
 
-    data = request.get_json()
+    data = request.get_json(silent=True)
     if not data or not data.get('title'):
         return jsonify({"error": "Title is required"}), 400
         
@@ -126,7 +126,7 @@ def update_task(current_user_id, task_id):
     if not task:
         return jsonify({"error": "Task not found in this workspace"}), 404
         
-    data = request.get_json()
+    data = request.get_json(silent=True)
     if not data:
         return jsonify({"error": "No update data provided"}), 400
         
@@ -295,7 +295,7 @@ def suggest_context(current_user_id):
     if not workspace_id:
         return jsonify({"error": "No active workspace context"}), 400
 
-    data = request.get_json()
+    data = request.get_json(silent=True) or {}
     title = (data.get('title') or '').lower()
     description = (data.get('description') or '').lower()
     combined = f"{title} {description}"

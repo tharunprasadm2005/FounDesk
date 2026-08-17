@@ -38,7 +38,7 @@ def apply_template(current_user_id):
     if not ws:
         return jsonify({"error": "Workspace not found"}), 404
 
-    data = request.get_json()
+    data = request.get_json(silent=True) or {}
     template_id = data.get('template_id')
     template_name = data.get('template_name')
 
