@@ -103,13 +103,19 @@ export default function Settings() {
   };
 
   return (
-    <div className="settings-page" style={{ padding: "clamp(28px, 4.5vw, 60px) clamp(28px, 4.5vw, 60px) 64px", fontFamily: "'Manrope', sans-serif" }}>
-      <div style={{ marginBottom: 28 }}>
-        <div className="fd-dash-date">Open desk</div>
-        <h1 style={{ margin: 0, fontSize: "clamp(30px, 4vw, 46px)", fontWeight: 500, lineHeight: 1, letterSpacing: "-0.03em", color: "var(--japandi-text)", fontFamily: "'Cormorant Garamond', serif" }}>
-          {TABS.find(t => t.key === activeTab)?.label || "Settings"}
-        </h1>
-        <p style={{ margin: "10px 0 0", fontSize: 13, color: "var(--japandi-muted)", fontWeight: 500, maxWidth: 520 }}>{SUBTITLE_MAP[activeTab]}</p>
+    <div className="settings-page" style={{ padding: "clamp(30px, 5vw, 64px)", paddingBottom: "64px", fontFamily: "'Manrope', sans-serif" }}>
+      <div className="fd-hero hero-settings" data-anchor="S">
+        <div className="fd-hero-main">
+          <div className="fd-hero-kicker">Open desk</div>
+          <h1 className="fd-hero-title">{TABS.find(t => t.key === activeTab)?.label || "Settings"}</h1>
+          <p className="fd-hero-sub">{SUBTITLE_MAP[activeTab]}</p>
+        </div>
+        <div className="fd-hero-side">
+          <div className="fd-hero-chip">
+            <span className="fd-hero-chip-num">{integrations.filter(i => i.connected).length}</span>
+            <span className="fd-hero-chip-label">Apps connected</span>
+          </div>
+        </div>
       </div>
       <div className="view-tabs" style={{ marginBottom: 24 }}>
         {TABS.map(tab => (

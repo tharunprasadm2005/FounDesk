@@ -193,7 +193,8 @@ def _compile_daily_briefing(workspace_id, user_id):
     goals_at_risk = []
     goals_completed = []
     for g in all_goals:
-        if g.status == "completed" and g.updated_at and g.updated_at >= yesterday_start:
+        goal_completed_time = g.confirmed_at or g.created_at
+        if g.status == "completed" and goal_completed_time and goal_completed_time >= yesterday_start:
             goals_completed.append(g)
         if g.status == "at_risk":
             goals_at_risk.append(g)

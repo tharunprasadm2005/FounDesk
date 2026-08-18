@@ -60,10 +60,22 @@ export default function Goals() {
         .select-custom { outline: none; font-family: inherit; }
       `}</style>
 
-      <div style={{ marginBottom: "28px" }}>
-        <div className="fd-page-kicker">The roadmap</div>
-        <h1 className="fd-page-title">Plan</h1>
-        <p className="fd-page-sub">Map your startup roadmap and defend operational focus.</p>
+      <div className="fd-hero hero-plan" data-anchor="P">
+        <div className="fd-hero-main">
+          <div className="fd-hero-kicker">The roadmap</div>
+          <h1 className="fd-hero-title">Plan</h1>
+          <p className="fd-hero-sub">Map your startup roadmap and defend operational focus.</p>
+        </div>
+        <div className="fd-hero-side">
+          <div className="fd-hero-chip">
+            <span className="fd-hero-chip-num">{goalsLoading ? "—" : goals.length}</span>
+            <span className="fd-hero-chip-label">Goals mapped</span>
+          </div>
+          <div className="fd-hero-chip">
+            <span className="fd-hero-chip-num">{goalsLoading ? "—" : unlinkedTasks.length}</span>
+            <span className="fd-hero-chip-label">Tasks unlinked</span>
+          </div>
+        </div>
       </div>
 
       <div style={{ marginBottom: "24px" }}>

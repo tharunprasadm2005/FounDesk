@@ -213,7 +213,7 @@ def process_note(current_user_id, note_id):
     if not note:
         return jsonify({"error": "Meeting note not found in this workspace"}), 404
 
-    data = request.get_json() or {}
+    data = request.get_json(silent=True) or {}
     transcript = data.get("transcript") or data.get("raw_notes") or data.get("text") or note.summary or ""
     
     if not transcript.strip():

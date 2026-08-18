@@ -380,7 +380,7 @@ def get_pinned_items(current_user_id):
 @feed_bp.route('/pin-item', methods=['POST'])
 @token_required
 def pin_item(current_user_id):
-    data = request.get_json() or {}
+    data = request.get_json(silent=True) or {}
     activity_hash = data.get("activity_hash")
     if not activity_hash:
         return jsonify({"error": "activity_hash is required"}), 400

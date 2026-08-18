@@ -150,6 +150,13 @@ function Execute() {
   useEffect(() => {
     track("page_viewed", { page: "execute" });
     fetchTasks();
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("new") === "1") {
+      setEditTask(null);
+      setTaskForm({ title: "", description: "", priority: "P2", status: "Not Started", deadline: "", goal_id: "", parent_id: "", assignee_id: "", estimated_hours: "", phase_tag: "" });
+      setShowTaskForm(true);
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
   }, []);
 
   useEffect(() => {
@@ -878,14 +885,18 @@ function Execute() {
 
   return (
     <div className="fd-page">
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", gap: "16px", flexWrap: "wrap", marginBottom: "28px" }}>
-        <div>
-          <div className="fd-page-kicker">The work</div>
-          <h1 className="fd-page-title">Execute</h1>
-          <p className="fd-page-sub">{SUBTITLE_MAP[activeTab] || "Manage and track your team's tasks."}</p>
+      <div className="fd-hero hero-execute" data-anchor="E">
+        <div className="fd-hero-main">
+          <div className="fd-hero-kicker">The work</div>
+          <h1 className="fd-hero-title">Execute</h1>
+          <p className="fd-hero-sub">{SUBTITLE_MAP[activeTab] || "Manage and track your team's tasks."}</p>
         </div>
-        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-          <button onClick={() => { setEditTask(null); setTaskForm({ title: "", description: "", priority: "P2", status: "Not Started", deadline: "", goal_id: "", parent_id: "", assignee_id: "", estimated_hours: "", phase_tag: "" }); setShowTaskForm(true); }} style={S.orangeBtn}><Icon name="plus" /> New Task</button>
+        <div className="fd-hero-side">
+          <div className="fd-hero-chip">
+            <span className="fd-hero-chip-num">{loading ? "—" : tasks.length}</span>
+            <span className="fd-hero-chip-label">Total tasks</span>
+          </div>
+          <button onClick={() => { setEditTask(null); setTaskForm({ title: "", description: "", priority: "P2", status: "Not Started", deadline: "", goal_id: "", parent_id: "", assignee_id: "", estimated_hours: "", phase_tag: "" }); setShowTaskForm(true); }} className="btn-ember"><Icon name="plus" /> New Task</button>
         </div>
       </div>
 

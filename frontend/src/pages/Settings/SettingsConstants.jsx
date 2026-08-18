@@ -10,7 +10,6 @@ export const TABS = [
   { key: "team", label: "Team Space", icon: "users" },
   { key: "account", label: "Account", icon: "user" },
   { key: "billing", label: "Billing", icon: "credit-card" },
-  { key: "apikeys", label: "API Keys", icon: "key" },
 ];
 
 export const SUBTITLE_MAP = {

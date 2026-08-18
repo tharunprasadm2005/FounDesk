@@ -53,6 +53,7 @@ def _llm_morning_brief(signals, connected_count):
             [{"role": "system", "content": system}, {"role": "user", "content": json.dumps(payload, default=str)[:6000]}],
             schema,
             temperature=0.4,
+            task="brief",
         )
         summary = ((result or {}).get("summary") or "").strip()
         focus = [(f or "").strip() for f in (result or {}).get("focus") or [] if (f or "").strip()][:3]

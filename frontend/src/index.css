@@ -1057,6 +1057,7 @@ body.fd-body-scroll-lock{overflow:hidden}
   grid-template-columns: minmax(0, 1fr) 340px;
   gap: clamp(24px, 3vw, 44px);
   align-items: start;
+  margin-top: 32px;
 }
 .fd-ledger-rail {
   display: flex;
@@ -1647,8 +1648,8 @@ body.fd-body-scroll-lock{overflow:hidden}
   --japandi-accent: #D6824F;
   --japandi-border: rgba(45, 45, 45, 0.1);
   --japandi-bg: rgba(45, 45, 45, 0.05);
-  width: 100%;
-  max-width: 1080px;
+width: 100%;
+  max-width: 1240px;
   min-height: 100%;
   margin: 0 auto;
   box-sizing: border-box;
@@ -1960,11 +1961,12 @@ body.fd-body-scroll-lock{overflow:hidden}
 /* ── Page surface (bone field, ledger width) ───────────────────── */
 .fd-page {
   width: 100%;
-  max-width: 1160px;
+  max-width: 1240px;
   min-height: 100%;
   margin: 0 auto;
   box-sizing: border-box;
-  padding: clamp(28px, 4.5vw, 60px) clamp(28px, 4.5vw, 60px) 96px;
+  padding: clamp(30px, 5vw, 64px);
+  padding-bottom: 96px;
   color: #2D2D2D;
   background: transparent;
   font-family: Manrope, sans-serif;
@@ -2405,4 +2407,421 @@ body.fd-body-scroll-lock{overflow:hidden}
 }
 .fd-app .goal-checkbox:hover {
   color: #D6824F;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   DASHBOARD v2 · balanced editorial grid + fast first paint
+   ════════════════════════════════════════════════════════════════ */
+
+/* Header — greeting + actions on one line, less dead vertical space */
+.fd-ledger-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.fd-ledger-head-left {
+  min-width: 0;
+}
+.fd-ledger-head-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-bottom: 4px;
+}
+.fd-ledger-provs {
+  font-family: "Manrope", sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--fd-ink-3);
+  max-width: 320px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fd-ledger-refresh[disabled] {
+  opacity: 0.55;
+  cursor: default;
+}
+.fd-ledger-refresh .is-spin {
+  animation: fd-spin 0.9s linear infinite;
+}
+@keyframes fd-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Leader / rail columns */
+.fd-ledger-lead {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* Brief — hero card, the first thing visitors see */
+.fd-ledger-brief {
+  margin-top: 0;
+  position: relative;
+  overflow: hidden;
+  border-radius: 26px;
+  padding: clamp(24px, 3.4vw, 38px);
+  background:
+    radial-gradient(520px 300px at 108% -24%, rgba(214, 130, 79, 0.16), transparent 58%),
+    radial-gradient(420px 320px at -12% 118%, rgba(126, 142, 123, 0.12), transparent 55%),
+    linear-gradient(150deg, #FDFAF5 0%, #F5EEE2 52%, #EDE3D2 100%);
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 0 30px 60px -32px rgba(45, 45, 45, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.98);
+}
+.fd-ledger-brief .fd-ledger-sec-head {
+  border-bottom: 1px solid rgba(184, 90, 42, 0.16);
+}
+.fd-ledger-brief .sec-no {
+  color: #B85A2A;
+  opacity: 1;
+}
+.fd-ledger-brief .fd-ledger-body {
+  font-size: clamp(16px, 1.6vw, 18px);
+  line-height: 1.85;
+  color: var(--fd-ink-2);
+  padding: 20px 0 4px;
+}
+.fd-ledger-focus {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 18px;
+}
+.fd-ledger-focus span {
+  font-family: "Manrope", sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #8F5A33;
+  background: rgba(214, 130, 79, 0.1);
+  border: 1px solid rgba(214, 130, 79, 0.2);
+  border-radius: 999px;
+  padding: 6px 13px;
+}
+.fd-ledger-brief-skel {
+  padding: 20px 0 2px;
+}
+.fd-ledger-brief .fd-ledger-empty {
+  padding: 20px 0 2px;
+}
+
+/* Ink board — keep quiet state styled as a card too */
+.fd-ledger-ink.is-quiet {
+  margin-top: 30px;
+}
+@media (max-width: 1080px) {
+  .fd-ledger-ink.is-quiet { margin-top: 34px; }
+}
+
+/* Lower band — two cards side by side */
+.fd-ledger-lower {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(24px, 3vw, 44px);
+  align-items: start;
+}
+.fd-ledger-half {
+  margin-top: 34px;
+}
+@media (max-width: 1080px) {
+  .fd-ledger-lower { grid-template-columns: 1fr; }
+}
+
+/* Shared card treatment for the flat sections: Active goal + lower band */
+.fd-ledger-half,
+.fd-ledger-card {
+  background: linear-gradient(152deg, #FDFAF5 0%, #F5EFE6 100%);
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  border-radius: 22px;
+  padding: 22px 26px 20px;
+  box-shadow: 14px 20px 40px -22px rgba(45, 45, 45, 0.28), -10px -10px 24px -12px rgba(255, 255, 255, 0.9), inset 1px 1px 0 rgba(255, 255, 255, 0.98);
+}
+
+/* Activity digest — full-width, 2-column bars */
+.fd-ledger-digest {
+  margin-top: 34px;
+  border-radius: 26px;
+  padding: clamp(22px, 3vw, 30px) clamp(22px, 3vw, 34px);
+  background: linear-gradient(150deg, #FDFAF5 0%, #F6F0E7 100%);
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 10px 18px 36px -24px rgba(45, 45, 45, 0.24), inset 1px 1px 0 rgba(255, 255, 255, 0.98);
+}
+.fd-digest-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 40px;
+}
+@media (max-width: 720px) {
+  .fd-digest-grid { grid-template-columns: 1fr; }
+}
+
+/* Skeletons — shimmer placeholder, fast paint without layout shift */
+.fd-skel {
+  border-radius: 8px;
+  background: linear-gradient(100deg, rgba(45, 45, 45, 0.07) 30%, rgba(45, 45, 45, 0.13) 50%, rgba(45, 45, 45, 0.07) 70%);
+  background-size: 220% 100%;
+  animation: fd-skel-slide 1.5s ease-in-out infinite;
+}
+.fd-skel-on-dark {
+  background: linear-gradient(100deg, rgba(248, 245, 242, 0.09) 30%, rgba(248, 245, 242, 0.18) 50%, rgba(248, 245, 242, 0.09) 70%);
+  background-size: 220% 100%;
+  animation: fd-skel-slide 1.5s ease-in-out infinite;
+}
+@keyframes fd-skel-slide {
+  from { background-position: 100% 0; }
+  to { background-position: -20% 0; }
+}
+
+/* Keep two-column dashboard grid even at tablet widths until space runs out */
+@media (min-width: 1081px) and (max-width: 1300px) {
+  .fd-ledger-grid { grid-template-columns: minmax(0, 1fr) 320px; gap: 28px; }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   PAGE HEROES v1 · custom hero panels for Plan / Execute / Memory / Settings
+   ════════════════════════════════════════════════════════════════ */
+
+.fd-hero {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+  border-radius: 26px;
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  padding: clamp(26px, 3.4vw, 42px);
+  margin-bottom: 30px;
+  box-shadow: 0 30px 60px -32px rgba(45, 45, 45, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+.fd-hero::before {
+  content: attr(data-anchor);
+  position: absolute;
+  top: -30px;
+  right: 8px;
+  font-family: "Cormorant Garamond", serif;
+  font-style: italic;
+  font-size: clamp(160px, 20vw, 235px);
+  line-height: 1;
+  pointer-events: none;
+  user-select: none;
+}
+.fd-hero-main {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  max-width: 640px;
+}
+.fd-hero-side {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.fd-hero-kicker {
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  font-family: Manrope, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--hero-ac);
+}
+.fd-hero-title {
+  margin: 14px 0 0;
+  font-family: "Cormorant Garamond", serif;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 0.95;
+  font-size: clamp(40px, 5.4vw, 62px);
+  color: currentColor;
+}
+.fd-hero-sub {
+  margin: 14px 0 0;
+  font-family: Manrope, sans-serif;
+  font-size: 13.5px;
+  font-weight: 500;
+  line-height: 1.6;
+  color: var(--hero-sub);
+  max-width: 520px;
+}
+.fd-hero-chip {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 12px 17px;
+  border-radius: 16px;
+  background: var(--hero-chip-bg);
+  border: 1px solid var(--hero-chip-bd);
+  backdrop-filter: blur(8px);
+  min-width: 76px;
+}
+.fd-hero-chip-num {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 27px;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--hero-ac);
+}
+.fd-hero-chip-label {
+  font-family: Manrope, sans-serif;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--hero-sub);
+}
+
+/* Plan — warm road-map paper, ember + moss washes */
+.hero-plan {
+  --hero-ac: #B85A2A;
+  --hero-sub: rgba(45, 45, 45, 0.72);
+  --hero-chip-bg: rgba(255, 255, 255, 0.5);
+  --hero-chip-bd: rgba(184, 90, 42, 0.14);
+  color: #2D2D2D;
+  background:
+    radial-gradient(620px 340px at 104% -18%, rgba(214, 130, 79, 0.18), transparent 60%),
+    radial-gradient(460px 340px at -10% 120%, rgba(126, 142, 123, 0.14), transparent 60%),
+    linear-gradient(150deg, #FDFAF5 0%, #F3EADB 52%, #E9DECA 100%);
+}
+.hero-plan::before { color: rgba(184, 90, 42, 0.16); }
+
+/* Execute — dark forge, ember + moss glow */
+.hero-execute {
+  --hero-ac: #E29A68;
+  --hero-sub: rgba(248, 245, 242, 0.62);
+  --hero-chip-bg: rgba(255, 255, 255, 0.06);
+  --hero-chip-bd: rgba(255, 255, 255, 0.09);
+  color: #F8F5F2;
+  background:
+    radial-gradient(620px 340px at 106% -16%, rgba(214, 130, 79, 0.22), transparent 60%),
+    radial-gradient(460px 340px at -12% 122%, rgba(126, 142, 123, 0.18), transparent 60%),
+    linear-gradient(155deg, #2E2B26 0%, #23211E 52%, #191814 100%);
+}
+.hero-execute::before { color: rgba(248, 245, 242, 0.08); }
+
+/* Memory — vault navy + amber highlight */
+.hero-memory {
+  --hero-ac: #D6A857;
+  --hero-sub: rgba(238, 234, 225, 0.6);
+  --hero-chip-bg: rgba(255, 255, 255, 0.05);
+  --hero-chip-bd: rgba(214, 168, 87, 0.18);
+  color: #F2EEE6;
+  background:
+    radial-gradient(620px 340px at 104% -16%, rgba(214, 168, 87, 0.16), transparent 60%),
+    radial-gradient(460px 340px at -10% 120%, rgba(126, 142, 123, 0.12), transparent 60%),
+    linear-gradient(155deg, #252933 0%, #1E2129 52%, #15161C 100%);
+  border-top: 2px solid rgba(214, 168, 87, 0.45);
+}
+.hero-memory::before { color: rgba(214, 168, 87, 0.13); }
+
+/* Settings — cool desk slate, steel accent (distinct from Plan's warm paper) */
+.hero-settings {
+  --hero-ac: #5E7287;
+  --hero-sub: rgba(45, 45, 45, 0.7);
+  --hero-chip-bg: rgba(255, 255, 255, 0.62);
+  --hero-chip-bd: rgba(120, 145, 164, 0.22);
+  color: #2D2D2D;
+  background:
+    radial-gradient(620px 340px at 104% -18%, rgba(133, 160, 181, 0.26), transparent 60%),
+    radial-gradient(460px 340px at -12% 120%, rgba(126, 142, 123, 0.12), transparent 60%),
+    linear-gradient(150deg, #F5F7F8 0%, #EBEFF2 52%, #DEE4E9 100%);
+}
+.hero-settings::before { color: rgba(94, 114, 135, 0.18); }
+
+/* ── Tab rail: underline strip → glass pill tray ─────────────────── */
+.fd-app .view-tabs,
+.settings-page .view-tabs {
+  gap: 4px;
+  padding: 6px;
+  border: 1px solid rgba(45, 45, 45, 0.06);
+  border-radius: 999px;
+  background: rgba(253, 250, 245, 0.65);
+  box-shadow: inset 0 1px 2px rgba(45, 45, 45, 0.04), 0 12px 26px -20px rgba(45, 45, 45, 0.35);
+  width: fit-content;
+  max-width: 100%;
+  backdrop-filter: blur(10px);
+}
+.fd-app .view-tab.active,
+.settings-page .view-tab.active {
+  box-shadow: 0 10px 20px -12px rgba(214, 130, 79, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+/* ── Content cards: lift the clay surface across all pages ─────── */
+.fd-app .card-glass,
+.settings-page .card-glass {
+  border-radius: 20px;
+  border: 1px solid rgba(45, 45, 45, 0.06);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.75),
+    inset 0 -22px 40px -30px rgba(45, 45, 45, 0.35),
+    0 18px 44px -30px rgba(45, 45, 45, 0.55);
+  transition: transform 160ms ease, box-shadow 220ms ease;
+}
+.fd-app .card-glass:hover,
+.settings-page .card-glass:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    inset 0 -22px 40px -30px rgba(45, 45, 45, 0.35),
+    0 26px 52px -30px rgba(45, 45, 45, 0.5);
+}
+
+/* Responsive: hero stacks, chips shrink, tray wraps */
+@media (max-width: 720px) {
+  .fd-hero { align-items: flex-start; }
+  .fd-hero-side { width: 100%; }
+  .fd-hero-chip { flex: 1 1 0; min-width: 0; }
+}
+
+/* ── Sidebar quick-add popover ─────────────────────────────────── */
+.fd-qa-pop {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 0;
+  min-width: 180px;
+  padding: 8px;
+  border-radius: 14px;
+  background: #1E1C18;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 24px 48px -24px rgba(0, 0, 0, 0.55);
+  z-index: 60;
+}
+.fd-qa-label {
+  font-family: Manrope, sans-serif;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(248, 245, 242, 0.45);
+  padding: 6px 8px 4px;
+}
+.fd-qa-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 9px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: Manrope, sans-serif;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #F8F5F2;
+  text-align: left;
+  transition: background 150ms ease, color 150ms ease;
+}
+.fd-qa-item:hover {
+  background: rgba(248, 245, 242, 0.08);
+  color: #F8B382;
 }

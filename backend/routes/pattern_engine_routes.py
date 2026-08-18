@@ -108,7 +108,7 @@ def edit_record(current_user_id, record_type, record_id):
     if not record:
         return jsonify({"error": "Record not found"}), 404
 
-    data = request.get_json() or {}
+    data = request.get_json(silent=True) or {}
     corrected = {}
 
     for key, value in data.items():
@@ -146,7 +146,7 @@ def dismiss_record(current_user_id, record_type, record_id):
     if not record:
         return jsonify({"error": "Record not found"}), 404
 
-    reason = (request.get_json() or {}).get("reason", "")
+    reason = (request.get_json(silent=True) or {}).get("reason", "")
 
     record.ai_status = "dismissed"
     record.dismissed_at = datetime.utcnow()

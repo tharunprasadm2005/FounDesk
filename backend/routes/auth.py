@@ -62,7 +62,7 @@ def _validate_password(password, prefix="Password"):
 @auth_bp.route("/auth/signup", methods=["POST"])
 @limiter.limit("10 per minute")
 def signup():
-    data = request.get_json() or {}
+    data = request.get_json(silent=True) or {}
     name = (data.get("name") or "").strip()
     email = (data.get("email") or "").strip().lower()
     password = data.get("password") or ""
@@ -125,7 +125,7 @@ def signup():
 @auth_bp.route("/auth/login", methods=["POST"])
 @limiter.limit("20 per minute")
 def login():
-    data = request.get_json() or {}
+    data = request.get_json(silent=True) or {}
     email = (data.get("email") or "").strip().lower()
     password = data.get("password") or ""
 
@@ -155,7 +155,7 @@ def login():
 @auth_bp.route("/auth/refresh", methods=["POST"])
 @limiter.limit("10 per minute")
 def refresh_token():
-    data = request.get_json() or {}
+    data = request.get_json(silent=True) or {}
     raw_refresh = (data.get("refresh_token") or "").strip()
     if not raw_refresh:
         return jsonify({"error": "Refresh token is required"}), 400
@@ -181,7 +181,7 @@ def refresh_token():
 @auth_bp.route("/auth/verify-email", methods=["POST"])
 @limiter.limit("10 per minute")
 def verify_email():
-    data = request.get_json() or {}
+    data = request.get_json(silent=True) or {}
     token = (data.get("token") or "").strip()
     if not token:
         return jsonify({"error": "Token is required"}), 400
@@ -198,7 +198,7 @@ def verify_email():
 @auth_bp.route("/auth/forgot-password", methods=["POST"])
 @limiter.limit("3 per minute")
 def forgot_password():
-    data = request.get_json() or {}
+    data = request.get_json(silent=True) or {}
     email = (data.get("email") or "").strip().lower()
 
     if not email:
@@ -229,7 +229,7 @@ def forgot_password():
 @auth_bp.route("/auth/reset-password", methods=["POST"])
 @limiter.limit("3 per minute")
 def reset_password():
-    data = request.get_json() or {}
+    data = request.get_json(silent=True) or {}
     token = (data.get("token") or "").strip()
     new_password = data.get("password") or ""
 

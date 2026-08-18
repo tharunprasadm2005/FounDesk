@@ -126,7 +126,7 @@ def create_order(current_user_id):
 @billing_bp.route('/billing/verify', methods=['POST'])
 @token_required
 def verify_payment(current_user_id):
-    data = request.get_json() or {}
+    data = request.get_json(silent=True) or {}
     order_id = data.get("razorpay_order_id")
     payment_id = data.get("razorpay_payment_id")
     signature = data.get("razorpay_signature")
@@ -174,7 +174,7 @@ def verify_payment(current_user_id):
 @billing_bp.route('/billing/change-plan', methods=['POST'])
 @token_required
 def change_plan(current_user_id):
-    data = request.get_json() or {}
+    data = request.get_json(silent=True) or {}
     new_plan = data.get("plan", "").strip().lower()
     valid_plans = [p["id"] for p in PLANS]
     if new_plan not in valid_plans:
@@ -265,7 +265,7 @@ def razorpay_webhook():
     else:
         return jsonify({"error": "Webhook secret not configured"}), 500
 
-    event = request.get_json() or {}
+    event = request.get_json(silent=True) or {}
     event_type = event.get("event", "")
     payload = event.get("payload", {})
 

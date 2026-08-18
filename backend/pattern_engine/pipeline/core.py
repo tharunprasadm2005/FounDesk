@@ -1,7 +1,7 @@
 import os
 import sys
 import io
-sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace', line_buffering=True)
 from datetime import datetime, timedelta
 from config.database import db
 from models.user_integration import UserIntegration
@@ -14,7 +14,7 @@ from .constants import MAX_DEADLOCK_RETRIES, PROVIDER_MAP
 from .fetch import _fetch_raw_events
 from .ai import _process_ai, _llm_infer_decisions, _infer_meetings, _infer_knowledge, _enrich_decisions
 from .goals import _auto_align_goals, _auto_link_decisions_to_goals, _auto_progress, _auto_progress_v2, _stale_goal_detection, _compute_active_phase
-from .tasks import _process_task_tool_events, _detect_overdue_tasks, _handle_task_deletes
+from .tasks import _process_task_tool_events, _llm_infer_tasks, _detect_overdue_tasks, _handle_task_deletes
 from .followups import _llm_follow_up_detection, _crm_follow_up_detection, _auto_resolve_follow_ups, _update_follow_up_priority
 from .blockers import _process_blocker_events, _process_crm_blockers, _auto_resolve_blockers, _update_blocker_priority
 from .standup import _auto_standup, _auto_standup_for_all_members, _cross_link_standup_blockers
@@ -197,6 +197,7 @@ def run_for_workspace(user_id, workspace_id):
     all_events = _unprocessed_events_for_workspace(workspace_id)
     _process_task_tool_events(workspace_id, all_events)
     db.session.commit()
+    _safe_run(_llm_infer_tasks, "tasks_llm", workspace_id, all_events)
     _safe_run(_llm_infer_decisions, "decisions", workspace_id, all_events)
     _safe_run(_infer_meetings, "meetings", workspace_id, all_events)
     _safe_run(_infer_knowledge, "knowledge", workspace_id, all_events)

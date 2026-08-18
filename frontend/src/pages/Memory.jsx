@@ -385,9 +385,26 @@ function Memory() {
         .spin { animation: fdspin 0.8s linear infinite; }
       `}</style>
 
-      <div style={{ marginBottom: 28 }}>
-        <h1 className="fd-page-title">Memory Vault</h1>
-        <p className="fd-page-sub">{subtitleMap[activeTab]}</p>
+      <div className="fd-hero hero-memory" data-anchor="M">
+        <div className="fd-hero-main">
+          <div className="fd-hero-kicker">The vault</div>
+          <h1 className="fd-hero-title">Memory Vault</h1>
+          <p className="fd-hero-sub">{subtitleMap[activeTab]}</p>
+        </div>
+        <div className="fd-hero-side">
+          <div className="fd-hero-chip">
+            <span className="fd-hero-chip-num">{decisions.length}</span>
+            <span className="fd-hero-chip-label">Decisions</span>
+          </div>
+          <div className="fd-hero-chip">
+            <span className="fd-hero-chip-num">{notes.length}</span>
+            <span className="fd-hero-chip-label">Notes</span>
+          </div>
+          <div className="fd-hero-chip">
+            <span className="fd-hero-chip-num">{knowledgeItems.length}</span>
+            <span className="fd-hero-chip-label">Knowledge</span>
+          </div>
+        </div>
       </div>
 
       <div className="view-tabs" style={{ marginBottom: 24, alignItems: "center" }}>

@@ -228,7 +228,7 @@ def extract_decision_from_event(event_text, source):
         "source": source,
         "content": event_text,
     }
-    return call_llm(_job_messages(job_input), DECISION_SCHEMA)
+    return call_llm(_job_messages(job_input), DECISION_SCHEMA, task="decision")
 
 
 # ── Job 2: Task Extraction ─────────────────────────────────────────────
@@ -239,7 +239,7 @@ def extract_task_from_event(event_text, source):
         "source": source,
         "content": event_text,
     }
-    return call_llm(_job_messages(job_input), TASK_SCHEMA)
+    return call_llm(_job_messages(job_input), TASK_SCHEMA, task="task")
 
 
 # ── Job 3: Meeting Intelligence ────────────────────────────────────────
@@ -251,7 +251,7 @@ def extract_meeting_from_event(event_text, source, meeting_type="meet"):
         "meeting_type": meeting_type,
         "content": event_text,
     }
-    return call_llm(_job_messages(job_input), MEETING_SCHEMA)
+    return call_llm(_job_messages(job_input), MEETING_SCHEMA, task="meeting")
 
 
 # ── Job 4: CRM Signal Extraction ───────────────────────────────────────
@@ -262,7 +262,7 @@ def extract_crm_signal_from_event(event_text, source):
         "source": source,
         "content": event_text,
     }
-    return call_llm(_job_messages(job_input), CRM_SCHEMA)
+    return call_llm(_job_messages(job_input), CRM_SCHEMA, task="crm")
 
 
 # ── Job 5: Goal Alignment Check ────────────────────────────────────────
@@ -274,7 +274,7 @@ def check_goal_alignment(item_type, item_title, existing_goals):
         "item_title": item_title,
         "existing_goals": existing_goals,
     }
-    return call_llm(_job_messages(job_input), GOAL_SCHEMA)
+    return call_llm(_job_messages(job_input), GOAL_SCHEMA, task="goal")
 
 
 NEW_GOAL_SCHEMA = {
@@ -297,7 +297,7 @@ def suggest_goal_from_signal(item_type, item_title):
         "item_type": item_type,
         "item_title": item_title,
     }
-    return call_llm(_job_messages(job_input), NEW_GOAL_SCHEMA)
+    return call_llm(_job_messages(job_input), NEW_GOAL_SCHEMA, task="goal")
 
 
 # ── Job 6: Standup Summary Generation ──────────────────────────────────
@@ -310,7 +310,7 @@ def generate_standup_summary(completed, blockers, goals_today, sources_active_to
         "goals_today": goals_today,
         "sources_active_today": sources_active_today,
     }
-    return call_llm(_job_messages(job_input), STANDUP_SCHEMA, temperature=0.3)
+    return call_llm(_job_messages(job_input), STANDUP_SCHEMA, temperature=0.3, task="standup")
 
 
 STANDUP_REWRITE_SCHEMA = {
@@ -361,7 +361,7 @@ def rewrite_standup_narrative(compiled):
         {"role": "user", "content": "Rewrite the above into a concise standup narrative."},
     ]
 
-    result = call_llm(messages, STANDUP_REWRITE_SCHEMA, temperature=0.2)
+    result = call_llm(messages, STANDUP_REWRITE_SCHEMA, temperature=0.2, task="standup")
     return result.get("summary", "") if result else ""
 
 
@@ -374,7 +374,7 @@ def extract_follow_up_from_event(event_text, source):
         "source": source,
         "content": event_text,
     }
-    return call_llm(_job_messages(job_input), FOLLOWUP_SCHEMA, temperature=0.3)
+    return call_llm(_job_messages(job_input), FOLLOWUP_SCHEMA, temperature=0.3, task="followup")
 
 
 # ── Job 9: Blocker Detection ────────────────────────────────────────────
@@ -403,7 +403,7 @@ def extract_blocker_from_event(event_text, source):
         "source": source,
         "content": event_text,
     }
-    return call_llm(_job_messages(job_input), BLOCKER_SCHEMA, temperature=0.3)
+    return call_llm(_job_messages(job_input), BLOCKER_SCHEMA, temperature=0.3, task="blocker")
 
 
 # ── Job 7: Knowledge Classification ─────────────────────────────────────
@@ -414,7 +414,7 @@ def classify_knowledge_from_event(event_text, source):
         "source": source,
         "content": event_text,
     }
-    return call_llm(_job_messages(job_input), KNOWLEDGE_SCHEMA)
+    return call_llm(_job_messages(job_input), KNOWLEDGE_SCHEMA, task="knowledge")
 
 
 # ── Legacy batch extraction (for backward compatibility) ────────────────
@@ -479,7 +479,7 @@ def extract_batch(raw_events):
         {"role": "user", "content": f"Analyze these events:\n{events_text}"},
     ]
 
-    result = call_llm(messages, BATCH_EXTRACTION_SCHEMA)
+    result = call_llm(messages, BATCH_EXTRACTION_SCHEMA, task="batch")
     return result.get("results", [])
 
 
@@ -517,4 +517,4 @@ def detect_contradiction(earlier_decision, later_decision):
             "semantic conflict, not just different topics. Return confidence 0.0-1.0."
         ),
     }
-    return call_llm(_job_messages(job_input), CONTRADICTION_SCHEMA, temperature=0.2)
+    return call_llm(_job_messages(job_input), CONTRADICTION_SCHEMA, temperature=0.2, task="contradiction")

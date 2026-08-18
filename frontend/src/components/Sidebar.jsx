@@ -2,8 +2,8 @@ import { useEffect, useState, useRef } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Target, Zap, Brain, Settings,
-  ChevronsUpDown, ChevronLeft, ChevronRight, Plus, Check,
-  Bell, LogOut, Sparkles
+  ChevronLeft, ChevronRight, Plus,
+  LogOut
 } from "lucide-react";
 import api from "../utils/api";
 
@@ -14,17 +14,11 @@ function Sidebar({ mobileOpen = false, onNavigate }) {
   const [collapsed, setCollapsed] = useState(() => localStorage.getItem("sidebar_collapsed") === "true");
   const [workspaces, setWorkspaces] = useState([]);
   const [activeWorkspace, setActiveWorkspace] = useState(null);
-  const [switcherOpen, setSwitcherOpen] = useState(false);
-  const [notifOpen, setNotifOpen] = useState(false);
-  const [notifications, setNotifications] = useState([]);
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const [newWsName, setNewWsName] = useState("");
+  const [qaOpen, setQaOpen] = useState(false);
   const [user, setUser] = useState(() => {
     try { return JSON.parse(localStorage.getItem("user") || "{}"); } catch { return null; }
   });
-  const switcherRef = useRef(null);
-  const notifRef = useRef(null);
+  const qaRef = useRef(null);
 
   const fetchWorkspaces = async () => {
     const now = Date.now();
@@ -69,18 +63,10 @@ function Sidebar({ mobileOpen = false, onNavigate }) {
         localStorage.setItem("user", JSON.stringify(res.data.user));
       }
     }).catch(() => {});
-    api.get("/api/notifications").then((res) => {
-      const list = (res.data || []).slice(0, 12);
-      setNotifications(list);
-      setUnreadCount(list.filter((n) => n.is_unread).length);
-    }).catch(() => {});
 
     const handleClickOutside = (event) => {
-      if (switcherRef.current && !switcherRef.current.contains(event.target)) {
-        setSwitcherOpen(false);
-      }
-      if (notifRef.current && !notifRef.current.contains(event.target)) {
-        setNotifOpen(false);
+      if (qaRef.current && !qaRef.current.contains(event.target)) {
+        setQaOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -91,27 +77,6 @@ function Sidebar({ mobileOpen = false, onNavigate }) {
     const nextState = !collapsed;
     setCollapsed(nextState);
     localStorage.setItem("sidebar_collapsed", nextState.toString());
-  };
-
-  const handleSwitchWorkspace = (id) => {
-    localStorage.setItem("workspaceId", id.toString());
-    setSwitcherOpen(false);
-    window.location.reload();
-  };
-
-  const handleCreateWorkspace = async (e) => {
-    e.preventDefault();
-    if (!newWsName.trim()) return;
-    try {
-      const res = await api.post("/api/workspaces", { name: newWsName, stage: "Build" });
-      setNewWsName("");
-      setShowCreateForm(false);
-      setSwitcherOpen(false);
-      localStorage.setItem("workspaceId", res.data.id.toString());
-      window.location.reload();
-    } catch (err) {
-      console.error("Failed to create workspace:", err);
-    }
   };
 
   const menuItems = [
@@ -146,73 +111,25 @@ function Sidebar({ mobileOpen = false, onNavigate }) {
           {!collapsed && <span className="fd-side-word">FounDesk</span>}
         </div>
 
-        {/* Workspace switcher */}
+        {/* Current workspace — static, no switcher. Manage workspaces in Settings → Workspaces. */}
         {!collapsed && (
           <div className="fd-side-sec">
             <span className="fd-side-label">Workspace</span>
-            <div className="fd-ws-wrap" ref={switcherRef}>
-              <div className="fd-ws-pill" onClick={() => setSwitcherOpen(!switcherOpen)}>
+            <div className="fd-ws-wrap">
+              <div className="fd-ws-pill" style={{ cursor: "default" }}>
                 <div className="fd-ws-avatar">{wsInitial}</div>
                 <div className="fd-ws-meta">
                   <span className="fd-ws-name">{activeWorkspace ? activeWorkspace.name : "Workspace"}</span>
                   {activeWorkspace && <span className="fd-ws-role">{activeWorkspace.role}</span>}
                 </div>
-                <ChevronsUpDown size={13} strokeWidth={2.2} className="fd-ws-caret" />
               </div>
-
-              {switcherOpen && (
-                <div className="fd-ws-pop" data-lenis-prevent>
-                  <div className="fd-ws-list">
-                    {workspaces.map(ws => {
-                      const isActive = activeWorkspace && activeWorkspace.id === ws.id;
-                      return (
-                        <div
-                          key={ws.id}
-                          className={`fd-ws-row ${isActive ? "is-active" : ""}`}
-                          onClick={() => handleSwitchWorkspace(ws.id)}
-                        >
-                          <div className="fd-ws-row-avatar">{ws.name.charAt(0).toUpperCase()}</div>
-                          <div className="fd-ws-row-meta">
-                            <div className="fd-ws-row-name">{ws.name}</div>
-                            <span className="fd-ws-row-role">{ws.role}</span>
-                          </div>
-                          {isActive && <Check size={13} strokeWidth={3} className="fd-ws-row-check" />}
-                        </div>
-                      );
-                    })}
-                  </div>
-                  <div className="fd-ws-foot">
-                    {showCreateForm ? (
-                      <form onSubmit={handleCreateWorkspace} className="fd-ws-form">
-                        <input
-                          type="text"
-                          placeholder="Workspace name…"
-                          className="fd-ws-input"
-                          value={newWsName}
-                          onChange={(e) => setNewWsName(e.target.value)}
-                          autoFocus
-                          required
-                        />
-                        <div className="fd-ws-form-actions">
-                          <button type="submit" className="fd-ws-btn-primary">Create</button>
-                          <button type="button" className="fd-ws-btn-ghost" onClick={() => setShowCreateForm(false)}>Cancel</button>
-                        </div>
-                      </form>
-                    ) : (
-                      <button className="fd-ws-add" onClick={() => setShowCreateForm(true)}>
-                        <Plus size={12} strokeWidth={2.5} /> New workspace
-                      </button>
-                    )}
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         )}
 
         {/* Nav */}
         <div className="fd-side-sec">
-          <span className="fd-side-label">{collapsed ? "Menu" : "Command"}</span>
+          <span className="fd-side-label">{collapsed ? "Menu" : "Pages"}</span>
           <nav className="fd-side-nav">
             {menuItems.map(item => (
               <NavLink
@@ -229,7 +146,7 @@ function Sidebar({ mobileOpen = false, onNavigate }) {
         </div>
       </div>
 
-      {/* Footer — user identity + actions */}
+      {/* Footer — quick add + user identity + logout */}
       <div className={`fd-side-foot ${collapsed ? "is-collapsed" : ""}`}>
         <div className="fd-user">
           <div className="fd-user-avatar">
@@ -246,51 +163,28 @@ function Sidebar({ mobileOpen = false, onNavigate }) {
             </div>
           )}
         </div>
-        <div className="fd-foot-actions" ref={notifRef}>
-          <button
-            className="fd-icon-btn fd-cmd-trigger"
-            onClick={() => window.dispatchEvent(new CustomEvent("open-command-palette"))}
-            title="Command Bar (Ctrl+K)"
-            aria-label="Open command bar (Ctrl+K)"
-          >
-            <Sparkles size={14} strokeWidth={2} />
-          </button>
-          <div style={{ position: "relative" }}>
+        <div className="fd-foot-actions">
+          <div style={{ position: "relative" }} ref={qaRef}>
             <button
-              className={`fd-icon-btn ${unreadCount > 0 ? "has-badge" : ""}`}
-              onClick={() => setNotifOpen(!notifOpen)}
-              title="Notifications"
+              className="fd-icon-btn fd-qa-trigger"
+              onClick={() => setQaOpen(!qaOpen)}
+              title="Quick add"
+              aria-label="Quick add"
             >
-              <Bell size={14} strokeWidth={2} />
-              {unreadCount > 0 && <span className="fd-badge-dot" />}
+              <Plus size={14} strokeWidth={2.4} />
             </button>
-            {notifOpen && (
-              <div className="fd-notif-pop" data-lenis-prevent>
-                <div className="fd-notif-head">
-                  <span>Notifications</span>
-                  {unreadCount > 0 && (
-                    <button className="fd-notif-markall" onClick={async () => {
-                      try { await api.post("/api/notifications/read-all"); } catch (err) { console.error("[Sidebar] Failed to mark all notifications as read:", err); }
-                      setNotifications([]);
-                      setUnreadCount(0);
-                    }}>
-                      <Check size={10} strokeWidth={3} /> Mark all read
-                    </button>
-                  )}
-                </div>
-                <div className="fd-notif-list">
-                  {notifications.length === 0 ? (
-                    <div className="fd-notif-empty">No notifications yet</div>
-                  ) : (
-                    notifications.map((n, i) => (
-                      <div key={n.id || i} className={`fd-notif-item ${n.is_unread ? "is-unread" : ""}`}>
-                        <div className="fd-notif-title">{n.title}</div>
-                        <div className="fd-notif-message">{n.message}</div>
-                        <div className="fd-notif-time">{n.created_at}</div>
-                      </div>
-                    ))
-                  )}
-                </div>
+            {qaOpen && (
+              <div className="fd-qa-pop" data-lenis-prevent>
+                <div className="fd-qa-label">Quick add</div>
+                <button className="fd-qa-item" onClick={() => { setQaOpen(false); onNavigate(); navigate("/execute?new=1"); }}>
+                  <Plus size={12} strokeWidth={2.4} /> New task
+                </button>
+                <button className="fd-qa-item" onClick={() => { setQaOpen(false); onNavigate(); navigate("/plan?action=new-goal"); }}>
+                  <Target size={12} strokeWidth={2.4} /> New goal
+                </button>
+                <button className="fd-qa-item" onClick={() => { setQaOpen(false); onNavigate(); navigate("/memory?action=new-decision"); }}>
+                  <Brain size={12} strokeWidth={2.4} /> New decision
+                </button>
               </div>
             )}
           </div>

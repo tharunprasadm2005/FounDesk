@@ -62,7 +62,7 @@ def rename_api_key(current_user_id, key_id):
     key = ApiKey.query.filter_by(id=key_id, user_id=current_user_id).first()
     if not key:
         return jsonify({"error": "API key not found"}), 404
-    data = request.get_json() or {}
+    data = request.get_json(silent=True) or {}
     new_name = data.get('name', '').strip()
     if not new_name:
         return jsonify({"error": "Name is required"}), 400
@@ -106,7 +106,7 @@ def hard_delete_api_key(current_user_id, key_id):
     key = ApiKey.query.filter_by(id=key_id, user_id=current_user_id).first()
     if not key:
         return jsonify({"error": "API key not found"}), 404
-    data = request.get_json() or {}
+    data = request.get_json(silent=True) or {}
     if not data.get("confirm"):
         return jsonify({"error": "Must confirm hard delete with confirm: true"}), 400
     audit = ApiKeyAuditLog(

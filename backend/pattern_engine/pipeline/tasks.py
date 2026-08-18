@@ -1,4 +1,5 @@
 import json
+import os
 from datetime import datetime, timedelta
 from config.database import db
 from models.task import Task
@@ -9,6 +10,8 @@ from .utils import _get_workspace_creator
 
 TASK_TOOL_SOURCES = {"linear", "trello", "asana", "monday"}
 TASK_TOOL_MODULES = {}
+
+TASK_INFER_SOURCES = {"gmail", "slack", "hubspot", "pipedrive"}
 
 
 def _load_task_tool_module(source):
@@ -53,6 +56,20 @@ def _map_tool_priority(priority_str):
     if s in ("p3", "low", "none", "lowest"):
         return "P3"
     return None
+
+
+def _normalize_ai_priority(raw):
+    """Normalize free-text LLM priority output to P0-P3."""
+    if not raw:
+        return "P2"
+    s = str(raw).strip().lower()
+    if s in ("p0", "critical", "urgent", "blocker", "immediate"):
+        return "P0"
+    if s in ("p1", "high", "highest", "important"):
+        return "P1"
+    if s in ("p3", "low", "lowest", "minor", "nice to have"):
+        return "P3"
+    return "P2"
 
 
 def _parse_source_category(details, src):
@@ -147,6 +164,101 @@ def _process_task_tool_events(workspace_id, raw_events):
     if count:
         db.session.flush()
         print(f"[TASK-TOOL] Created/updated {count} tasks from task-tool sources (ws={workspace_id})")
+
+
+def _llm_infer_tasks(workspace_id, raw_events):
+    """Job 2: Infer tasks from conversational events (gmail/slack/hubspot/pipedrive).
+
+    Complements _process_task_tool_events (which handles linear/trello/asana/monday)
+    by routing conversational sources through the LLM task extractor. Never consumes
+    task-tool sources, so upstream tool events keep their authoritative status.
+    """
+    from pattern_engine.extraction import extract_task_from_event
+    from pattern_engine.models import LLMUsageLog
+    from pattern_engine.llm_client import LLMQuotaExhausted
+
+    today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+    daily_calls = LLMUsageLog.query.filter(LLMUsageLog.created_at >= today_start).count()
+    max_daily = int(os.environ.get("LLM_DAILY_LIMIT", "200"))
+    remaining = max_daily - daily_calls
+    if remaining <= 0:
+        return
+
+    creator_id = _get_workspace_creator(workspace_id)
+    candidates = [e for e in raw_events if (e.source or "").lower() in TASK_INFER_SOURCES]
+    if not candidates:
+        return
+
+    existing = Task.query.filter(
+        Task.workspace_id == workspace_id,
+        Task.source == "ai_pattern_engine",
+    ).all()
+    existing_titles = {t.title.strip().lower() for t in existing if t.title}
+    existing_by_event = {str(t.source_event_id) for t in existing if t.source_event_id}
+
+    created = 0
+    for event in candidates[:min(5, remaining)]:
+        if str(event.id) in existing_by_event:
+            continue
+        src = (event.source or "").lower()
+        payload = event.raw_payload
+        if isinstance(payload, str):
+            try:
+                payload = json.loads(payload)
+            except (json.JSONDecodeError, TypeError):
+                continue
+        if not isinstance(payload, dict):
+            continue
+        title = payload.get("title", "") or ""
+        details = payload.get("details", "") or ""
+        if not title.strip() and not details.strip():
+            continue
+        actor = payload.get("actor") or payload.get("from") or ""
+        event_text = f"From: {actor}\n" if actor else ""
+        event_text += f"Title: {title}\nDetails: {details}" if details else title
+        if len(event_text.strip()) < 30:
+            continue
+        try:
+            result = extract_task_from_event(event_text, src)
+        except LLMQuotaExhausted:
+            print(f"[TASK] LLM quota exhausted — stopping task inference (ws={workspace_id})")
+            break
+        except Exception as e:
+            print(f"[TASK] error source={src} error={e}")
+            continue
+        if not result or not result.get("has_task"):
+            continue
+        task_title = (result.get("title") or "").strip()
+        if not task_title:
+            continue
+        norm = task_title.strip().lower()
+        if norm in existing_titles:
+            print(f'[TASK] Skipped duplicate title: "{task_title[:50]}"')
+            continue
+        description = (result.get("description") or "").strip() or details.strip()
+        task = Task(
+            title=task_title[:255],
+            description=(description or None)[:1000] if description else None,
+            priority=_normalize_ai_priority(result.get("priority")),
+            status="Not Started",
+            user_id=creator_id or 1,
+            workspace_id=workspace_id,
+            source="ai_pattern_engine",
+            source_integration=src,
+            source_event_id=event.id,
+            confidence_score=0.6,
+            source_signal="inferred",
+            ai_status="pending_confirmation",
+        )
+        db.session.add(task)
+        db.session.flush()
+        existing_titles.add(norm)
+        existing_by_event.add(str(event.id))
+        created += 1
+        print(f'[TASK] Created from {src}: "{task_title[:60]}"')
+    if created:
+        db.session.commit()
+        print(f"[TASK] Created {created} tasks from Job 2 (ws={workspace_id})")
 
 
 def _detect_overdue_tasks(workspace_id):

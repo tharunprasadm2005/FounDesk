@@ -189,7 +189,7 @@ def send_test_notification(current_user_id):
     workspace_id = _get_ws_id(current_user_id)
     if not workspace_id:
         return jsonify({"error": "No active workspace"}), 400
-    data = request.get_json() or {}
+    data = request.get_json(silent=True) or {}
     ntype = data.get("type", "daily_briefing")
     note = InAppNotification(
         user_id=current_user_id, workspace_id=workspace_id,

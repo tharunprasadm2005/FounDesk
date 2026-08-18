@@ -17,7 +17,7 @@ def get_google_analytics_config(current_user_id):
 @integrations_bp.route('/integrations/google-analytics', methods=['POST'])
 @token_required
 def save_google_analytics_config(current_user_id):
-    data = request.get_json() or {}
+    data = request.get_json(silent=True) or {}
     property_id = data.get('property_id')
     integration = UserIntegration.query.filter_by(user_id=current_user_id, provider='google_analytics').first()
     if not integration:

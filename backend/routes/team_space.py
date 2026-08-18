@@ -209,7 +209,7 @@ def get_team_activity(current_user_id, workspace_id):
 @team_space_bp.route('/workspaces/<int:workspace_id>/invite-bulk', methods=['POST'])
 @token_required
 def bulk_invite(current_user_id, workspace_id):
-    data = request.get_json() or {}
+    data = request.get_json(silent=True) or {}
     raw = data.get("emails", "")
     role = data.get("role", "member")
 
@@ -270,7 +270,7 @@ def list_teams(current_user_id, workspace_id):
 @team_space_bp.route('/workspaces/<int:workspace_id>/teams', methods=['POST'])
 @token_required
 def create_team(current_user_id, workspace_id):
-    data = request.get_json() or {}
+    data = request.get_json(silent=True) or {}
     name = data.get("name", "").strip()
     if not name:
         return jsonify({"error": "Team name is required"}), 400
@@ -287,7 +287,7 @@ def update_team(current_user_id, workspace_id, team_id):
     team = SubTeam.query.filter_by(id=team_id, workspace_id=workspace_id).first()
     if not team:
         return jsonify({"error": "Team not found"}), 404
-    data = request.get_json() or {}
+    data = request.get_json(silent=True) or {}
     if "name" in data:
         team.name = data["name"].strip()
     if "description" in data:
@@ -318,7 +318,7 @@ def list_team_members(current_user_id, workspace_id, team_id):
 @team_space_bp.route('/workspaces/<int:workspace_id>/teams/<int:team_id>/members', methods=['POST'])
 @token_required
 def add_team_member(current_user_id, workspace_id, team_id):
-    data = request.get_json() or {}
+    data = request.get_json(silent=True) or {}
     user_id = data.get("user_id")
     role = data.get("role", "member")
 

@@ -129,7 +129,7 @@ def delete_account(current_user_id):
     user = User.query.get(current_user_id)
     if not user:
         return jsonify({"error": "User not found"}), 404
-    data = request.get_json() or {}
+    data = request.get_json(silent=True) or {}
     if not data.get('confirm'):
         return jsonify({"error": "Must confirm account deletion"}), 400
     db.session.delete(user)
@@ -145,7 +145,7 @@ def change_password(current_user_id):
     user = User.query.get(current_user_id)
     if not user:
         return jsonify({"error": "User not found"}), 404
-    data = request.get_json() or {}
+    data = request.get_json(silent=True) or {}
     current_pw = data.get("current_password", "")
     new_pw = data.get("new_password", "")
     if len(new_pw) < 12:
@@ -188,7 +188,7 @@ def verify_2fa(current_user_id):
     user = User.query.get(current_user_id)
     if not user or not user.totp_secret:
         return jsonify({"error": "2FA not initialized"}), 400
-    data = request.get_json() or {}
+    data = request.get_json(silent=True) or {}
     code = data.get("code", "")
     if not code:
         return jsonify({"error": "Code is required"}), 400
@@ -244,7 +244,7 @@ def verify_recovery_code(current_user_id):
         return jsonify({"error": "User not found"}), 404
     if not user.totp_enabled:
         return jsonify({"error": "2FA is not enabled"}), 400
-    data = request.get_json() or {}
+    data = request.get_json(silent=True) or {}
     code = data.get("code", "")
     if not code:
         return jsonify({"error": "Code is required"}), 400

@@ -132,7 +132,7 @@ def get_onboarding_packet(current_user_id):
     if not workspace_id:
         return jsonify({"error": "No active workspace context"}), 400
 
-    data = request.get_json() or {}
+    data = request.get_json(silent=True) or {}
     new_user_id = data.get("new_user_id")
     if not new_user_id:
         return jsonify({"error": "new_user_id parameter is required"}), 400
@@ -272,7 +272,7 @@ def get_offboarding_packet(current_user_id):
     if not workspace_id:
         return jsonify({"error": "No active workspace context"}), 400
 
-    data = request.get_json() or {}
+    data = request.get_json(silent=True) or {}
     departing_user_id = data.get("departing_user_id")
     reassign_to_user_id = data.get("reassign_to_user_id")
 

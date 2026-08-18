@@ -7,7 +7,7 @@ waitlist_bp = Blueprint("waitlist_bp", __name__)
 
 @waitlist_bp.route("/waitlist", methods=["POST"])
 def add_to_waitlist():
-    data = request.get_json() or {}
+    data = request.get_json(silent=True) or {}
     email = data.get("email")
     source = data.get("source", "landing_page")
     created_at_str = data.get("created_at")
