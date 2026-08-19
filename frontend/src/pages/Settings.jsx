@@ -57,22 +57,6 @@ export default function Settings() {
     fetchIntegrations();
     fetchWorkspaces();
     fetchNotificationPrefs();
-    const params = new URLSearchParams(window.location.search);
-    const callback = params.get("callback") || params.get("state");
-    const code = params.get("code");
-    if (callback && code) {
-      api.post("/api/integrations/oauth/callback", { provider: callback, code })
-        .then(() => {
-          if (window.opener) { try { window.opener.postMessage("oauth_done", window.location.origin); } catch (err) { console.error("[Settings] OAuth postMessage failed:", err); } }
-          try { localStorage.setItem("oauth_done", JSON.stringify({ provider: callback, ts: Date.now() })); } catch (err) { console.error("[Settings] Failed to save oauth_done to localStorage:", err); }
-          try { window.close(); } catch (err) { console.error("[Settings] Failed to close popup window:", err); }
-          if (!window.opener) fetchIntegrations();
-        }).catch((err) => {
-          const msg = err?.response?.data?.error || err?.message || "OAuth failed";
-          document.body.innerHTML = `<div style="padding:40px;font-family:sans-serif;background:#121214;color:#e8e4e0;"><h2 style="color:#ef4444;">Connection failed</h2><p>${msg}</p><button onclick="window.close()" style="margin-top:20px;padding:8px 20px;background:#3b82f6;color:white;border:none;border-radius:6px;cursor:pointer;">Close</button></div>`;
-        });
-      window.history.replaceState({}, "", "/settings");
-    }
     const handleOAuth = (e) => { if (e.data === "oauth_done") fetchIntegrations(); };
     window.addEventListener("message", handleOAuth);
     return () => {

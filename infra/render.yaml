@@ -33,6 +33,26 @@ services:
         sync: false
       - key: ADMIN_API_TOKEN
         sync: false
+      - key: FRONTEND_URL
+        value: https://foundesk.onrender.com
+      - key: GOOGLE_INTEGRATION_REDIRECT_URI
+        value: https://foundesk.onrender.com/settings?callback=google
+      - key: GITHUB_REDIRECT_URI
+        value: https://foundesk.onrender.com/settings?callback=github
+      - key: MONDAY_REDIRECT_URI
+        value: https://foundesk.onrender.com/settings
+      - key: SLACK_REDIRECT_URI
+        value: https://foundesk.onrender.com/settings?callback=slack
+      - key: ASANA_REDIRECT_URI
+        value: https://foundesk.onrender.com/settings?callback=asana
+      - key: CALENDLY_REDIRECT_URI
+        value: https://foundesk.onrender.com/settings?callback=calendly
+      - key: LINEAR_REDIRECT_URI
+        value: https://foundesk.onrender.com/settings?callback=linear
+      - key: PIPEDRIVE_REDIRECT_URI
+        value: https://foundesk.onrender.com/settings?callback=pipedrive
+      - key: ZOHO_REDIRECT_URI
+        value: https://foundesk-backend.onrender.com/api/integrations/zoho/callback
     healthCheckPath: /api/health
 
   - type: web

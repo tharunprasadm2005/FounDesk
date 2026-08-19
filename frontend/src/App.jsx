@@ -16,6 +16,7 @@ const Terms = lazy(() => import("./pages/Terms"));
 const Contact = lazy(() => import("./pages/Contact"));
 const Status = lazy(() => import("./pages/Status"));
 const GoogleCallback = lazy(() => import("./pages/GoogleCallback"));
+const OAuthCallback = lazy(() => import("./pages/OAuthCallback"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Goals = lazy(() => import("./pages/Goals"));
 const Execute = lazy(() => import("./pages/Execute"));
@@ -57,6 +58,14 @@ function App() {
   const [user, setUser] = useState(null);
   const [authError, setAuthError] = useState(null);
   const navigate = useNavigate();
+
+  const [oauthReturn] = useState(() => {
+    const p = new URLSearchParams(window.location.search);
+    const hasCode = !!p.get("code");
+    const hasProvider = !!p.get("callback") || !!p.get("state");
+    const isZohoReturn = p.get("zoho") !== null || p.get("zoho_error") !== null;
+    return (hasCode && hasProvider) || isZohoReturn;
+  });
 
   useEffect(() => {
     const savedUser = localStorage.getItem("user");
@@ -116,6 +125,9 @@ function App() {
 
   return (
     <Suspense fallback={<LoadingFallback />}>
+    {oauthReturn ? (
+      <OAuthCallback />
+    ) : (
     <Routes>
       <Route path="/" element={<Landing />} />
       <Route
@@ -185,6 +197,7 @@ function App() {
       {/* Catch-all redirect to landing */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    )}
     </Suspense>
   );
 }

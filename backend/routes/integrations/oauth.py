@@ -9,6 +9,8 @@ from models.user_integration import UserIntegration
 from utils.auth import token_required
 from routes.integrations.main import integrations_bp, validate_asana_token, validate_calendly_token
 
+FRONTEND_URL = os.getenv("FRONTEND_URL", "https://foundesk.onrender.com")
+
 
 @integrations_bp.route('/integrations/oauth/url', methods=['POST'])
 @token_required
@@ -22,7 +24,7 @@ def get_oauth_url(current_user_id):
         provider = raw_provider
     if provider == 'google':
         client_id = os.getenv("GOOGLE_INTEGRATION_CLIENT_ID") or os.getenv("GOOGLE_CLIENT_ID")
-        redirect_uri = os.getenv("GOOGLE_INTEGRATION_REDIRECT_URI", "http://localhost:5173/settings?callback=google")
+        redirect_uri = os.getenv("GOOGLE_INTEGRATION_REDIRECT_URI", f"{FRONTEND_URL}/settings?callback=google")
         if client_id:
             scopes = "https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/documents.readonly https://www.googleapis.com/auth/analytics.readonly"
             url = "https://accounts.google.com/o/oauth2/v2/auth?" + urlencode({
@@ -37,7 +39,7 @@ def get_oauth_url(current_user_id):
             return jsonify({"url": url})
     elif provider == 'github':
         client_id = os.getenv("GITHUB_CLIENT_ID")
-        redirect_uri = os.getenv("GITHUB_REDIRECT_URI", "http://localhost:5173/settings?callback=github")
+        redirect_uri = os.getenv("GITHUB_REDIRECT_URI", f"{FRONTEND_URL}/settings?callback=github")
         if client_id:
             scopes = "repo read:user"
             url = "https://github.com/login/oauth/authorize?" + urlencode({
@@ -49,7 +51,7 @@ def get_oauth_url(current_user_id):
             return jsonify({"url": url})
     elif provider == 'monday':
         client_id = os.getenv("MONDAY_CLIENT_ID")
-        redirect_uri = os.getenv("MONDAY_REDIRECT_URI", "http://localhost:5173/settings")
+        redirect_uri = os.getenv("MONDAY_REDIRECT_URI", f"{FRONTEND_URL}/settings")
         if client_id:
             url = "https://auth.monday.com/oauth2/authorize?" + urlencode({
                 "client_id": client_id,
@@ -59,7 +61,7 @@ def get_oauth_url(current_user_id):
             return jsonify({"url": url})
     elif provider == 'slack':
         client_id = os.getenv("SLACK_CLIENT_ID")
-        redirect_uri = os.getenv("SLACK_REDIRECT_URI", "http://localhost:5173/settings?callback=slack")
+        redirect_uri = os.getenv("SLACK_REDIRECT_URI", f"{FRONTEND_URL}/settings?callback=slack")
         if client_id:
             state_val = f"slack_user_{current_user_id}"
             scopes = "channels:read,channels:history,users:read"
@@ -72,7 +74,7 @@ def get_oauth_url(current_user_id):
             return jsonify({"url": url})
     elif provider == 'asana':
         client_id = os.getenv("ASANA_CLIENT_ID")
-        redirect_uri = os.getenv("ASANA_REDIRECT_URI", "http://localhost:5173/settings?callback=asana")
+        redirect_uri = os.getenv("ASANA_REDIRECT_URI", f"{FRONTEND_URL}/settings?callback=asana")
         if client_id:
             scopes = "users:read workspaces:read projects:read tasks:read teams:read stories:read"
             url = "https://app.asana.com/-/oauth_authorize?" + urlencode({
@@ -85,7 +87,7 @@ def get_oauth_url(current_user_id):
             return jsonify({"url": url})
     elif provider == 'calendly':
         client_id = os.getenv("CALENDLY_CLIENT_ID")
-        redirect_uri = os.getenv("CALENDLY_REDIRECT_URI", "http://localhost:5173/settings?callback=calendly")
+        redirect_uri = os.getenv("CALENDLY_REDIRECT_URI", f"{FRONTEND_URL}/settings?callback=calendly")
         if client_id:
             url = "https://auth.calendly.com/oauth/authorize?" + urlencode({
                 "client_id": client_id,
@@ -97,7 +99,7 @@ def get_oauth_url(current_user_id):
             return jsonify({"url": url})
     elif provider == 'linear':
         client_id = os.getenv("LINEAR_CLIENT_ID")
-        redirect_uri = os.getenv("LINEAR_REDIRECT_URI", "http://localhost:5173/settings?callback=linear")
+        redirect_uri = os.getenv("LINEAR_REDIRECT_URI", f"{FRONTEND_URL}/settings?callback=linear")
         if client_id:
             url = "https://linear.app/oauth/authorize?" + urlencode({
                 "client_id": client_id,
@@ -108,7 +110,7 @@ def get_oauth_url(current_user_id):
             return jsonify({"url": url})
     elif provider == 'pipedrive':
         client_id = os.getenv("PIPEDRIVE_CLIENT_ID")
-        redirect_uri = os.getenv("PIPEDRIVE_REDIRECT_URI", "http://localhost:5173/settings?callback=pipedrive")
+        redirect_uri = os.getenv("PIPEDRIVE_REDIRECT_URI", f"{FRONTEND_URL}/settings?callback=pipedrive")
         if client_id:
             url = "https://oauth.pipedrive.com/oauth/authorize?" + urlencode({
                 "client_id": client_id,
@@ -162,7 +164,7 @@ def oauth_callback(current_user_id):
                 return jsonify({"error": "Mock Google codes are disabled."}), 400
             client_id = os.getenv("GOOGLE_INTEGRATION_CLIENT_ID") or os.getenv("GOOGLE_CLIENT_ID")
             client_secret = os.getenv("GOOGLE_INTEGRATION_CLIENT_SECRET") or os.getenv("GOOGLE_CLIENT_SECRET")
-            redirect_uri = os.getenv("GOOGLE_INTEGRATION_REDIRECT_URI", "http://localhost:5173/settings?callback=google")
+            redirect_uri = os.getenv("GOOGLE_INTEGRATION_REDIRECT_URI", f"{FRONTEND_URL}/settings?callback=google")
             if not client_id or not client_secret:
                 return jsonify({"error": "Set Google integration client ID and secret before connecting Google live."}), 400
             res = requests.post("https://oauth2.googleapis.com/token", data={
@@ -206,7 +208,7 @@ def oauth_callback(current_user_id):
                 return jsonify({"error": "Mock GitHub codes are disabled."}), 400
             client_id = os.getenv("GITHUB_CLIENT_ID")
             client_secret = os.getenv("GITHUB_CLIENT_SECRET")
-            redirect_uri = os.getenv("GITHUB_REDIRECT_URI", "http://localhost:5173/settings?callback=github")
+            redirect_uri = os.getenv("GITHUB_REDIRECT_URI", f"{FRONTEND_URL}/settings?callback=github")
             if not client_id or not client_secret:
                 return jsonify({"error": "Set GitHub client ID and secret before connecting GitHub live."}), 400
             res = requests.post("https://github.com/login/oauth/access_token", headers={"Accept": "application/json"}, data={
@@ -249,7 +251,7 @@ def oauth_callback(current_user_id):
                 return jsonify({"error": "Mock Slack codes are disabled."}), 400
             client_id = os.getenv("SLACK_CLIENT_ID")
             client_secret = os.getenv("SLACK_CLIENT_SECRET")
-            redirect_uri = os.getenv("SLACK_REDIRECT_URI", "http://localhost:5173/settings?callback=slack")
+            redirect_uri = os.getenv("SLACK_REDIRECT_URI", f"{FRONTEND_URL}/settings?callback=slack")
             if not client_id or not client_secret:
                 return jsonify({"error": "Set Slack client ID and secret before connecting Slack live."}), 400
             res = requests.post("https://slack.com/api/oauth.v2.access", data={
@@ -270,7 +272,7 @@ def oauth_callback(current_user_id):
                 return jsonify({"error": "Mock Monday.com codes are disabled."}), 400
             client_id = os.getenv("MONDAY_CLIENT_ID")
             client_secret = os.getenv("MONDAY_CLIENT_SECRET")
-            redirect_uri = os.getenv("MONDAY_REDIRECT_URI", "http://localhost:5173/settings")
+            redirect_uri = os.getenv("MONDAY_REDIRECT_URI", f"{FRONTEND_URL}/settings")
             if not client_id or not client_secret:
                 return jsonify({"error": "Set Monday.com client ID and secret before connecting Monday live."}), 400
             res = requests.post("https://auth.monday.com/oauth2/token", headers={"Accept": "application/json"}, data={
@@ -320,7 +322,7 @@ def oauth_callback(current_user_id):
                     db.session.commit()
             client_id = os.getenv("ASANA_CLIENT_ID")
             client_secret = os.getenv("ASANA_CLIENT_SECRET")
-            redirect_uri = os.getenv("ASANA_REDIRECT_URI", "http://localhost:5173/settings?callback=asana")
+            redirect_uri = os.getenv("ASANA_REDIRECT_URI", f"{FRONTEND_URL}/settings?callback=asana")
             if not client_id or not client_secret:
                 return jsonify({"error": "Set Asana client ID and secret before connecting Asana live."}), 400
             print("=== ASANA OAUTH DEBUG ===")
@@ -404,7 +406,7 @@ def oauth_callback(current_user_id):
                 return jsonify({"error": "Mock Calendly codes are disabled."}), 400
             client_id = os.getenv("CALENDLY_CLIENT_ID")
             client_secret = os.getenv("CALENDLY_CLIENT_SECRET")
-            redirect_uri = os.getenv("CALENDLY_REDIRECT_URI", "http://localhost:5173/settings?callback=calendly")
+            redirect_uri = os.getenv("CALENDLY_REDIRECT_URI", f"{FRONTEND_URL}/settings?callback=calendly")
             if not client_id or not client_secret:
                 return jsonify({"error": "Set Calendly client ID and secret before connecting Calendly live."}), 400
             try:
@@ -455,7 +457,7 @@ def oauth_callback(current_user_id):
                 return jsonify({"error": "Mock Linear codes are disabled."}), 400
             client_id = os.getenv("LINEAR_CLIENT_ID")
             client_secret = os.getenv("LINEAR_CLIENT_SECRET")
-            redirect_uri = os.getenv("LINEAR_REDIRECT_URI", "http://localhost:5173/settings?callback=linear")
+            redirect_uri = os.getenv("LINEAR_REDIRECT_URI", f"{FRONTEND_URL}/settings?callback=linear")
             if not client_id or not client_secret:
                 return jsonify({"error": "Set Linear client ID and secret before connecting Linear live."}), 400
             try:
@@ -506,7 +508,7 @@ def oauth_callback(current_user_id):
                 return jsonify({"error": "Mock Pipedrive codes are disabled."}), 400
             client_id = os.getenv("PIPEDRIVE_CLIENT_ID")
             client_secret = os.getenv("PIPEDRIVE_CLIENT_SECRET")
-            redirect_uri = os.getenv("PIPEDRIVE_REDIRECT_URI", "http://localhost:5173/settings?callback=pipedrive")
+            redirect_uri = os.getenv("PIPEDRIVE_REDIRECT_URI", f"{FRONTEND_URL}/settings?callback=pipedrive")
             if not client_id or not client_secret:
                 return jsonify({"error": "Set Pipedrive client ID and secret before connecting Pipedrive live."}), 400
             auth_header = base64.b64encode(f"{client_id}:{client_secret}".encode()).decode()
