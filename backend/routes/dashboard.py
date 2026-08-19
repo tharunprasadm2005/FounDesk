@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, copy_current_request_context, request
+from flask import Blueprint, jsonify, copy_current_request_context, request, current_app
 from config.database import db
 from models.task import Task
 from models.goal import Goal
@@ -45,11 +45,13 @@ def get_dashboard(current_user_id):
     # Refresh activity feed in background — use separate session to avoid thread safety issues
     try:
         from services.activity_compiler import compile_activity_feed
+        app = current_app._get_current_object()
         def _refresh_feed(wid):
             try:
-                from config.database import db as _db
-                _db.session.remove()
-                compile_activity_feed(wid)
+                with app.app_context():
+                    from config.database import db as _db
+                    _db.session.remove()
+                    compile_activity_feed(wid)
             except Exception as inner:
                 print("Dashboard: activity compile thread error:", inner)
         t = threading.Thread(target=_refresh_feed, args=(workspace_id,), daemon=True)
