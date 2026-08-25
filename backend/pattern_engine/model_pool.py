@@ -50,7 +50,7 @@ TASK_GROQ = {
 # Only active while the key has free-model quota (proactively capped at the
 # provider's 50 free requests/day, or 1000 when credits are added).
 OR_POOL = [
-    "openai/gpt-oss-20b:free",
+    "minimax/minimax-m2.7:free",
     "google/gemma-4-31b-it:free",
     "google/gemma-4-26b-a4b-it:free",
 ]
