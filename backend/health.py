@@ -1,12 +1,14 @@
 import time
 from flask import Blueprint, jsonify
 from config.database import db
+from utils.rate_limit import limiter
 
 health_bp = Blueprint("health", __name__)
 
 start_time = time.time()
 
-@health_bp.route("/health", methods=["GET"])
+@health_bp.route("/health", methods=["GET", "HEAD"])
+@limiter.exempt
 def health():
     return jsonify({"status": "ok", "uptime": time.time() - start_time, "service": "foundesk-api"})
 

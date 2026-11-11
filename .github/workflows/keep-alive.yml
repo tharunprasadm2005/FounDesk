@@ -1,0 +1,49 @@
+name: Render Keep-Alive
+
+on:
+  schedule:
+    # Run every 15 minutes to keep Render Free service warm
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+jobs:
+  ping-health:
+    name: Ping Health Endpoint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping https://foundesk.ntan.in/health
+        run: |
+          TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          TARGET_URL="https://foundesk.ntan.in/health"
+          echo "[$TIMESTAMP] Initiating keep-alive health check for: $TARGET_URL"
+
+          # Request with timeout: 15s connect timeout, 75s total max time (handles cold start)
+          RESPONSE_FILE=$(mktemp)
+          HTTP_STATUS=$(curl -s -S -o "$RESPONSE_FILE" -w "%{http_code}" \
+            --connect-timeout 15 \
+            --max-time 75 \
+            --retry 2 \
+            --retry-delay 5 \
+            --retry-max-time 60 \
+            "$TARGET_URL" 2>&1 || echo "000")
+
+          END_TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          echo "[$END_TIMESTAMP] Completed check with HTTP status code: $HTTP_STATUS"
+
+          if [ "$HTTP_STATUS" -eq 200 ] 2>/dev/null; then
+            echo "[$END_TIMESTAMP] SUCCESS: Endpoint returned HTTP 200 OK"
+            cat "$RESPONSE_FILE"
+            echo ""
+            rm -f "$RESPONSE_FILE"
+            exit 0
+          else
+            echo "[$END_TIMESTAMP] ERROR: Expected HTTP 200, received status code: $HTTP_STATUS"
+            if [ -s "$RESPONSE_FILE" ]; then
+              echo "Response payload:"
+              cat "$RESPONSE_FILE"
+              echo ""
+            fi
+            rm -f "$RESPONSE_FILE"
+            exit 1
+          fi
+

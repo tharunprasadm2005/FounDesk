@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_wtf.csrf import CSRFProtect
 from google.oauth2 import id_token
 from google.auth.transport import requests as grequests
@@ -56,7 +56,14 @@ if sentry_dsn:
 app = Flask(__name__)
 FRONTEND_URL = os.getenv("FRONTEND_URL", "https://foundesk.onrender.com")
 app_env = os.getenv("APP_ENV", "development")
-CORS_ORIGINS = [FRONTEND_URL, "http://localhost:5173", "http://127.0.0.1:5173"]
+CORS_ORIGINS = [
+    FRONTEND_URL,
+    "https://foundesk.ntan.in",
+    "https://foundesk.onrender.com",
+    "https://foundesk-backend.onrender.com",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
 
 @app.before_request
 def handle_preflight():
@@ -541,6 +548,31 @@ def admin_llm_usage():
         "date": date.today().isoformat(),
         "providers": [r.to_dict() for r in records],
     })
+
+
+FRONTEND_DIST_DIR = os.environ.get(
+    "FRONTEND_DIST_DIR",
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "dist"))
+    if os.path.isdir(os.path.abspath(os.path.join(os.path.dirname(__file__), "dist")))
+    else os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "frontend", "dist")),
+)
+
+
+@app.route("/", defaults={"path": ""})
+@app.route("/<path:path>")
+def serve_frontend(path):
+    if path.startswith("api/") or path == "api" or path.startswith("health") or path.startswith("auth/"):
+        return jsonify({"error": "Not found", "message": "The requested resource was not found"}), 404
+
+    if os.path.isdir(FRONTEND_DIST_DIR):
+        file_path = os.path.join(FRONTEND_DIST_DIR, path)
+        if path and os.path.isfile(file_path):
+            return send_from_directory(FRONTEND_DIST_DIR, path)
+        index_file = os.path.join(FRONTEND_DIST_DIR, "index.html")
+        if os.path.isfile(index_file):
+            return send_from_directory(FRONTEND_DIST_DIR, "index.html")
+
+    return jsonify({"error": "Not found", "message": "The requested resource was not found"}), 404
 
 
 if os.environ.get("SKIP_SCHEDULER", "0") != "1":
