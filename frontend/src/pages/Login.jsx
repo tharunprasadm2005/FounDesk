@@ -42,6 +42,12 @@ function LiveBriefCard() {
     py.set((e.clientY - r.top) / r.height);
   };
 
+  const todayFormatted = new Date().toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  }).replace(",", " ·");
+
   return (
     <div className="fd-scene" style={{ perspective: 1300 }} onMouseMove={onMove}>
       <motion.div
@@ -72,7 +78,7 @@ function LiveBriefCard() {
             <div className="fd-kicker" style={{ margin: 0 }}>Live briefing</div>
           </div>
           <span className="fd-chip fd-body" style={{ padding: "5px 11px", fontSize: 10.5, fontWeight: 700, color: "var(--fd-ink-2)", whiteSpace: "nowrap" }}>
-            Tue · Aug 16
+            {todayFormatted}
           </span>
         </div>
 
